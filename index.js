@@ -40,7 +40,7 @@ const studyRouter = require('./routes/study');
 app.use(passport.initialize());
 app.use(passport.session());
 
-// app.use('/write', writeRouter);
+// app.use('/write', writeRouter)
 // app.use('/study', studyRouter);
 app.use('/api/user', userRouter);
 
