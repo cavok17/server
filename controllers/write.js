@@ -7,13 +7,13 @@ const Card_spec = require('../models/card_spec');
 
 // 책 리스트를 보여줍니다.
 exports.get_booklist = async (req, res) => {    
-    console.log('왔냐');
+    console.log('booklist 가지러 왔냐');
     let books = await Book.find({book_owner: req.session.passport.user});    
     res.json({isloggedIn : true, books : books});
 };
 
 exports.get_categorylist = async (req, res) => {    
-    console.log('왔냐');
+    console.log('categorylist 가지러 왔냐');
     const categories = await Book.find({book_owner: req.session.passport.user}, {category : 1, _id : -1});
     console.log(categories);
     const unique_categories = Array.from(new Set(categories));
@@ -23,6 +23,7 @@ exports.get_categorylist = async (req, res) => {
 
 // 새 책을 만듭니다.
 exports.create_book =  async (req, res) => {
+    console.log('책 만들러 왔냐');
     // 새 책에 쓸 아이디를 만듭니다.
     let user = await User.findOne({id: req.session.passport.user});
     let newbook_no = user.newbook_no;
