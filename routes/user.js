@@ -48,6 +48,7 @@ router.post('/register', isNotLoggedIn, async (req, res, next) => {
 
 router.post('/login', isNotLoggedIn, (req, res, next) => {  
   passport.authenticate('local', (authError, user, info) => {
+    console.log('4_req.login', user);
     if (authError) {
       console.error('authError', authError);
       return next(authError);
@@ -59,17 +60,20 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
       if (loginError) {
         console.error(loginError);
         return next(loginError);
-      }
-      console.log('req.session', req.session);      
+      }      
+      return res.json({msg : req.session.passport});      
     });
   })(req, res, next); // 미들웨어 내의 미들웨어에는 (req, res, next)를 붙입니다.
-
-  return res.json({msg : '로그인 성공적~'});
 });
 
 router.get('/logout', isLoggedIn, (req, res) => {
   req.logout();
   req.session.destroy();  
+});
+
+router.get('/user-auth',  isLoggedIn, (req, res, next) => {  
+  console.log(req.session);
+  return res.json({msg : 'hello there!'});
 });
 
 module.exports = router;

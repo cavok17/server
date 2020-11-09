@@ -19,18 +19,21 @@ app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
-const fileStoreOptions = {
-    path : './Server/sessions',
-};
+// const fileStoreOptions = {
+//     path : './sessions',
+// };
 app.use(session({
   secret: process.env.COOKIE_SECRET,  
   cookie: {
       httponly: true,
       maxAge: 1800000
   },
-  resave: false,
+//   원래 false였음
+  resave: true,
+//   원래 false였음
   saveUninitialized: true,
-  store : new FileStore(fileStoreOptions),
+//   store : new FileStore(fileStoreOptions),
+  store : new FileStore(),
 }));
 
 const userRouter = require('./routes/user');
