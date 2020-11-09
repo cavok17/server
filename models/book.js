@@ -4,22 +4,25 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const book_schema = new mongoose.Schema({
     book_id: String,
-    book_title: String,
-    book_type: String,
-    book_owner: String,
-    book_author: String,
+    title: String,
+    type: String,
+    owner: String,
+    author: String,
     category: String,
     like: Boolean,
-    make_time: {type : Date, default : Date.now},
-    recent_study_time: {type : String, default : null},
-    no_of_index : {type : Number, default : 1},
-    new_index_no : {type : Number, default : 1},
     recent_visit_index: String,
-    // recent_card_id : {type : Number, default : -1},
-    no_of_card: {type : Number, default : 0},
+    num_pages : {type : Number, default : 0},
+    num_indexes : {type : Number, default : 1},
+    num_cards: {type : Number, default : 0},
+    new_index_no : {type : Number, default : 1},
     new_card_no : {type : Number, default : 0},
-    recent_study_mode : {type : String, default : '0'},
-    index_position_array : {type : Array}
+    time_create: {type : Date, default : Date.now},
+    recent :{
+        num_card_made : {type : Number, default : null},
+        time_study: {type : Date, default : null},
+        time_modify: {type : Date, default : null},
+        study_mode : {type : String, default : '0'},
+    },     
 });
 
 module.exports = mongoose.model("book", book_schema)

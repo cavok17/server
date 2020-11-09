@@ -71,9 +71,9 @@ router.get('/logout', isLoggedIn, (req, res) => {
   req.session.destroy();  
 });
 
-router.get('/user-auth',  isLoggedIn, (req, res, next) => {  
+router.get('/user-auth', isLoggedIn, (req, res) => {  
   console.log(req.session);
-  return res.json({msg : 'hello there!'});
+  return res.json({'isLoggedIn' : true});
 });
 
 module.exports = router;

@@ -38,12 +38,12 @@ app.use(session({
 
 const userRouter = require('./routes/user');
 const writeRouter = require('./routes/write');
-const studyRouter = require('./routes/study');
+// const studyRouter = require('./routes/study');
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// app.use('/write', writeRouter)
+app.use('/api/write', writeRouter)
 // app.use('/study', studyRouter);
 app.use('/api/user', userRouter);
 
