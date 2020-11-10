@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const categoryschema = new mongoose.Schema({
     user_id : String,
-    category_id: Number,
+    category_id: String,
     name: String,
     seq: Number,
     num_books : {type : Number, default : 0},
