@@ -9,7 +9,8 @@ const book_schema = new mongoose.Schema({
     type: String,
     owner: String,
     author: String,
-    like: Boolean,
+    like: {type : Boolean, default : false},
+    hide_or_show : {type : Boolean, default : false},
     recent_visit_index: String,
     seq_in_category : Number,
     seq_in_like : {type : Number, default : null},
@@ -20,7 +21,7 @@ const book_schema = new mongoose.Schema({
     new_card_no : {type : Number, default : 0},
     time_create: {type : Date, default : Date.now},
     recent :{
-        num_card_made : {type : Number, default : null},
+        num_card_created : {type : Number, default : null},
         time_study: {type : Date, default : null},
         time_modify: {type : Date, default : null},
         study_mode : {type : String, default : '0'},

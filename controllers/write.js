@@ -78,8 +78,7 @@ exports.create_book =  async (req, res) => {
         type : 'self',
         owner : req.session.passport.user,
         author : req.session.passport.user,
-        category_id : req.body.category_id,
-        like : false,
+        category_id : req.body.category_id,        
         recent_visit_index : req.session.passport.user +'_'+ user.newbook_no +'_'+ 0,
         seq_in_category : category.new_seq_no_in_category,
     });
