@@ -21,27 +21,19 @@ exports.get_categorylist = async (req, res) => {
 exports.get_booklist = async (req, res) => {    
     console.log('책 정보 가지러 왔냐');
     
-    let categories = await Category
+    let categorybooklist = await Category
         .find({user_id: req.session.passport.user})
         .populate('books');
-    console.log('1', categories);
-
-    // if (categories.length > 1){
-        categories = categories.sort((a,b) => a.seq - b.seq);
-    // };
-
-    console.log('2', categories);
-    console.log('3', categories[0]);
-    console.log('4', typeof(categories[0].books));
+        categorybooklist = categorybooklist.sort((a,b) => a.seq - b.seq);
         
-    for (i=0; i<categories.length; i++){
-        categories[i].books.sort((a,b) => a.seq_in_category-b.seq_in_category);
+    for (i=0; i<categorybooklist.length; i++){
+        categorybooklist[i].books.sort((a,b) => a.seq_in_category-b.seq_in_category);
     };
     
-    console.log('5', categories);
+    console.log('5', categorybooklist[0]);
         
     // const unique_categories = Array.from(new Set(categories));    
-    res.json({isloggedIn : true, categories});
+    res.json({isloggedIn : true, categorybooklist});
 };
 
 // 즐겨찾기 리스트를 보여줍니다.
@@ -78,7 +70,7 @@ exports.create_book =  async (req, res) => {
     // 새 책에 쓸 아이디를 만듭니다.
     let user = await User.findOne({user_id: req.session.passport.user});
     let category = await Category.findOne({category_id : req.body.category_id});       
-    
+
     // 새 책을 생성하고    
     let book = await Book.create({
         book_id : req.session.passport.user +'_'+ user.newbook_no,
@@ -89,7 +81,7 @@ exports.create_book =  async (req, res) => {
         category : req.body.category,
         like : false,
         recent_visit_index : req.session.passport.user +'_'+ user.newbook_no +'_'+ 0,
-        seq_in_category : user.new_seq_no_in_category,
+        seq_in_category : category.new_seq_no_in_category,
     });
     
     // (미지정)목차도 생성하고
@@ -105,10 +97,10 @@ exports.create_book =  async (req, res) => {
     user = await user.save();    
     
     // 카테고리에 정보 수정하고
-    category.num_books += 1;
-    category.new_sql_no_in_category += 1;
-    const result = category.book.push(book._id);
-    category = await categroy.save();    
+    category.num_books += 1;    
+    category.new_seq_no_in_category += 1;    
+    category.books.push(book._id);    
+    let result = await category.save();    
     
     res.json({isloggedIn : true, msg : "새 책 생성 완료!"});      
 };
