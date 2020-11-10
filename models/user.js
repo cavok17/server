@@ -5,10 +5,12 @@ const userschema = new mongoose.Schema({
   user_id: {type : String, unique : true},
   password: String,
   name: String,
-  email: {type: String, unique: false},
+  email: String,
   nickname: String,
   phone: String,
-  newbook_no: {type: Number, default :0}
+  num_category : {type : Number, default : 1},
+  newbook_no: {type: Number, default :0},
+  newcategory_no: {type: Number, default :1}
 });
 
 

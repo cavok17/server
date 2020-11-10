@@ -11,6 +11,8 @@ const book_schema = new mongoose.Schema({
     category: String,
     like: Boolean,
     recent_visit_index: String,
+    seq_in_category : Number,
+    seq_in_like : {type : Number, default : null},
     num_pages : {type : Number, default : 0},
     num_indexes : {type : Number, default : 1},
     num_cards: {type : Number, default : 0},
@@ -25,7 +27,7 @@ const book_schema = new mongoose.Schema({
     },     
 });
 
-module.exports = mongoose.model("book", book_schema)
+module.exports = mongoose.model("Book", book_schema)
 // module.exports = mongoose.model("users", userschema)
 
 

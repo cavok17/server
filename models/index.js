@@ -6,6 +6,7 @@ const index_schema = new mongoose.Schema({
     index_id : String,
     position : Number,
     index_name : String,
+    seq : Number,
     level : { type : Number, default : 1},    
     // num_total_created_cards : {type : Number,default : 0,},    
 });

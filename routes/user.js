@@ -2,7 +2,9 @@ const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcrypt');
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
+
 const User = require('../models/user');
+const Category = require('../models/category');
 const Studyingcard = require('../models/studyingcard');
 
 const router = express.Router();
@@ -25,8 +27,15 @@ router.post('/register', isNotLoggedIn, async (req, res, next) => {
         name: '윤상일',
         nickname : '홍익인간',
         email: 'kizwond@gmail.com',
-        phone : '01093484979',        
+        phone : '01093484979',      
     })
+
+    let newCategory = Category.create({
+      user_id : user_id,
+      category_id: 0,        
+      name: '(미지정)',
+      seq : 0,      
+  })
 
     const phase1studyingcard = await Studyingcard.create({
       user_id: user_id,
