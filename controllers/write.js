@@ -89,7 +89,7 @@ exports.create_book =  async (req, res) => {
         category : req.body.category,
         like : false,
         recent_visit_index : req.session.passport.user +'_'+ user.newbook_no +'_'+ 0,
-        seq_in_category : category.new_seq_no_in_category,
+        seq_in_category : user.new_seq_no_in_category,
     });
     
     // (미지정)목차도 생성하고
@@ -101,7 +101,7 @@ exports.create_book =  async (req, res) => {
     });
     
     // 유저 정보 수정하고
-    user.newbook_no += 1; ok
+    user.newbook_no += 1;
     user = await user.save();    
     
     // 카테고리에 정보 수정하고
