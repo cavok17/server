@@ -32,7 +32,7 @@ router.post('/register', isNotLoggedIn, async (req, res, next) => {
 
     let newCategory = Category.create({
       user_id : user_id,
-      category_id: 0,        
+      category_id: user_id+'_0',        
       name: '(미지정)',
       seq : 0,      
   })
@@ -77,7 +77,8 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
 
 router.get('/logout', isLoggedIn, (req, res) => {
   req.logout();
-  req.session.destroy();  
+  req.session.destroy(); 
+  res.json({isloggedIn : false}); 
 });
 
 router.get('/user-auth', isLoggedIn, (req, res) => {  
