@@ -4,11 +4,11 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const book_schema = new mongoose.Schema({
     book_id: String,
+    category_id: String,
     title: String,
     type: String,
     owner: String,
     author: String,
-    category: String,
     like: Boolean,
     recent_visit_index: String,
     seq_in_category : Number,
