@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const book_schema = new mongoose.Schema({
     book_id: String,
-    category_id: String,
+    category_objectID: {type:mongoose.Schema.Types.ObjectId, ref:'Category'},
     title: String,
     type: String,
     owner: String,

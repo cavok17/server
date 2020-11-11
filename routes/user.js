@@ -75,10 +75,19 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
   })(req, res, next); // 미들웨어 내의 미들웨어에는 (req, res, next)를 붙입니다.
 });
 
-router.get('/logout', isLoggedIn, (req, res) => {
+router.get('/logout', isLoggedIn, async (req, res) => {
   req.logout();
-  req.session.destroy(); 
-  res.json({isloggedIn : false}); 
+  // const destroy = new Promise((resolve, reject) => {
+  //   req.session.destroy();
+  // });
+
+  // destroy.then(() => {
+  //   res.json({isloggedIn : false}); 
+  // });
+
+  req.session.destroy();
+  res.json({isloggedIn : false});   
+
 });
 
 router.get('/user-auth', isLoggedIn, (req, res) => {  

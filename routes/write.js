@@ -19,12 +19,11 @@ router.get('/get-categorylist', isLoggedIn, Write.get_categorylist);
 // 보유한 책 리스트 보여주기
 router.get('/get-booklist', isLoggedIn, Write.get_booklist);
 
-// 즐겨찾기 리스트 보여주기
-router.get('/get-likebooklist', isLoggedIn, Write.get_likebooklist);
-
 // 새 책 생성하기
 router.post('/create-book', isLoggedIn, Write.create_book);
 
+// 책 삭제하기
+router.post('/delete-book', isLoggedIn, Write.delete_book);
     
 // // 보유한 책 리스트 보여주기
 // router.get('/', isLoggedIn, Write.showbooklist);
