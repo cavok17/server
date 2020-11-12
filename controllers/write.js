@@ -5,6 +5,7 @@ const Card = require('../models/card');
 const Index = require('../models/index');
 const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
+const book = require('../models/book');
 
 // 카테고리 리스트만 보여줍니다.
 const get_categorylist = async (req, res) => {    
@@ -31,10 +32,9 @@ const get_booklist = async (req, res) => {
                 select : 'category_id name'
             }
         });
-        // .populate('books.category_objectID');
+    console.log(categorybooklist[0].books);
     categorybooklist = categorybooklist.sort((a,b) => a.seq - b.seq);
-    console.log(categorybooklist[2].books[0]);    
-        
+    
     for (i=0; i<categorybooklist.length; i++){
         categorybooklist[i].books.sort((a,b) => a.seq_in_category-b.seq_in_category);
     };
@@ -42,8 +42,8 @@ const get_booklist = async (req, res) => {
     // console.log('5', categorybooklist[0]);
     
     let likebooklist = await Book
-        .find({book_owner: req.session.passport.user, like : true})
-        .populate({path : 'category_objectID', select : 'category_id'});
+    .find({book_owner: req.session.passport.user, like : true})
+    .populate({path : 'category_objectID', select : 'category_id'});
     // console.log('likebooklist', likebooklist);    
     if (likebooklist){
         // likebooklist = await Book.populate(likebooklist, {path: 'category_objectID'});
@@ -51,6 +51,7 @@ const get_booklist = async (req, res) => {
     };
     
     // const unique_categories = Array.from(new Set(categories));    
+    // console.log('1', categorybooklist[1]);    
     res.json({isloggedIn : true, categorybooklist, likebooklist});
 };
 
@@ -58,6 +59,7 @@ const get_booklist = async (req, res) => {
 // 새 카테고리를 만듭니다.
 const create_category = async (req, res) => {    
     console.log('category 만들어줄게');
+
     let user = await User.findOne({user_id: req.session.passport.user});
     
     // let num_category = await Category.where({user_id: req.session.passport.user}).count();
@@ -129,6 +131,7 @@ const delete_category = async (req, res) => {
 // 새 책을 만듭니다.
 const create_book =  async (req, res) => {
     console.log('책 만들러 왔냐');
+
     // 새 책에 쓸 아이디를 만듭니다.
     let user = await User.findOne({user_id: req.session.passport.user});
     let category = await Category.findOne({category_id : req.body.category_id});       
@@ -147,7 +150,7 @@ const create_book =  async (req, res) => {
         seq_in_category : category.new_seq_no_in_category,
     });
     
-    // (미지정)목차도 생성하고
+    // 기본 목차도 생성하고
     let index = await Index.create({
         book_id : req.session.passport.user +'_'+ user.newbook_no,        
         index_id : req.session.passport.user +'_'+ user.newbook_no +'_'+ 0,
@@ -160,7 +163,7 @@ const create_book =  async (req, res) => {
     user = await user.save();    
     
     // 카테고리에 정보 수정하고
-    category.num_books += 1;    
+    // category.num_books += 1;    
     category.new_seq_no_in_category += 1;    
     category.books.push(book._id);    
     let result = await category.save();    
@@ -179,10 +182,12 @@ const delete_book =  async (req, res) => {
     let delete_result = await Book.deleteOne({book_id : req.body.book_id});        
 
     // 카테고리 내의 책 정보를 수정하고
-    let category = await Category.findOne({category_id : req.body.category_id});    
-    let will_delete_book_id = category.books.indexOf(book._id);    
-    category.books.splice(will_delete_book_id, 1);
-    category.num_books -= 1;
+    let category = await Category.findOne({category_id : req.body.category_id});
+    console.log(category);
+    let will_delete_book_position = category.books.indexOf(book._id);    
+    category.books.splice(will_delete_book_position, 1);
+    category.new_seq_no_in_category -= 1;
+    // category.num_books -= 1;
     category = await category.save();
 
     // 나머지 책들의 시퀀스도 변경해주고
@@ -212,6 +217,43 @@ const delete_book =  async (req, res) => {
     get_booklist(req, res);    
 };
 
+// 책의 카테고리를 변경합니다.
+const move_book_between_category = async(req, res) => {
+    // target category를 받아서 book의 카테고리 정보를 변경하고
+    let book = await Book.findOne({book_id : req.body.book_id});
+    
+    // // 기존 카테고리에서 북 정보 삭제하고
+    // let prev_category = await category.findOne({category_id : req.body.prev_category_id});
+    // let will_delete_book_position = prev_category.books.indexOf(book._id);
+    // prev_category.books.splice(will_delete_book_position, 1);
+    // prev_category = await prev_category.save();
+    console.log(book._id);
+    // let ObjectId = require('mongoose').Types.ObjectId; 
+    let prev_category_update_result = await Category.updateOne(
+        {category_id : req.body.prev_category_id},
+        {$pull : {books : book._id}}
+    );
+    
+    // 신규 카테고리에 북 정보 생성하고
+    let target_category = await Category.findOne({category_id : req.body.target_category_id});
+    let target_category_update_result = await Category.updateOne(
+        {category_id : req.body.target_category_id},
+        {$push : {books : book._id}}
+    );
+    console.log(target_category);
+
+    // book의 정보도 변경해주고
+    book.seq_in_category = target_category.books.length;
+    book.category_objectID = target_category._id;
+    book = await book.save();
+
+    get_booklist(req, res);    
+};
+
+const create_cardtype = async(req, res) => {
+
+};
+
 module.exports ={
     get_categorylist,
     get_booklist,    
@@ -219,5 +261,5 @@ module.exports ={
     delete_category,
     create_book,
     delete_book,
-
+    move_book_between_category,
 };

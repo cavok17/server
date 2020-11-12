@@ -6,9 +6,10 @@ const categoryschema = new mongoose.Schema({
     category_id: String,
     name: String,
     seq: Number,
-    num_books : {type : Number, default : 0},
+    // num_books : {type : Number, default : 0},
     new_seq_no_in_category : {type : Number, default : 0},
     books : [{type:mongoose.Schema.Types.ObjectId, ref:'Book'}],
+    // books : Array,
 });
 
 

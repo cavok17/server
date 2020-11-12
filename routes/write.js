@@ -9,6 +9,7 @@ const Card = require('../models/card');
 const Write = require('../controllers/write');
 
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
+const category = require('../models/category');
 
 
 const router = express.Router();
@@ -25,9 +26,21 @@ router.post('/create-book', isLoggedIn, Write.create_book);
 // 새 카테고리 생성하기
 router.post('/create-category', isLoggedIn, Write.create_category);
 
+// // 카테고리 삭제하기
+// router.post('/delete-category', isLoggedIn, Write.delete_category);
+
+// // 카테고리 순서변경하기
+// router.post('/change-category-order', isLoggedIn, Write.change_category_order);
+
 // 책 삭제하기
 router.post('/delete-book', isLoggedIn, Write.delete_book);
-    
+
+// // 책 순서변경하기
+// router.post('/change-book-order', isLoggedIn, Write.change_book_order);
+
+// 책의 카테고리 변경하기
+router.post('/move-book-between-category', isLoggedIn, Write.move_book_between_category);
+
 // // 보유한 책 리스트 보여주기
 // router.get('/', isLoggedIn, Write.showbooklist);
 
