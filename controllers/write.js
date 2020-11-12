@@ -21,12 +21,19 @@ const get_categorylist = async (req, res) => {
 const get_booklist = async (req, res) => {    
     console.log('책 정보 가지러 왔냐');
     
+    console.log(req.session.passport.user);
     let categorybooklist = await Category
         .find({user_id: req.session.passport.user})
-        .populate('books')
-        .populate('books.category_objectID');
-        categorybooklist = categorybooklist.sort((a,b) => a.seq - b.seq);
-    console.log(categorybooklist[0].books[0]);
+        .populate({
+            path : 'books',
+            populate : {
+                path : 'category_objectID',
+                select : 'category_id name'
+            }
+        });
+        // .populate('books.category_objectID');
+    categorybooklist = categorybooklist.sort((a,b) => a.seq - b.seq);
+    console.log(categorybooklist[2].books[0]);    
         
     for (i=0; i<categorybooklist.length; i++){
         categorybooklist[i].books.sort((a,b) => a.seq_in_category-b.seq_in_category);
@@ -52,20 +59,33 @@ const get_booklist = async (req, res) => {
 const create_category = async (req, res) => {    
     console.log('category 만들어줄게');
     let user = await User.findOne({user_id: req.session.passport.user});
-    let num_category = await Category.where({user_id: req.session.passport.user}).count();
-
+    
+    // let num_category = await Category.where({user_id: req.session.passport.user}).count();
+    
+    // 기존 카테고리의 시퀀스 정보 수정해주고
+    let seq_changed_categories = await Category.updateMany(
+        {            
+            seq : {$gt : req.body.prev_category_seq}
+        },
+        {
+            $inc : {seq : 1}
+        }
+    );
+    
+    // 새로운 카테고리 정보 생성해주고
     let category = await Category.create({
         user_id : req.session.passport.user,
-        category_id: req.session.passport.user + user.newcategory_no,
-        name: req.body.name,
-        seq: num_category,         
+        category_id: req.session.passport.user +'_'+user.newcategory_no,
+        name: req.body.new_category,
+        seq: req.body.prev_category_seq+1,         
     });
 
+    // 유저 정보 수정해주고
     user.newcategory_no +=1; //id용
     user.num_category +=1; //seq용
     user = await user.save();
 
-    res.json({isloggedIn : true});
+    get_booklist(req, res);    
 };
 
 // 카테고리를 삭제합니다.
@@ -189,7 +209,7 @@ const delete_book =  async (req, res) => {
         );
     }
 
-    get_booklist(req. res);    
+    get_booklist(req, res);    
 };
 
 module.exports ={

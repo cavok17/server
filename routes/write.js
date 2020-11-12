@@ -22,6 +22,9 @@ router.get('/get-booklist', isLoggedIn, Write.get_booklist);
 // 새 책 생성하기
 router.post('/create-book', isLoggedIn, Write.create_book);
 
+// 새 카테고리 생성하기
+router.post('/create-category', isLoggedIn, Write.create_category);
+
 // 책 삭제하기
 router.post('/delete-book', isLoggedIn, Write.delete_book);
     
