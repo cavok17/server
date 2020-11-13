@@ -272,33 +272,37 @@ const move_book_between_category = async(req, res) => {
 // 책의 순서를 변경합니다.
 const change_book_order = async(req, res) => {
     console.log('책 순서 좀 조정할게');
-        
+    let current_book = await Book
+        .findOne({book_id : req.body.book_id})        
+    console.log(current_book);
+
     if (req.body.action === 'up'){
         var destination_book = await Book
             .find({                
-                category_id : req.body.category_id,
+                category_objectID : current_book.category_objectID,
                 seq_in_category : {$lt : req.body.seq_in_category}
             })
-            .sort({seq : -1})
+            .sort({seq_in_category : -1})
             .limit(1);            
     } else {
         var destination_book = await Book
             .find({
-                category_id : req.body.category_id,
+                category_objectID : current_book.category_objectID,
                 seq_in_category : {$gt : req.body.seq_in_category}
             })
-            .sort({seq : 1})
+            .sort({seq_in_category : 1})
             .limit(1);
     };
+    console.log(destination_book[0]);
 
     let current_book_move_result = await Book.updateOne(
         {book_id : req.body.book_id},
-        {seq : destination_book[0].seq}        
+        {seq_in_category : destination_book[0].seq_in_category}        
     );
 
     let destination_book_move_result = await Book.updateOne(
-        {category_id : destination_book[0].book_id},
-        {seq : req.body.seq}        
+        {book_id : destination_book[0].book_id},
+        {seq_in_category : req.body.seq_in_category}        
     );
 
     get_booklist(req, res); 
