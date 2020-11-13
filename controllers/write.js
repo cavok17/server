@@ -269,6 +269,41 @@ const move_book_between_category = async(req, res) => {
     get_booklist(req, res);    
 };
 
+// 책의 순서를 변경합니다.
+const change_book_order = async(req, res) => {
+    console.log('책 순서 좀 조정할게');
+        
+    if (req.body.action === 'up'){
+        var destination_book = await Book
+            .find({                
+                category_id : req.body.category_id,
+                seq_in_category : {$lt : req.body.seq_in_category}
+            })
+            .sort({seq : -1})
+            .limit(1);            
+    } else {
+        var destination_book = await Book
+            .find({
+                category_id : req.body.category_id,
+                seq_in_category : {$gt : req.body.seq_in_category}
+            })
+            .sort({seq : 1})
+            .limit(1);
+    };
+
+    let current_book_move_result = await Book.updateOne(
+        {book_id : req.body.book_id},
+        {seq : destination_book[0].seq}        
+    );
+
+    let destination_book_move_result = await Book.updateOne(
+        {category_id : destination_book[0].book_id},
+        {seq : req.body.seq}        
+    );
+
+    get_booklist(req, res); 
+};
+
 const create_cardtype = async(req, res) => {
 
 };
@@ -282,4 +317,5 @@ module.exports ={
     create_book,
     delete_book,
     move_book_between_category,
+    change_book_order,
 };

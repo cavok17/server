@@ -35,8 +35,8 @@ router.post('/change-category-order', isLoggedIn, Write.change_category_order);
 // 책 삭제하기
 router.post('/delete-book', isLoggedIn, Write.delete_book);
 
-// // 책 순서변경하기
-// router.post('/change-book-order', isLoggedIn, Write.change_book_order);
+// 책 순서변경하기
+router.post('/change-book-order', isLoggedIn, Write.change_book_order);
 
 // 책의 카테고리 변경하기
 router.post('/move-book-between-category', isLoggedIn, Write.move_book_between_category);
