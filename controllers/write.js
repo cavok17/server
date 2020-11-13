@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 // 모델 경로
 const User = require('../models/user');
 const Book = require('../models/book');
@@ -164,6 +166,7 @@ const create_book =  async (req, res) => {
     // 새 책을 생성하고    
     let book = await Book.create({
         book_id : req.session.passport.user +'_'+ user.newbook_no,
+        // book_id : new mongoose.Types.ObjectId(),
         title : req.body.book_title,
         type : 'self',
         owner : req.session.passport.user,
