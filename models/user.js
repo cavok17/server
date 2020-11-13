@@ -7,8 +7,7 @@ const userschema = new mongoose.Schema({
   name: String,
   email: String,
   nickname: String,
-  phone: String,
-  num_category : {type : Number, default : 1},
+  phone: String,  
   newbook_no: {type: Number, default :0},
   newcategory_no: {type: Number, default :1}
 });

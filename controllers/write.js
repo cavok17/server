@@ -22,7 +22,7 @@ const get_categorylist = async (req, res) => {
 const get_booklist = async (req, res) => {    
     console.log('책 정보 가지러 왔냐');
     
-    console.log(req.session.passport.user);
+    // console.log(req.session.passport.user);
     let categorybooklist = await Category
         .find({user_id: req.session.passport.user})
         .populate({
@@ -32,7 +32,7 @@ const get_booklist = async (req, res) => {
                 select : 'category_id name'
             }
         });
-    console.log(categorybooklist[0].books);
+    // console.log(categorybooklist[0].books);
     categorybooklist = categorybooklist.sort((a,b) => a.seq - b.seq);
     
     for (i=0; i<categorybooklist.length; i++){
@@ -62,8 +62,6 @@ const create_category = async (req, res) => {
 
     let user = await User.findOne({user_id: req.session.passport.user});
     
-    // let num_category = await Category.where({user_id: req.session.passport.user}).count();
-    
     // 기존 카테고리의 시퀀스 정보 수정해주고
     let seq_changed_categories = await Category.updateMany(
         {            
@@ -83,8 +81,7 @@ const create_category = async (req, res) => {
     });
 
     // 유저 정보 수정해주고
-    user.newcategory_no +=1; //id용
-    user.num_category +=1; //seq용
+    user.newcategory_no +=1; //id용    
     user = await user.save();
 
     get_booklist(req, res);    
@@ -94,38 +91,64 @@ const create_category = async (req, res) => {
 const delete_category = async (req, res) => {    
     console.log('category를 삭제할게');
     
-    // 카테고리 갯수를 수정합니다. 그냥 변수를 없애버릴까? 쓸 데가 없네
-    let user = await User.findOne({user_id: req.session.passport.user});
-    user.num_category -= 1;
+    // 카테고리 갯수를 수정합니다.
+    let user = await User.findOne({user_id: req.session.passport.user});    
     user = await user.save();
 
     // 해당 카테고리를 삭제하고, 다른 카테고리의 seq를 수정합니다.
     let category = await Category.deleteOne({category_id : req.body.category_id});
     let seq_change_result = await Category.updateMany({seq : {$gt : req.body.seq}}, {$inc : {seq : -1}});
 
-    // 해당 카테고리의 책을 (미지정)카테고리로 이동시킵니다.
-    // let books = await Book.find({category_id : req.body.category_id});
-    // let num_category_of_unspecified = await (await Category.findOne({category_id : req.session.passport.user+'_0'})).length;
-    // let new_seq_no_in_category = unspecified.new_seq_no_in_category;
+    // 해당 카테고리의 책을 타겟 카테고리로 이동시킵니다.
+    let max_seq_book_in_target_category = await Book
+        .find({category_id : req.body.target_category})
+        .sort({seq : -1})
+        .limit(1);
+    let max_seq_num_of_target_category = max_seq_book_in_target_category[0].seq_in_category;    
     let book_move_result = await Book.updateMany(
         {category_id : req.body.category_id}, 
         {
-            $set : {category_id : req.session.passport.user+'_0'},
-            $inc : {seq_in_category : num_category_of_unspecified}
+            $set : {category_id : req.body.target_category},
+            $inc : {seq_in_category : max_seq_num_of_target_category}
         }
-    );
-    // for (i=0; i<books.length; i++){
-    //     books[i].seq_in_category = new_seq_no_in_category++;
-    //     books[i].category_id = req.session.passport.user+'_0';
-    // };
-    // unspecified.new_seq_no_in_category = new_seq_no_in_category;
-    // unspecified = unspecified.save();
-
-    // 카드도 삭제합시다.
-
-
+    );    
 
     res.json({isloggedIn : true, msg : '카테고리 삭제 완료'});
+};
+
+// 카테고리 순서를 조정합니다.
+const change_category_order = async (req, res) => {    
+    console.log('category 순서 좀 조정할게');
+        
+    if (req.body.action === 'up'){
+        var destination_category = await Category
+            .find({
+                user_id : req.session.passport.user,
+                seq : {$lt : req.body.seq}
+            })
+            .sort({seq : -1})
+            .limit(1);            
+    } else {
+        var destination_category = await Category
+            .find({
+                user_id : req.session.passport.user,
+                seq : {$gt : req.body.seq}
+            })
+            .sort({seq : 1})
+            .limit(1);
+    };
+
+    let current_category_move_result = await Category.updateOne(
+        {category_id : req.body.category_id},
+        {seq : destination_category[0].seq}        
+    );
+
+    let destination_category_move_result = await Category.updateOne(
+        {category_id : destination_category[0].category_id},
+        {seq : req.body.seq}        
+    );
+
+    get_booklist(req, res);
 };
 
 // 새 책을 만듭니다.
@@ -182,13 +205,10 @@ const delete_book =  async (req, res) => {
     let delete_result = await Book.deleteOne({book_id : req.body.book_id});        
 
     // 카테고리 내의 책 정보를 수정하고
-    let category = await Category.findOne({category_id : req.body.category_id});
-    console.log(category);
-    let will_delete_book_position = category.books.indexOf(book._id);    
-    category.books.splice(will_delete_book_position, 1);
-    category.new_seq_no_in_category -= 1;
-    // category.num_books -= 1;
-    category = await category.save();
+    let category = await Category.updateOne(
+        {category_id : req.body.category_id},
+        {$pull : {books : book._id}}
+    );
 
     // 나머지 책들의 시퀀스도 변경해주고
     let seq_changed_books = await Book.updateMany(
@@ -200,8 +220,7 @@ const delete_book =  async (req, res) => {
             $inc : {seq_in_category : -1}
         }
     );
-    
-    console.log(book.like);
+        
     // 즐겨찾기 시퀀스도 수정해주고
     if (book.like != null){
         let like_changed_books = Book.updateMany(
@@ -258,6 +277,7 @@ module.exports ={
     get_categorylist,
     get_booklist,    
     create_category,
+    change_category_order,
     delete_category,
     create_book,
     delete_book,

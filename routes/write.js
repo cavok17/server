@@ -26,11 +26,11 @@ router.post('/create-book', isLoggedIn, Write.create_book);
 // 새 카테고리 생성하기
 router.post('/create-category', isLoggedIn, Write.create_category);
 
-// // 카테고리 삭제하기
-// router.post('/delete-category', isLoggedIn, Write.delete_category);
+// 카테고리 삭제하기
+router.post('/delete-category', isLoggedIn, Write.delete_category);
 
-// // 카테고리 순서변경하기
-// router.post('/change-category-order', isLoggedIn, Write.change_category_order);
+// 카테고리 순서변경하기
+router.post('/change-category-order', isLoggedIn, Write.change_category_order);
 
 // 책 삭제하기
 router.post('/delete-book', isLoggedIn, Write.delete_book);
