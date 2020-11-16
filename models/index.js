@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const index_schema = new mongoose.Schema({
-    book_id : String,
-    index_id : String,
-    position : Number,
+    book : mongoose.ObjectId,
+    // index_id : String,
+    // position : Number,
     index_name : String,
     seq : Number,
     level : { type : Number, default : 1},    

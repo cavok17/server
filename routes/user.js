@@ -10,19 +10,20 @@ const Studyingcard = require('../models/studyingcard');
 const router = express.Router();
 
 router.post('/register', isNotLoggedIn, async (req, res, next) => {
-  const user_id = req.body.user_id;
+  const user = req.body.user_id;
   const password = req.body.password;
   console.log(password)
 
   try {
-    const exUser = await User.findOne({ user_id: user_id });    
+    const exUser = await User.findOne({ user: user });    
     const hash = await bcrypt.hash(password, 12);    
     if (exUser) {
+      console.log('중복아이디');
       return res.json({msg : '중복된 아이디가 있습니다.'});
     };
     
     let newUser = User.create({
-        user_id: user_id,
+        user: user,
         password: hash,        
         name: '윤상일',
         nickname : '홍익인간',
@@ -31,19 +32,20 @@ router.post('/register', isNotLoggedIn, async (req, res, next) => {
     })
 
     let newCategory = Category.create({
-      user_id : user_id,
-      category_id: user_id+'_0',        
+      user : user,
+      // category_id: user_id+'_0',        
       name: '(미지정)',
-      seq : 0,      
+      seq : 0,
+      books : [], 
   })
 
     const phase1studyingcard = await Studyingcard.create({
-      user_id: user_id,
+      user: user,
       phase : '1',
       studyingcardlist : [],
     });
     const phase2studyingcard = await Studyingcard.create({
-      user_id: user_id,
+      user: user,
       phase : '2',
       studyingcardlist : [],
     });

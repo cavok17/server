@@ -2,14 +2,15 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const userschema = new mongoose.Schema({
-  user_id: {type : String, unique : true},
+  // user: {type : String, unique : true},
+  user: {type : String},
   password: String,
   name: String,
-  email: String,
   nickname: String,
+  email: String,
   phone: String,  
-  newbook_no: {type: Number, default :0},
-  newcategory_no: {type: Number, default :1}
+  // newbook_no: {type: Number, default :0},
+  // newcategory_no: {type: Number, default :1}
 });
 
 

@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const categoryschema = new mongoose.Schema({
-    user_id : String,
-    category_id: String,
+    user : String,
+    // category_id: mongoose.Schema.Types.ObjectId,
     name: String,
     seq: Number,
     // num_books : {type : Number, default : 0},
-    new_seq_no_in_category : {type : Number, default : 0},
+    // new_seq_no_in_category : {type : Number, default : 0},
     books : [{type:mongoose.Schema.Types.ObjectId, ref:'Book'}],
     // books : Array,
 });
