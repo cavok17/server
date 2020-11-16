@@ -7,7 +7,7 @@ const book_schema = new mongoose.Schema({
     // book_id: String,
     // category_id: {type:mongoose.Schema.Types.ObjectId, ref:'Category'},
     // category_id: {type:mongoose.ObjectId, ref:'Category'},
-    category: {type:mongoose.ObjectId, ref:'Category'},
+    category_id: {type:mongoose.ObjectId, ref:'Category'},
     title: String,
     type: String,
     owner: String,

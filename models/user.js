@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const userschema = new mongoose.Schema({
   // user: {type : String, unique : true},
-  user: {type : String},
+  user_id: {type : String},
   password: String,
   name: String,
   nickname: String,

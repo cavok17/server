@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const index_schema = new mongoose.Schema({
-    book : mongoose.ObjectId,
+    book_id : mongoose.ObjectId,
     // index_id : String,
     // position : Number,
     index_name : String,
