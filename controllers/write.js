@@ -10,11 +10,13 @@ const Category = require('../models/category');
 const book = require('../models/book');
 
 const get_max_seq = async (category_id) => {
+    console.log('category_id', category_id);
     let max_seq_book = await Book
         .find({category_id : category_id})
         .sort({seq_in_category : -1})
         .limit(1);
-    let max_seq_in_category;    
+    let max_seq_in_category;
+    console.log(max_seq_book[0]);
     if (max_seq_book.length === 0){
         return max_seq_in_category = -1;
     } else {
@@ -26,7 +28,7 @@ const get_max_seq = async (category_id) => {
 const get_categorylist = async (req, res) => {    
     console.log('categorylist 가지러 왔냐');
     const categories = await Category
-        .find({user_id: req.session.passport.user_id});
+        .find({user_id: req.session.passport.user});
     categories.sort((a,b) => a.seq - b.seq);
     // const unique_categories = Array.from(new Set(categories));    
     res.json({isloggedIn : true, categories});
@@ -167,18 +169,18 @@ const create_book =  async (req, res) => {
     console.log('책 만들러 왔냐');
 
     // 새 책에 쓸 seq_in_category를 계산합니다.
-    let max_seq_in_category = get_max_seq(req.body.category_id);
-    // let max_seq_book = await Book
-    //     .find({category_id : req.body.category_id})
-    //     .sort({seq_in_category : -1})
-    //     .limit(1);
-    // let max_seq_in_category;    
-    // if (max_seq_book.length === 0){
-    //     max_seq_in_category = -1;
-    // } else {
-    //     max_seq_in_category = max_seq_book[0].seq_in_category;
-    // };    
-    // console.log('max_seq_in_category',max_seq_in_category);
+    // let max_seq_in_category = get_max_seq(req.body.category_id);
+    let max_seq_book = await Book
+        .find({category_id : req.body.category_id})
+        .sort({seq_in_category : -1})
+        .limit(1);
+    let max_seq_in_category;    
+    if (max_seq_book.length === 0){
+        max_seq_in_category = -1;
+    } else {
+        max_seq_in_category = max_seq_book[0].seq_in_category;
+    };    
+    console.log('max_seq_in_category',max_seq_in_category);
 
     // 새 책을 생성하고    
     let book = await Book.create({        
@@ -186,7 +188,7 @@ const create_book =  async (req, res) => {
         type : 'self',
         owner : req.session.passport.user,
         author : req.session.passport.user,
-        category_id : category._id,        
+        category_id : req.body.category_id,
         seq_in_category : max_seq_in_category + 1,
     });
     
