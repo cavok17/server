@@ -275,9 +275,9 @@ const move_book_between_category = async(req, res) => {
 // 카테고리 내에서 책의 순서를 변경합니다.
 const change_book_order = async(req, res) => {
     console.log('책 순서 좀 조정할게');
-    let current_book = await Book
-        .findOne({_id : req.body.book_id})        
-    console.log(current_book);
+    // let current_book = await Book
+    //     .findOne({_id : req.body.book_id})        
+    // console.log(current_book);
 
     // 위치 바꿔치기할 책을 찾아보자
     let destination_book;
