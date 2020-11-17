@@ -95,15 +95,9 @@ const create_category = async (req, res) => {
 // 카테고리를 삭제합니다.
 const delete_category = async (req, res) => {    
     console.log('category를 삭제할게');
-    
-    // 해당 카테고리를 삭제하고, 다른 카테고리의 seq를 수정합니다.
-    let category = await Category.deleteOne({_id : req.body.category_id});
-    let seq_change_result = await Category.updateMany(
-        {user : req.session.passport.user, seq : {$gt : req.body.seq}}, 
-        {$inc : {seq : -1}});
-
-    // 해당 카테고리의 책을 타겟 카테고리로 이동시킵니다.
     console.log(req.body);
+    
+    // 삭제 대상 카테고리 내 책에 대하여 카테고리 아이디 및 시퀀스를 수정하고
     let max_seq_in_target_category = await get_max_seq(req.body.target_category);
     let book_move_result = await Book.updateMany(
         {category_id : req.body.category_id}, 
@@ -111,7 +105,20 @@ const delete_category = async (req, res) => {
             $set : {category_id : req.body.target_category},
             $inc : {seq_in_category : max_seq_in_target_category + 1}
         }
-    );    
+        );
+    
+    // 목적지 카테고리로 book_ids를 옮겨주고
+    let prev_category = await Category.findOne({_id : req.body.category_id});
+    let category_modification_result = await Category.updateOne(
+        {_id : req.body.target_category},
+        {$push : {book_ids : prev_category.book_ids}}
+    );
+    
+    // 마지막으로 기존 카테고리를 삭제합니다.
+    let delete_result = await Category.deleteOne({_id : req.body.category_id});    
+    let seq_change_result = await Category.updateMany(
+        {user : req.session.passport.user, seq : {$gt : req.body.seq}}, 
+        {$inc : {seq : -1}});
 
     get_booklist(req, res);
 };
@@ -125,7 +132,7 @@ const change_category_order = async (req, res) => {
     if (req.body.action === 'up'){
         destination_category = await Category
             .find({
-                user : req.session.passport.user,
+                user_id : req.session.passport.user,
                 seq : {$lt : req.body.seq}
             })
             .sort({seq : -1})
@@ -133,7 +140,7 @@ const change_category_order = async (req, res) => {
     } else {
         destination_category = await Category
             .find({
-                user : req.session.passport.user,
+                user_id : req.session.passport.user,
                 seq : {$gt : req.body.seq}
             })
             .sort({seq : 1})
@@ -226,7 +233,9 @@ const delete_book =  async (req, res) => {
 
 // 책의 카테고리를 변경합니다.
 const move_book_between_category = async(req, res) => {
-        
+    console.log('책의 카테고리를 바꿔줄게');
+    console.log(req.body);
+    
     // // 기존 카테고리에서 책 정보 삭제하고    
     let prev_category_update_result = await Category.updateOne(
         {_id : req.body.prev_category_id},
@@ -242,8 +251,8 @@ const move_book_between_category = async(req, res) => {
 
     // target category를 받아서 book의 카테고리 정보를 변경하고
     // 최대값 찾는 것을 함수로 빼버려야겠어
-    let max_seq_in_category = await get_max_seq(req.body.category_id);
-    let book = await Book.updatedOne(
+    let max_seq_in_category = await get_max_seq(req.body.target_category_id);
+    let book = await Book.updateOne(
         {_id : req.body.book_id},
         {category_id : req.body.target_category_id,
         seq_in_category : max_seq_in_category + 1}
