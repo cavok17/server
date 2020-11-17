@@ -8,6 +8,7 @@ const Index = require('../models/index');
 const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
 const book = require('../models/book');
+const { find } = require("../models/user");
 
 const get_max_seq = async (category_id) => {    
     let max_seq_book = await Book
@@ -56,12 +57,13 @@ const get_booklist = async (req, res) => {
     
     // 즐겨찾기 리스트를 보여줍니다.
     let likebooklist = await Book
-        .find({book_owner: req.session.passport.user, like : true})
+        .find({owner: req.session.passport.user, like : true})
         .populate({path : 'category_id', select : 'name'});    
     if (likebooklist){        
         likebooklist.sort((a,b) => a.seq_in_like - b.seq_in_like);
     };
-        
+    // console.log('likebooklist', likebooklist);
+
     res.json({isloggedIn : true, categorybooklist, likebooklist});
 };
 
@@ -264,9 +266,7 @@ const move_book_between_category = async(req, res) => {
 // 카테고리 내에서 책의 순서를 변경합니다.
 const change_book_order = async(req, res) => {
     console.log('책 순서 좀 조정할게');
-    // let current_book = await Book
-    //     .findOne({_id : req.body.book_id})        
-    // console.log(current_book);
+    console.log(res.body);
 
     // 위치 바꿔치기할 책을 찾아보자
     let destination_book;
@@ -302,7 +302,31 @@ const change_book_order = async(req, res) => {
     get_booklist(req, res); 
 };
 
-const create_cardtype = async(req, res) => {
+const like = async(req, res) => {
+    console.log('즐겨찾기를 수정할게');
+    console.log(req.body);
+
+    if(req.body.like == 'true'){
+        let num_like = await Book.countDocuments({owner : req.session.passport.user,like : true});
+        console.log('num_like', num_like);
+        let book = await Book.updateOne(
+            {_id : req.body.book_id},
+            {like : true, seq_in_like : num_like},
+        );        
+    } else {
+        console.log('아냐아냐');
+        let book = await Book.find({_id : req.body.book_id});
+        let book_update_result = await Book.updateOne(
+            {_id : req.body.book_id},
+            {like : false, seq_in_like : null},
+        );
+        let like_change_result = await Book.updateMany(
+            {owner : req.session.passport.user, seq_in_like : {$gt : book.seq_in_like}},
+            {$inc : {seq_in_like : -1}}
+        )      
+    };
+
+    get_booklist(req, res); 
 
 };
 
@@ -316,4 +340,5 @@ module.exports ={
     delete_book,
     move_book_between_category,
     change_book_order,
+    like,
 };
