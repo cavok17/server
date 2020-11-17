@@ -37,13 +37,15 @@ app.use(session({
 }));
 
 const userRouter = require('./routes/user');
-const writeRouter = require('./routes/write');
+const bookRouter = require('./routes/book');
+// const writeRouter = require('./routes/write');
 // const studyRouter = require('./routes/study');
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/api/write', writeRouter)
+app.use('/api/book', bookRouter)
+// app.use('/api/write', writeRouter)
 // app.use('/study', studyRouter);
 app.use('/api/user', userRouter);
 
