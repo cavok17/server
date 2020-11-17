@@ -8,7 +8,6 @@ const Index = require('../models/index');
 const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
 const book = require('../models/book');
-const { find } = require("../models/user");
 
 const get_max_seq = async (category_id) => {    
     let max_seq_book = await Book
@@ -16,7 +15,7 @@ const get_max_seq = async (category_id) => {
         .sort({seq_in_category : -1})
         .limit(1);    
     let max_seq_in_category;
-    console.log(max_seq_book[0]);
+    // console.log(max_seq_book[0]);
     if (max_seq_book.length === 0){
         return max_seq_in_category = -1;
     } else {
@@ -62,7 +61,7 @@ const get_booklist = async (req, res) => {
     if (likebooklist){        
         likebooklist.sort((a,b) => a.seq_in_like - b.seq_in_like);
     };
-    // console.log('likebooklist', likebooklist);
+    console.log('likebooklist', likebooklist);
 
     res.json({isloggedIn : true, categorybooklist, likebooklist});
 };
@@ -266,45 +265,74 @@ const move_book_between_category = async(req, res) => {
 // 카테고리 내에서 책의 순서를 변경합니다.
 const change_book_order = async(req, res) => {
     console.log('책 순서 좀 조정할게');
-    console.log(res.body);
+    console.log(req.body);
 
-    // 위치 바꿔치기할 책을 찾아보자
-    let destination_book;
-    if (req.body.action === 'up'){
-        destination_book = await Book
-            .find({                
-                category_id : req.body.category_id,
-                seq_in_category : {$lt : req.body.seq_in_category}
-            })
-            .sort({seq_in_category : -1})
-            .limit(1);            
-    } else {
-        destination_book = await Book
-            .find({
-                category_id : req.body.category_id,
-                seq_in_category : {$gt : req.body.seq_in_category}
-            })
-            .sort({seq_in_category : 1})
-            .limit(1);
-    };
-    console.log('destination_book[0].seq_in_category', destination_book[0].seq_in_category);
+    // // 위치 바꿔치기할 책을 찾아보자
+    // if (req.body.from =='list'){
+    //     let destination_book;
+    //     if (req.body.action === 'up'){
+    //         destination_book = await Book
+    //             .find({                
+    //                 category_id : req.body.category_id,
+    //                 seq_in_category : {$lt : req.body.seq_in_category}
+    //             })
+    //             .sort({seq_in_category : -1})
+    //             .limit(1);            
+    //     } else {
+    //         destination_book = await Book
+    //             .find({
+    //                 category_id : req.body.category_id,
+    //                 seq_in_category : {$gt : req.body.seq_in_category}
+    //             })
+    //             .sort({seq_in_category : 1})
+    //             .limit(1);
+    //     };
 
-    // 이제 정보를 바꿔넣자.
-    let current_book_move_result = await Book.updateOne(
-        {_id : req.body.book_id},
-        {seq_in_category : destination_book[0].seq_in_category}        
-    );
-    let destination_book_move_result = await Book.updateOne(
-        {_id : destination_book[0]._id},
-        {seq_in_category : req.body.seq_in_category}        
-    );
+    //     let current_book_move_result = await Book.updateOne(
+    //         {_id : req.body.book_id},
+    //         {seq_in_category : destination_book[0].seq_in_category}        
+    //     );
+    //     let destination_book_move_result = await Book.updateOne(
+    //         {_id : destination_book[0]._id},
+    //         {seq_in_category : req.body.seq_in_category}        
+    //     );
+    // } else {
+    //     let destination_book;
+    //     if (req.body.action === 'up'){
+    //         destination_book = await Book
+    //             .find({                
+    //                 owner : req.session.passport.user,
+    //                 seq_in_like : {$lt : req.body.seq_in_like}
+    //             })
+    //             .sort({seq_in_like : -1})
+    //             .limit(1);            
+    //     } else {
+    //         destination_book = await Book
+    //             .find({
+    //                 owner : req.session.passport.user,
+    //                 seq_in_like : {$gt : req.body.seq_in_like}
+    //             })
+    //             .sort({seq_in_like : 1})
+    //             .limit(1);
+    //     };
+
+    //     let current_book_move_result = await Book.updateOne(
+    //         {_id : req.body.book_id},
+    //         {seq_in_like : destination_book[0].seq_in_like}        
+    //     );
+    //     let destination_book_move_result = await Book.updateOne(
+    //         {_id : destination_book[0]._id},
+    //         {seq_in_like : req.body.seq_in_like}        
+    //     );
+
+    // };
 
     get_booklist(req, res); 
 };
 
 const like = async(req, res) => {
     console.log('즐겨찾기를 수정할게');
-    console.log(req.body);
+    // console.log(req.body);
 
     if(req.body.like == 'true'){
         let num_like = await Book.countDocuments({owner : req.session.passport.user,like : true});
