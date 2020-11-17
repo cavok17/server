@@ -103,22 +103,12 @@ const delete_category = async (req, res) => {
         {$inc : {seq : -1}});
 
     // 해당 카테고리의 책을 타겟 카테고리로 이동시킵니다.
-    let max_seq_in_target_category = await get_max_seq(req.body.category_id);
-    // let max_seq_in_target_category;
-    // let max_seq_book_in_target_category = await Book
-    //     .find({_id : req.body.target_category})
-    //     .sort({seq : -1})
-    //     .limit(1);
-    //     // 책이 없는 경우를 위하여~
-    // if (max_seq_book_in_target_category.length == 0) {
-    //     max_seq_in_target_category = -1;
-    // } else {
-    //     max_seq_in_target_category = max_seq_book_in_target_category[0].seq_in_category;        
-    // };  
+    console.log(req.body);
+    let max_seq_in_target_category = await get_max_seq(req.body.target_category);
     let book_move_result = await Book.updateMany(
-        {category : req.body.category_id}, 
+        {category_id : req.body.category_id}, 
         {
-            $set : {_id : req.body.target_category},
+            $set : {category_id : req.body.target_category},
             $inc : {seq_in_category : max_seq_in_target_category + 1}
         }
     );    
@@ -169,17 +159,6 @@ const create_book =  async (req, res) => {
 
     // 새 책에 쓸 seq_in_category를 계산합니다.
     let max_seq_in_category = await get_max_seq(req.body.category_id);
-    // let max_seq_book = await Book
-    //     .find({category_id : req.body.category_id})
-    //     .sort({seq_in_category : -1})
-    //     .limit(1);
-    // let max_seq_in_category;    
-    // if (max_seq_book.length === 0){
-    //     max_seq_in_category = -1;
-    // } else {
-    //     max_seq_in_category = max_seq_book[0].seq_in_category;
-    // };    
-    // console.log('max_seq_in_category',max_seq_in_category);
 
     // 새 책을 생성하고    
     let book = await Book.create({        
@@ -299,15 +278,15 @@ const change_book_order = async(req, res) => {
             .sort({seq_in_category : 1})
             .limit(1);
     };
-    // console.log(destination_book[0]);
+    console.log('destination_book[0].seq_in_category', destination_book[0].seq_in_category);
 
     // 이제 정보를 바꿔넣자.
     let current_book_move_result = await Book.updateOne(
-        {book_id : req.body.book_id},
+        {_id : req.body.book_id},
         {seq_in_category : destination_book[0].seq_in_category}        
     );
     let destination_book_move_result = await Book.updateOne(
-        {book_id : destination_book[0].book_id},
+        {_id : destination_book[0]._id},
         {seq_in_category : req.body.seq_in_category}        
     );
 
