@@ -9,16 +9,11 @@ const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
 const book = require('../models/book');
 
-
-    //     .sort({seq_in_category : -1})
-    //     .limit(1);
-const get_max_seq = async (category_id) => {
-    // console.log('category_id', category_id);
+const get_max_seq = async (category_id) => {    
     let max_seq_book = await Book
         .find({category_id : category_id})
         .sort({seq_in_category : -1})
-        .limit(1);
-    // console.log('max_seq_book', max_seq_book[0]);
+        .limit(1);    
     let max_seq_in_category;
     console.log(max_seq_book[0]);
     if (max_seq_book.length === 0){
@@ -108,7 +103,7 @@ const delete_category = async (req, res) => {
         {$inc : {seq : -1}});
 
     // 해당 카테고리의 책을 타겟 카테고리로 이동시킵니다.
-    let max_seq_in_target_category = get_max_seq(req.body.category_id);
+    let max_seq_in_target_category = await get_max_seq(req.body.category_id);
     // let max_seq_in_target_category;
     // let max_seq_book_in_target_category = await Book
     //     .find({_id : req.body.target_category})
@@ -268,7 +263,7 @@ const move_book_between_category = async(req, res) => {
 
     // target category를 받아서 book의 카테고리 정보를 변경하고
     // 최대값 찾는 것을 함수로 빼버려야겠어
-    let max_seq_in_category = get_max_seq(req.body.category_id);
+    let max_seq_in_category = await get_max_seq(req.body.category_id);
     let book = await Book.updatedOne(
         {_id : req.body.book_id},
         {category_id : req.body.target_category_id,
