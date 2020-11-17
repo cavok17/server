@@ -54,8 +54,7 @@ const get_booklist = async (req, res) => {
     };    
     // console.log('5', categorybooklist[0]);
     
-    // 즐겨찾기 리스트를 보여줍니다.
-    // let likebooklist = [];
+    // 즐겨찾기 리스트를 보여줍니다.    
     let likebooklist = await Book
         .find({owner: req.session.passport.user, like : true})
         .populate({path : 'category_id', select : 'name'});    
@@ -64,7 +63,10 @@ const get_booklist = async (req, res) => {
     };
     console.log('likebooklist', likebooklist);
 
-    res.json({isloggedIn : true, categorybooklist, likebooklist});
+    // 설정값을 보냅니다.
+    let config = await User.find({user_id : req.session.passport.user}, 'config');    
+
+    res.json({isloggedIn : true, categorybooklist, likebooklist, config});
 };
 
 
@@ -364,6 +366,46 @@ const change_likebook_order = async(req, res) => {
 
 };
 
+// 책을 숨김처리합니다.
+const change_hide_or_show = async(req, res) => {
+    console.log('책을 숨기거나 살립니다.');
+    console.log(req.body);
+
+    book = await Book.updateOne(
+        {_id : req.body.book_id},
+        {hide_or_show : req.body.hide_or_show}
+    );
+
+    get_booklist(req, res); 
+};
+
+// 책 이름을 변경합니다.
+const change_book_title = async(req, res) => {
+    console.log('책 이름을 변경합니다.');
+    console.log(req.body);
+
+    book = await Book.updateOne(
+        {_id : req.body.book_id},
+        {title : req.body.name}
+    );
+
+    get_booklist(req, res); 
+};
+
+// 카테고리 이름을 변경합니다.
+const change_category_name = async(req, res) => {
+    console.log('책 이름을 변경합니다.');
+    console.log(req.body);
+
+    book = await Category.updateOne(
+        {_id : req.body.category_id},
+        {name : req.body.name}
+    );
+
+    get_booklist(req, res); 
+};
+
+
 module.exports ={
     get_categorylist,
     get_booklist,    
@@ -376,4 +418,7 @@ module.exports ={
     change_book_order,
     apply_likebook,
     change_likebook_order,
+    change_hide_or_show,
+    change_book_title,
+    change_category_name,
 };

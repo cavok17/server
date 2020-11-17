@@ -8,7 +8,11 @@ const userschema = new mongoose.Schema({
   name: String,
   nickname: String,
   email: String,
-  phone: String,  
+  phone: String,
+  config : {
+    likebook : {type : Boolean, default : false}
+  }
+  
   // newbook_no: {type: Number, default :0},
   // newcategory_no: {type: Number, default :1}
 });

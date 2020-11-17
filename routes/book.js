@@ -48,6 +48,14 @@ router.post('/apply-likebook', isLoggedIn, Booklist.apply_likebook);
 // 즐겨찾기 순서변경하기
 router.post('/change-likebook-order', isLoggedIn, Booklist.change_likebook_order);
 
+// 책 숨김처리하기
+router.post('/change-hide-or-show', isLoggedIn, Booklist.change_hide_or_show);
+
+// 책 이름 변경하기
+router.post('/change-book-title', isLoggedIn, Booklist.change_book_title);
+
+// 카테고리 이름 변경하기
+router.post('/change-category-name', isLoggedIn, Booklist.change_category_name);
 
 // // 보유한 책 리스트 보여주기
 // router.get('/', isLoggedIn, Write.showbooklist);
