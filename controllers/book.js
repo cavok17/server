@@ -55,10 +55,11 @@ const get_booklist = async (req, res) => {
     // console.log('5', categorybooklist[0]);
     
     // 즐겨찾기 리스트를 보여줍니다.
+    // let likebooklist = [];
     let likebooklist = await Book
         .find({owner: req.session.passport.user, like : true})
         .populate({path : 'category_id', select : 'name'});    
-    if (likebooklist){        
+    if (likebooklist.length >0){        
         likebooklist.sort((a,b) => a.seq_in_like - b.seq_in_like);
     };
     console.log('likebooklist', likebooklist);
@@ -267,70 +268,39 @@ const change_book_order = async(req, res) => {
     console.log('책 순서 좀 조정할게');
     console.log(req.body);
 
-    // // 위치 바꿔치기할 책을 찾아보자
-    // if (req.body.from =='list'){
-    //     let destination_book;
-    //     if (req.body.action === 'up'){
-    //         destination_book = await Book
-    //             .find({                
-    //                 category_id : req.body.category_id,
-    //                 seq_in_category : {$lt : req.body.seq_in_category}
-    //             })
-    //             .sort({seq_in_category : -1})
-    //             .limit(1);            
-    //     } else {
-    //         destination_book = await Book
-    //             .find({
-    //                 category_id : req.body.category_id,
-    //                 seq_in_category : {$gt : req.body.seq_in_category}
-    //             })
-    //             .sort({seq_in_category : 1})
-    //             .limit(1);
-    //     };
+    // 위치 바꿔치기할 책을 찾아보자    
+    let destination_book;
+    if (req.body.action === 'up'){
+        destination_book = await Book
+            .find({                
+                category_id : req.body.category_id,
+                seq_in_category : {$lt : req.body.seq_in_category}
+            })
+            .sort({seq_in_category : -1})
+            .limit(1);            
+    } else {
+        destination_book = await Book
+            .find({
+                category_id : req.body.category_id,
+                seq_in_category : {$gt : req.body.seq_in_category}
+            })
+            .sort({seq_in_category : 1})
+            .limit(1);
+    };
 
-    //     let current_book_move_result = await Book.updateOne(
-    //         {_id : req.body.book_id},
-    //         {seq_in_category : destination_book[0].seq_in_category}        
-    //     );
-    //     let destination_book_move_result = await Book.updateOne(
-    //         {_id : destination_book[0]._id},
-    //         {seq_in_category : req.body.seq_in_category}        
-    //     );
-    // } else {
-    //     let destination_book;
-    //     if (req.body.action === 'up'){
-    //         destination_book = await Book
-    //             .find({                
-    //                 owner : req.session.passport.user,
-    //                 seq_in_like : {$lt : req.body.seq_in_like}
-    //             })
-    //             .sort({seq_in_like : -1})
-    //             .limit(1);            
-    //     } else {
-    //         destination_book = await Book
-    //             .find({
-    //                 owner : req.session.passport.user,
-    //                 seq_in_like : {$gt : req.body.seq_in_like}
-    //             })
-    //             .sort({seq_in_like : 1})
-    //             .limit(1);
-    //     };
-
-    //     let current_book_move_result = await Book.updateOne(
-    //         {_id : req.body.book_id},
-    //         {seq_in_like : destination_book[0].seq_in_like}        
-    //     );
-    //     let destination_book_move_result = await Book.updateOne(
-    //         {_id : destination_book[0]._id},
-    //         {seq_in_like : req.body.seq_in_like}        
-    //     );
-
-    // };
+    let current_book_move_result = await Book.updateOne(
+        {_id : req.body.book_id},
+        {seq_in_category : destination_book[0].seq_in_category}        
+    );
+    let destination_book_move_result = await Book.updateOne(
+        {_id : destination_book[0]._id},
+        {seq_in_category : req.body.seq_in_category}        
+    );
 
     get_booklist(req, res); 
 };
 
-const like = async(req, res) => {
+const apply_likebook = async(req, res) => {
     console.log('즐겨찾기를 수정할게');
     // console.log(req.body);
 
@@ -341,8 +311,7 @@ const like = async(req, res) => {
             {_id : req.body.book_id},
             {like : true, seq_in_like : num_like},
         );        
-    } else {
-        console.log('아냐아냐');
+    } else {        
         let book = await Book.find({_id : req.body.book_id});
         let book_update_result = await Book.updateOne(
             {_id : req.body.book_id},
@@ -358,6 +327,43 @@ const like = async(req, res) => {
 
 };
 
+// 즐겨찾기 내에서 책의 순서를 변경합니다.
+const change_likebook_order = async(req, res) => {
+    console.log('즐겨찾기 순서를 변경할게');
+    console.log(req.body);
+
+    let destination_book;
+    if (req.body.action === 'up'){
+        destination_book = await Book
+            .find({                
+                owner : req.session.passport.user,
+                seq_in_like : {$lt : req.body.seq_in_like}
+            })
+            .sort({seq_in_like : -1})
+            .limit(1);            
+    } else {
+        destination_book = await Book
+            .find({
+                owner : req.session.passport.user,
+                seq_in_like : {$gt : req.body.seq_in_like}
+            })
+            .sort({seq_in_like : 1})
+            .limit(1);
+    };
+
+    let current_book_move_result = await Book.updateOne(
+        {_id : req.body.book_id},
+        {seq_in_like : destination_book[0].seq_in_like}        
+    );
+    let destination_book_move_result = await Book.updateOne(
+        {_id : destination_book[0]._id},
+        {seq_in_like : req.body.seq_in_like}        
+    );
+    
+    get_booklist(req, res); 
+
+};
+
 module.exports ={
     get_categorylist,
     get_booklist,    
@@ -368,5 +374,6 @@ module.exports ={
     delete_book,
     move_book_between_category,
     change_book_order,
-    like,
+    apply_likebook,
+    change_likebook_order,
 };

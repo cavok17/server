@@ -43,7 +43,10 @@ router.post('/change-book-order', isLoggedIn, Booklist.change_book_order);
 router.post('/move-book-between-category', isLoggedIn, Booklist.move_book_between_category);
 
 // 즐겨찾기 추가/삭제
-router.post('/like', isLoggedIn, Booklist.like);
+router.post('/apply-likebook', isLoggedIn, Booklist.apply_likebook);
+
+// 즐겨찾기 순서변경하기
+router.post('/change-likebook-order', isLoggedIn, Booklist.change_likebook_order);
 
 
 // // 보유한 책 리스트 보여주기
