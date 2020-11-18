@@ -57,6 +57,12 @@ router.post('/change-book-title', isLoggedIn, Booklist.change_book_title);
 // 카테고리 이름 변경하기
 router.post('/change-category-name', isLoggedIn, Booklist.change_category_name);
 
+// 카테고리 이름 변경하기
+router.post('/change-write-config', isLoggedIn, Booklist.change_write_config);
+
+
+
+
 // // 보유한 책 리스트 보여주기
 // router.get('/', isLoggedIn, Write.showbooklist);
 

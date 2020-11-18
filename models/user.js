@@ -9,8 +9,9 @@ const userschema = new mongoose.Schema({
   nickname: String,
   email: String,
   phone: String,
-  config : {
-    likebook : {type : Boolean, default : false}
+  write_config : {
+    likebook : {type : Boolean, default : true},
+    hide_or_show : {type : Boolean, default : true}
   }
   
   // newbook_no: {type: Number, default :0},

@@ -13,7 +13,7 @@ const book_schema = new mongoose.Schema({
     owner: String,
     author: String,
     like: {type : Boolean, default : false},
-    hide_or_show : {type : Boolean, default : false},
+    hide_or_show : {type : Boolean, default : true},
     // recent_visit_index: String,
     seq_in_category : Number,
     seq_in_like : {type : Number, default : null},
