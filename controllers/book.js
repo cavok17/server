@@ -8,10 +8,10 @@ const Index = require('../models/index');
 const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
 const book = require('../models/book');
-const { countDocuments } = require("../models/user");
+// const { countDocuments } = require("../models/user");
 
-const get_seq_info = async (category_id) => {    
-    
+// 시퀀스 정보를 전달하는 공용함수입니다.
+const get_seq_info = async (category_id) => {        
     let max_seq_showbook = await Book
         .find({category_id : category_id, hide_or_show : true})
         .sort({seq_in_category : -1})

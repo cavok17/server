@@ -7,12 +7,7 @@ const Card = require('../models/card');
 
 // 컨트롤러 경로
 const Book_controller = require('../controllers/book');
-const Write = require('../controllers/write');
-
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
-const category = require('../models/category');
-
-
 const router = express.Router();
 
 // 카테고리 리스트 보여주기
@@ -62,61 +57,6 @@ router.post('/change-like-config', isLoggedIn, Book_controller.change_like_confi
 
 // 카테고리 이름 변경하기
 router.post('/change-hide-config', isLoggedIn, Book_controller.change_hide_config);
-
-
-
-// // 보유한 책 리스트 보여주기
-// router.get('/', isLoggedIn, Write.showBook_controller);
-
-// // 새 책 생성 화면 렌더링
-// router.get('/newbook', isLoggedIn, (req, res) => res.render('write_newbook'));
-
-// // 새 책 생성 실행
-// router.post('/newbook', isLoggedIn, Write.makenewbook);
-
-// // 선택한 책 내용 보여주기 --> 현재 목차 변경으로 redirect
-// router.get('/:book_id', isLoggedIn, Write.setindexes);
-// router.get('/:book_id/:index_id', isLoggedIn, Write.showcontents);
-
-// // // 새 목차 추가
-// router.post('/:book_id/new_index', isLoggedIn, Write.makenewindex);
-
-
-// // 카드 종류 추가
-
-// // 카드 추가
-// router.get('/:book_id/:index_id/newcard', isLoggedIn, async (req, res) => {
-//     console.log('새 카드 추가를 요청합니다.');
-//     let book_id = req.params.book_id;
-//     let index_id = req.params.index_id;
-//     let card_position = req.query.card_position;
-//     console.log(card_position);
-//     res.render('write_newcard',{book_id, index_id, card_position});
-// });
-
-// router.post('/:book_id/:index_id/newcard', isLoggedIn, Write.makenewcard);
-// //     async (req, res) => {
-// //     console.log('새 카드를 추가합니다.');
-// //     let tmp_book = await Book.findOne({book_id: req.params.book_id});    
-
-// //     let new_card = new Card();        
-// //     new_card.card_id = tmp_book.noofcreatedcard+1;
-// //     new_card.book_id = req.params.book_id;
-// //     new_card.index_id = req.params.index_id;
-// //     new_card.cardtype_id = 'two-face';
-// //     // new_card.level = 0;
-// //     // new_card.created_date = new Date(),
-// //     new_card.recent_study_time = null,
-// //     new_card.willstudy_time = null,
-// //     new_card.contents = [req.body.front, req.body.back];
-
-// //     tmp_book.noofcreatedcard = tmp_book.noofcreatedcard + 1;
-// //     tmp_book = await tmp_book.save()
-// //     new_card = await new_card.save();     
-// //     res.redirect('/write/'+req.params.book_id+'/'+req.params.index_id);
-// // });
-
-
 
 
 module.exports = router;
