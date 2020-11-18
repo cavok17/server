@@ -371,7 +371,7 @@ const change_hide_or_show = async(req, res) => {
     console.log('책을 숨기거나 살립니다.');
     console.log(req.body);
 
-    book = await Book.updateOne(
+    const book = await Book.updateOne(
         {_id : req.body.book_id},
         {hide_or_show : req.body.hide_or_show}
     );
@@ -384,7 +384,7 @@ const change_book_title = async(req, res) => {
     console.log('책 이름을 변경합니다.');
     console.log(req.body);
 
-    book = await Book.updateOne(
+    const book = await Book.updateOne(
         {_id : req.body.book_id},
         {title : req.body.name}
     );
@@ -397,7 +397,7 @@ const change_category_name = async(req, res) => {
     console.log('책 이름을 변경합니다.');
     console.log(req.body);
 
-    book = await Category.updateOne(
+    const book = await Category.updateOne(
         {_id : req.body.category_id},
         {name : req.body.name}
     );
