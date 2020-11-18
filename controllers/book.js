@@ -511,7 +511,7 @@ const change_like_config = async(req, res) => {
 
 
     const like_config_change = await User.updateOne(
-        {_id : req.session.passport.user},
+        {user_id : req.session.passport.user},
         {'write_config.likebook' : req.body.like_toggle}
     );
 
@@ -523,8 +523,8 @@ const change_hide_config = async(req, res) => {
     console.log(req.body);
 
 
-    const hide_config_change = await Category.updateOne(
-        {_id : req.session.passport.user},
+    const hide_config_change = await User.updateOne(
+        {user_id : req.session.passport.user},
         {'write_config.hide_or_show' : req.body.hide_toggle}
     );
 
