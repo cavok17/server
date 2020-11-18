@@ -505,18 +505,33 @@ const change_category_name = async(req, res) => {
     get_booklist(req, res); 
 };
 
-const change_write_config = async(req, res) => {
+const change_like_config = async(req, res) => {
     console.log('설정을 변경합니다.');
     console.log(req.body);
 
 
-    const book = await Category.updateOne(
-        {_id : req.body.category_id},
-        {name : req.body.name}
+    const like_config_change = await User.updateOne(
+        {_id : req.session.passport.user},
+        {'write_config.likebook' : req.body.like_toggle}
     );
 
     get_booklist(req, res); 
 };
+
+const change_hide_config = async(req, res) => {
+    console.log('설정을 변경합니다.');
+    console.log(req.body);
+
+
+    const hide_config_change = await Category.updateOne(
+        {_id : req.session.passport.user},
+        {'write_config.hide_or_show' : req.body.hide_toggle}
+    );
+
+    get_booklist(req, res); 
+};
+
+
 
 
 module.exports ={
@@ -534,5 +549,6 @@ module.exports ={
     change_hide_or_show,
     change_book_title,
     change_category_name,
-    change_write_config,
+    change_like_config,
+    change_hide_config,
 };
