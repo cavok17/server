@@ -8,6 +8,7 @@ const Index = require('../models/index');
 const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
 const book = require('../models/book');
+const { updateMany } = require("../models/user");
 
 // 인덱스 정보를 가져옵니다.
 const get_indexList = async (req, res) => {  
@@ -102,11 +103,48 @@ const change_index_order = async(req, res) => {
         {seq : req.body.seq}        
     );
     
-    get_indexlist(req, res); 
+    get_indexList(req, res); 
 
 };
 
+// 인덱스를 삭제합니다.
+const delete_index = async(req, res) => {
+    console.log('인덱스를 삭제합니다.');
+    console.log(req.body);
 
+    // 아래쪽에 자기보다 같거나 높은 레벨이 있는지 확인한다.
+    let next_same_level_index = await Index
+        .find({book_id : req.body.book_id,
+                seq : {$gt : req.body.seq},
+                level : {$gte : req.body.level}})
+        .sort({seq : 1})
+    
+    // 없으면 아래 녀석들 다 레벨을 하나씩 올려주고
+    if (next_same_level_index.length = 0){
+        let level_modi_result = await Index.updateMany(
+            {book_id : req.body.book_id,
+            seq : {$gt : req.body.seq}},
+            {$inc : {level : 1}})
+    } else {
+    // 있으면 앞에서 찾은 레벨 앞까지만 레벨을 올려준다.
+        let level_modi_result = await Index.updateMany(
+            {book_id : req.body.book_id,
+            seq : {$gt : req.body.seq, $lt : next_same_level_index[0].seq}},
+            {$inc : {level : 1}})
+    };
+
+    // 마지막으로 아래녀석들의 시퀀스를 다 하나씩 올려준다.    
+    let seq_modi_result = await Index.updateMany(
+        {book_id : req.body.book_id,
+        seq : {$gt : req.body.seq}},
+        {$inc : {seq : -1}});
+
+    let delete_result = await  Index.deleteOne({_id : req.body.index_id});
+    
+    // 나중에 카드 옮기는 로직도 필요함
+
+    get_indexList(req, res); 
+};
 
 module.exports ={
     get_indexList,
@@ -114,4 +152,5 @@ module.exports ={
     change_index_name,
     change_index_level,
     change_index_order,
+    delete_index,
 };

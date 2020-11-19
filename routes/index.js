@@ -19,11 +19,14 @@ router.post('/create-index', isLoggedIn, Index_controller.create_index);
 // 인덱스를 이름을 변경합니다.
 router.post('/change-index-name', isLoggedIn, Index_controller.change_index_name);
 
-// 인덱스를 이름을 변경합니다.
+// 인덱스를 레벨을 변경합니다.
 router.post('/change-index-level', isLoggedIn, Index_controller.change_index_level);
 
 // 인덱스를 순서를 변경합니다.
 router.post('/change-index-order', isLoggedIn, Index_controller.change_index_order);
+
+// 인덱스를 삭제합니다.
+router.post('/delete-index', isLoggedIn, Index_controller.delete_index);
 
 
 
