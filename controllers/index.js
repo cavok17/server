@@ -28,18 +28,41 @@ const create_index = async (req, res) => {
     console.log('인덱스를 새로 생성합니다.');
     console.log(req.body);
 
-    let seq_modi = await Index.updateMany(
-        {book_id : req.body.book_id,
-        seq : {$gt : req.body.seq}},
-        {$inc : {seq : 1}}
-    );
+    // 다음으로 나오는 동일(또는 더 높은) 레벨 인덱스 위치를 확인하고
+    let next_same_level_index = await Index
+        .find({book_id : req.body.book_id,
+                seq : {$gt : req.body.seq},
+                level : {$lte : req.body.level}})
+        .sort({seq : 1})
+        .limit(1)    
+    let max_seq_index = await Index
+        .find({book_id : req.body.book_id})
+        .sort({seq : -1})
+        .limit(1)
 
-    let new_index = await Index.create({
-        book_id : req.body.book_id,
-        name : req.body.name,
-        seq : req.body.seq + 1,
-        level : req.body.lev,
-    });
+    // 동일 레벨 이상의 인덱스가 뒤에 없으면 맨 뒤에 박고    
+    if (next_same_level_index.length ===0){
+        let new_index = await Index.create({
+            book_id : req.body.book_id,
+            name : req.body.name,
+            seq : max_seq_index[0].seq + 1,
+            level : req.body.level,
+        });        
+    } else {
+        // 동일 레벨 이상의 인덱스가 뒤에 있으면 그 앞에 박고, 나머지를 뒤로 민다.        
+        let seq_modi = await Index.updateMany(
+            {book_id : req.body.book_id,
+            seq : {$gte : next_same_level_index[0].seq}},
+            {$inc : {seq : 1}}
+        );
+        let new_index = await Index.create({
+            book_id : req.body.book_id,
+            name : req.body.name,
+            seq : next_same_level_index[0].seq,
+            level : req.body.level,
+        });        
+        
+    };
     
     return get_indexList(req,res)
 };
@@ -69,6 +92,10 @@ const change_index_level = async(req, res) => {
                 seq : {$lt : req.body.seq}})                
         .sort({seq : -1})
         .limit(1)
+    if (upper_index.length ===0){
+        return res.json({isloggedIn : true, msg : '이동불가' });
+    }
+    console.log('upper_index', upper_index[0]);
     
     // 다음으로 나오는 동일(또는 더 높은) 레벨 인덱스 위치를 확인하고
     let next_same_level_index = await Index
@@ -77,30 +104,33 @@ const change_index_level = async(req, res) => {
                 level : {$lte : req.body.level}})
         .sort({seq : 1})
         .limit(1)
+    console.log('next_same_level_index', next_same_level_index);
+
     let next_same_level_index_seq;
     if (next_same_level_index.index ===0){
         next_same_level_index_seq = req.body.seq
     } else {
         next_same_level_index_seq = next_same_level_index[0].seq
     };
+    console.log('next_same_level_index_seq', next_same_level_index_seq);
     
     // 이제 이동을 시켜보자
     // 현재 이동하려는 레벨이 upper레벨보다 오른쪽에 있으면 오른쪽 이동은 안 돼
     if(req.body.action == 'right'){
-        if (req.body.level > upper_index[0].seq) {
+        if (req.body.level > upper_index[0].level) {
             console.log("이동 불가")
             res.json({isloggedIn : true, msg : '이동불가' });
         } else {
             let level_modi_result = await Index.updateMany(
                 {book_id : req.body.book_id,
-                seq : {$gte : req.body.seq, $lte : next_same_level_index_seq}},
+                seq : {$gte : req.body.seq, $lt : next_same_level_index_seq}},
                 {$inc : {level : 1}});
             get_indexList(req, res); 
         }
     } else if(req.body.action == 'left'){
         let level_modi_result = await Index.updateMany(
             {book_id : req.body.book_id,
-            seq : {$gte : req.body.seq, $lte : next_same_level_index_seq}},
+            seq : {$gte : req.body.seq, $lt : next_same_level_index_seq}},
             {$inc : {level : -1}});
         get_indexList(req, res); 
     };    
