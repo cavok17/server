@@ -77,16 +77,17 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
 
 router.get('/logout', isLoggedIn, async (req, res) => {
   req.logout();
-  // const destroy = new Promise((resolve, reject) => {
-  //   req.session.destroy();
-  // });
+  const destroy = new Promise((resolve, reject) => {
+    req.session.destroy();
+    resolve('love');
+  });
 
-  // destroy.then(() => {
-  //   res.json({isloggedIn : false}); 
-  // });
+  destroy.then(() => {
+    res.json({isloggedIn : false}); 
+  });
 
-  req.session.destroy();
-  res.json({isloggedIn : false});   
+  // req.session.destroy();
+  // res.json({isloggedIn : false});   
 
 });
 
