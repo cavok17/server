@@ -10,7 +10,7 @@ const Category = require('../models/category');
 const book = require('../models/book');
 
 // 인덱스 정보를 가져옵니다.
-const get_indexList = async (category_id) => {  
+const get_indexList = async (req, res) => {  
     console.log('인덱스 리스트 가지러 왔느냐.');
     console.log(req.body);
 
@@ -22,7 +22,7 @@ const get_indexList = async (category_id) => {
 };
 
 // 인덱스를 생성합니다.
-const create_index = async (category_id) => {  
+const create_index = async (req, res) => {  
     console.log('인덱스를 새로 생성합니다.');
     console.log(req.body);
 

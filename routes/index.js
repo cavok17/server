@@ -11,10 +11,10 @@ const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const router = express.Router();
 
 // 인덱스 목록을 보여줍니다.
-router.get('/get-indexlist', isLoggedIn, Index_controller.get_indexList);
+router.post('/get-indexlist', isLoggedIn, Index_controller.get_indexList);
 
 // 인덱스를 추가합니다.
-router.get('/create-index', isLoggedIn, Index_controller.create_index);
+router.post('/create-index', isLoggedIn, Index_controller.create_index);
 
 
 // 인덱스를 추가합니다.
