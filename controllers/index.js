@@ -18,7 +18,7 @@ const get_indexList = async (req, res) => {
     const indexList = await Index
         .find({book_id : req.body.book_id})
         .sort({seq : 1});
-    console.log(indexList);
+    // console.log(indexList);
 
     res.json({isloggedIn : true, indexList, });
 };
@@ -116,21 +116,21 @@ const delete_index = async(req, res) => {
     let next_same_level_index = await Index
         .find({book_id : req.body.book_id,
                 seq : {$gt : req.body.seq},
-                level : {$gte : req.body.level}})
+                level : {$lte : req.body.level}})
         .sort({seq : 1})
     
     // 없으면 아래 녀석들 다 레벨을 하나씩 올려주고
-    if (next_same_level_index.length = 0){
+    if (next_same_level_index.length === 0){
         let level_modi_result = await Index.updateMany(
             {book_id : req.body.book_id,
             seq : {$gt : req.body.seq}},
-            {$inc : {level : 1}})
+            {$inc : {level : -1}})
     } else {
     // 있으면 앞에서 찾은 레벨 앞까지만 레벨을 올려준다.
         let level_modi_result = await Index.updateMany(
             {book_id : req.body.book_id,
             seq : {$gt : req.body.seq, $lt : next_same_level_index[0].seq}},
-            {$inc : {level : 1}})
+            {$inc : {level : -1}})
     };
 
     // 마지막으로 아래녀석들의 시퀀스를 다 하나씩 올려준다.    
