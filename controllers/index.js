@@ -69,42 +69,42 @@ const change_index_level = async(req, res) => {
     get_indexList(req, res); 
 };
 
-// // 즐겨찾기 내에서 책의 순서를 변경합니다.
-// const change_likebook_order = async(req, res) => {
-//     console.log('즐겨찾기 순서를 변경할게');
-//     console.log(req.body);
+// 인덱스의 순서를 변경합니다.
+const change_index_order = async(req, res) => {
+    console.log('인덱스 순서를 변경할게');
+    console.log(req.body);
 
-//     let destination_book;
-//     if (req.body.action === 'up'){
-//         destination_book = await Book
-//             .find({                
-//                 owner : req.session.passport.user,
-//                 seq_in_like : {$lt : req.body.seq_in_like}
-//             })
-//             .sort({seq_in_like : -1})
-//             .limit(1);            
-//     } else {
-//         destination_book = await Book
-//             .find({
-//                 owner : req.session.passport.user,
-//                 seq_in_like : {$gt : req.body.seq_in_like}
-//             })
-//             .sort({seq_in_like : 1})
-//             .limit(1);
-//     };
+    let destination_index;
+    if (req.body.action === 'up'){
+        destination_index = await Index
+            .find({                
+                book_id : req.body.book_id,
+                seq : {$lt : req.body.seq}
+            })
+            .sort({seq : -1})
+            .limit(1);            
+    } else if (req.body.action === 'down') {
+        destination_index = await Index
+            .find({
+                book_id : req.body.book_id,
+                seq : {$gt : req.body.seq}
+            })
+            .sort({seq : 1})
+            .limit(1);
+    };
 
-//     let current_book_move_result = await Book.updateOne(
-//         {_id : req.body.book_id},
-//         {seq_in_like : destination_book[0].seq_in_like}        
-//     );
-//     let destination_book_move_result = await Book.updateOne(
-//         {_id : destination_book[0]._id},
-//         {seq_in_like : req.body.seq_in_like}        
-//     );
+    let current_index_move_result = await Index.updateOne(
+        {_id : req.body.index_id},
+        {seq : destination_index[0].seq}        
+    );
+    let destination_index_move_result = await Index.updateOne(
+        {_id : destination_index[0]._id},
+        {seq : req.body.seq}        
+    );
     
-//     get_booklist(req, res); 
+    get_indexlist(req, res); 
 
-// };
+};
 
 
 
@@ -113,4 +113,5 @@ module.exports ={
     create_index,
     change_index_name,
     change_index_level,
+    change_index_order,
 };
