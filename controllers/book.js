@@ -227,7 +227,7 @@ const create_book =  async (req, res) => {
     let index = await Index.create({
         book_id : book._id,
         seq : 0,
-        index_name : '기본',        
+        name : '기본',        
     });
     
     // 카테고리에 책 정보를 추가하고
