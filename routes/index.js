@@ -19,6 +19,9 @@ router.post('/create-index', isLoggedIn, Index_controller.create_index);
 // 인덱스를 이름을 변경합니다.
 router.post('/change-index-name', isLoggedIn, Index_controller.change_index_name);
 
+// 인덱스를 이름을 변경합니다.
+router.post('/change-index-level', isLoggedIn, Index_controller.change_index_level);
+
 // 인덱스를 추가합니다.
 
 
