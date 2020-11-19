@@ -17,7 +17,8 @@ const get_indexList = async (req, res) => {
     const indexList = await Index
         .find({book_id : req.body.book_id})
         .sort({seq : 1});
-    
+    console.log(indexList);
+
     res.json({isloggedIn : true, indexList, });
 };
 
@@ -42,9 +43,23 @@ const create_index = async (req, res) => {
     return get_indexList(req,res)
 };
 
+// 책 이름을 변경합니다.
+const change_index_name = async(req, res) => {
+    console.log('인덱스 이름을 변경합니다.');
+    console.log(req.body);
+
+    const name_modi_result = await Index.updateOne(
+        {_id : req.body.index_id},
+        {name : req.body.name}
+    );
+
+    get_indexList(req, res); 
+};
+
 
 
 module.exports ={
     get_indexList,
     create_index,
+    change_index_name,
 };
