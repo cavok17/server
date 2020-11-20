@@ -13,7 +13,7 @@ const { updateMany } = require("../models/user");
 // 인덱스 정보를 가져옵니다.
 const get_indexList = async (req, res) => {  
     console.log('인덱스 리스트 가지러 왔느냐.');
-    console.log(req.session);
+    console.log('이제 req.session.book_id', req.session.book_id);
     console.log(req.body);
 
     const indexList = await Index

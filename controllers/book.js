@@ -536,8 +536,9 @@ const start_write = async(req, res) => {
     console.log('write를 시작합니다.');
     console.log(req.body);
 
-    req.session.book_id = req.body.book_id;    
-    console.log(req.session);
+    console.log('원래 req.session.book_id', req.session.book_id);
+    req.session.book_id = req.body.book_id;
+    console.log('이제 req.session.book_id', req.session.book_id);
 
     res.json({isloggedIn : true, msg : "세션 저장 완료"});      
 };
