@@ -17,6 +17,7 @@ const get_cardtypeList = async(req, res) => {
 
     const cardtypes = await Cardtype.find({book_id : req.session.book_id})
         .sort ({seq : 1})
+    
 
     res.json({isloggedIn : true, cardtypes});
 };
@@ -116,6 +117,7 @@ const change_cardtype_nick = async(req, res) => {
         {_id : req.body.cardtype_id},
         {nick : req.body.nick}
     );
+    
 
     get_cardtypeList(req, res);
 };

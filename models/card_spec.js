@@ -4,10 +4,9 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const card_spec_schema = new mongoose.Schema({
     book_id: String,
-    index_id: String,
-    card_id: String,
+    index_id: String,    
     card_type: String,
-    card_position_in_index: Number,
+    seq_in_index: Number,
     recent_study_time : {type : Date, default : null},
     willstudy_time: {type : Date, default : null},
     level : {type : Number, default : 0},
