@@ -7,6 +7,7 @@ const Card = require('../models/card');
 const Index = require('../models/index');
 const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
+const Cardtype = require('../models/cardtype');
 const book = require('../models/book');
 
 // 카드타입 리스트를 보여줍니다.
@@ -15,7 +16,7 @@ const get_cardtypeList = async(req, res) => {
     console.log(req.body);
 
     const cardtypes = await Cardtype.find({book_id : req.session.book_id})
-        .sort ((a,b) => a.seq - b.seq);
+        .sort ({seq : 1})
 
     res.json({isloggedIn : true, cardtypes});
 };
@@ -25,12 +26,20 @@ const create_cardtype = async(req, res) => {
     console.log('카드타입을 생성합니다.');
     console.log(req.body);
 
+    // 신규카드의 시퀀스를 생성합니다.
     let max_seq_cardtype = await Cardtype.find({book_id : req.session.book_id}, {seq : 1, _id : 0})
-        .sort ((a,b) => b.seq - a.seq)
+        .sort ({seq : -1})
         .limit(1);
+    let max_seq;
+    if(max_seq_cardtype.length ===0){
+        max_seq = -1
+    } else {
+        max_seq = max_seq_cardtype[0].seq
+    }
     
+    // direction하고 ratio를 정의합니다.
     let direction;
-    let ratio;
+    let ratio = {};
     switch (req.body.type) {
         case 'face1' : 
             direction = null;
@@ -46,7 +55,7 @@ const create_cardtype = async(req, res) => {
                 ratio.annot = 20;
             };
         case 'face2' :
-            direction = up_down;
+            direction = 'up_down';
             if(req.body.annotation = true){
                 ratio.face1 = 80;
                 ratio.face2 = 80;
@@ -59,7 +68,7 @@ const create_cardtype = async(req, res) => {
                 ratio.annot = 0;
             };
         case 'face3' :
-            direction = up_down;
+            direction = 'up_down';
             if(req.body.annotation = true){
                 ratio.face1 = 80;
                 ratio.face2 = 80;
@@ -73,9 +82,10 @@ const create_cardtype = async(req, res) => {
             };
     }
 
+    //생성합니다.
     let cardtype = await Cardtype.create({
         book_id : req.session.book_id,
-        seq : max_seq_cardtype[0].seq + 1,
+        seq : max_seq + 1,
         type : req.body.type,
         nick : req.body.nick,
         importance : req.body.importance,

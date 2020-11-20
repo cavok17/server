@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const cardtypeschema = new mongoose.Schema({  
     book_id: {type:mongoose.Schema.Types.ObjectId, ref:'Book'},
     seq : Number,
-    type: Number,
+    type: String,
     nick : String,
     importance: Boolean,
     annotation : Boolean,
@@ -14,7 +14,7 @@ const cardtypeschema = new mongoose.Schema({
         face3 : {type : Number, default : 0},        
         annot : {type : Number, default : 0},
     },
-    direction : {type : Number, default : 0},
+    direction : {type : String, default : 0},
     ratio: {
         face1 : Number,
         face2 : Number,
