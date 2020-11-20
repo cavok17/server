@@ -29,11 +29,11 @@ app.use(session({
       maxAge: 1800000
   },
 //   원래 false였음
-  resave: true,
+  resave: false,
 //   원래 false였음
   saveUninitialized: true,
 //   store : new FileStore(fileStoreOptions),
-  store : new FileStore(),
+  store : new FileStore({logFn : function(){}}),
 }));
 
 const userRouter = require('./routes/user');

@@ -83,6 +83,7 @@ router.get('/logout', isLoggedIn, async (req, res) => {
   });
 
   destroy.then(() => {
+    console.log('세션이 파괴되었습니다?')
     res.json({isloggedIn : false}); 
   });
 
