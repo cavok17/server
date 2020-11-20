@@ -26,7 +26,7 @@ app.use(session({
   secret: process.env.COOKIE_SECRET,  
   cookie: {
       httponly: true,
-      maxAge: 1800000
+      maxAge: 7200000
   },
 //   원래 false였음
   resave: false,
