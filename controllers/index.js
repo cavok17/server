@@ -109,8 +109,8 @@ const change_index_level = async(req, res) => {
     console.log('next_same_level_index', next_same_level_index);
 
     let next_same_level_index_seq;
-    if (next_same_level_index.index ===0){
-        next_same_level_index_seq = req.body.seq
+    if (next_same_level_index.length ===0){
+        next_same_level_index_seq = 100000000
     } else {
         next_same_level_index_seq = next_same_level_index[0].seq
     };
@@ -212,15 +212,18 @@ const delete_index = async(req, res) => {
     console.log('인덱스를 삭제합니다.');
     console.log(req.body);
 
-    // 아래쪽에 자기보다 같거나 높은 레벨이 있는지 확인한다.
+    //  그냥 삭제하면 레벨이 쩜쁘할 수 있단말야. 가령 1레벨 밑에 바로 3레벨
+    // 일단 레벨을 수정해줘야 될 수도 있는 범위를 잡아보자
     let next_same_level_index = await Index
         .find({book_id : req.session.book_id,
                 seq : {$gt : req.body.seq},
                 level : {$lte : req.body.level}})
         .sort({seq : 1})
-        .limit(1)
+        .limit(1)                
     
-    // 없으면 아래 녀석들 다 레벨을 하나씩 올려주고
+    // 자기보다 동등 또는 상위레벨이 하나도 없어! 그러면
+    // 내가 사라지면 내 아래쪽 놈들은 쩜프를 경험한다고
+    // 그니깐 아래 녀석들 다 레벨을 하나씩 올려주고
     if (next_same_level_index.length === 0){
         let level_modi_result = await Index.updateMany(
             {book_id : req.session.book_id,

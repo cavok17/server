@@ -39,6 +39,7 @@ app.use(session({
 const userRouter = require('./routes/user');
 const bookRouter = require('./routes/book');
 const indexRouter = require('./routes/index');
+const cardtypeRouter = require('./routes/cardtype');
 // const studyRouter = require('./routes/study');
 
 app.use(passport.initialize());
@@ -46,6 +47,7 @@ app.use(passport.session());
 
 app.use('/api/book', bookRouter)
 app.use('/api/index', indexRouter)
+app.use('/api/cardtype', cardtypeRouter)
 // app.use('/study', studyRouter);
 app.use('/api/user', userRouter);
 

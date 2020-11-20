@@ -1,9 +1,9 @@
 const express = require('express');
 
-// 모델 경로
-const User = require('../models/user');
-const Book = require('../models/book');
-const Card = require('../models/card');
+// // 모델 경로
+// const User = require('../models/user');
+// const Book = require('../models/book');
+// const Card = require('../models/card');
 
 // 컨트롤러 경로
 const Book_controller = require('../controllers/book');
