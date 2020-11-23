@@ -2,13 +2,16 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const cardschema = new mongoose.Schema({
-  card_id: {
-    type : String,
-  },
-  book_id: String,
-  index_id: String,  
-  cardtype_id: String,    
-  contents: []
+  cardtype_id: {type:mongoose.ObjectId, ref:'Cardtype'},
+  book_id: {type:mongoose.ObjectId, ref:'Book'},
+  index_id: {type:mongoose.ObjectId, ref:'Index'},
+  source_of_content : {type : String, default : 'self'},
+  content_id : {type:mongoose.ObjectId, ref:'Content'},
+  seq_in_index: Number,
+  time_created : {type : Date, default : null},
+  recent_study_time : {type : Date, default : null},
+  willstudy_time: {type : Date, default : null},
+  level : {type : Number, default : 0},
 });
 
 

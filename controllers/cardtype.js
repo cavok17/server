@@ -90,6 +90,7 @@ const create_cardtype = async(req, res) => {
         type : req.body.type,
         nick : req.body.nick,
         importance : req.body.importance,
+        annotation : req.body.annotation,
         num_column : {
             face1 : req.body.face1,
             face2 : req.body.face2,

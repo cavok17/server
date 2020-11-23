@@ -23,16 +23,16 @@ const cardtypeschema = new mongoose.Schema({
     },
     background_color : {type : String, default : null},
     outer_margin : {
-        up : {type : Number, default : 0},
+        top : {type : Number, default : 0},
         down : {type : Number, default : 0},
         left : {type : Number, default : 0},
-        ringt : {type : Number, default : 0},
+        right : {type : Number, default : 0},
     },
     inner_padding : {
         top : {type : Number, default : 0},
         bottom : {type : Number, default : 0},
         left : {type : Number, default : 0},
-        ringt : {type : Number, default : 0},
+        right : {type : Number, default : 0},
     },
     border : {
         top : {
