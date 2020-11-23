@@ -50,8 +50,9 @@ exports.create_card = async (req, res) => {
         {content_id : content._id}
     )
     
+    cardlist = get_cardlist_func(req.body.index_id)
 
-    res.json({isloggedIn : true, cardtypes});
+    res.json({isloggedIn : true, cardlist});
 
 };
 
@@ -67,4 +68,14 @@ const get_max_seq = async (index_id) => {
     } else {
         return max_seq_card.seq_in_index
     }    
+}
+
+// 카드리스트를 보내드려요~
+const get_cardlist_func = async (index_id) => {
+    let cardlist = await Card
+        .find({index_id : index_id})
+        .sort({seq_in_index : -1})
+        .pupulate('content_id')
+    
+    return cardlist
 }
