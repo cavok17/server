@@ -24,7 +24,7 @@ const cardtypeschema = new mongoose.Schema({
     background_color : {type : String, default : null},
     outer_margin : {
         top : {type : Number, default : 0},
-        down : {type : Number, default : 0},
+        bottom : {type : Number, default : 0},
         left : {type : Number, default : 0},
         right : {type : Number, default : 0},
     },

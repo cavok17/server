@@ -17,7 +17,7 @@ exports.get_cardlist = async (req, res) => {
     console.log("카드리스트를 보내줄게요");
     console.log(req.body);
 
-    cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 
@@ -50,7 +50,7 @@ exports.create_card = async (req, res) => {
         {content_id : content._id}
     )
     
-    cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 

@@ -8,6 +8,8 @@ const cardschema = new mongoose.Schema({
   source_of_content : {type : String, default : 'self'},
   content_id : {type:mongoose.ObjectId, ref:'Content'},
   seq_in_index: Number,
+  importance : Number,
+  flag : Number,
   time_created : {type : Date, default : null},
   recent_study_time : {type : Date, default : null},
   willstudy_time: {type : Date, default : null},
