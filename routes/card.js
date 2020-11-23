@@ -8,8 +8,12 @@ const router = express.Router();
 // 카드 리스트 보여주기
 router.get('/get-cardlist', isLoggedIn, Card_controller.get_cardlist);
 
-// 카드타입 리스트 보여주기
+// 카드 생성하기
 router.get('/create-card', isLoggedIn, Card_controller.create_card);
+
+// 카드 수정하기
+router.get('/change-card', isLoggedIn, Card_controller.change_card);
+
 
 
 module.exports = router;

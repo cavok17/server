@@ -89,7 +89,7 @@ exports.create_card = async (req, res) => {
 };
 
 // 카드 내용을 변경합니다.
-exports.create_card = async (req, res) => {
+exports.change_card = async (req, res) => {
     console.log("카드 내용을 변경합니다.");
     console.log(req.body);
 
