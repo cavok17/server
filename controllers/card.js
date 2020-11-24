@@ -30,7 +30,7 @@ exports.create_card = async (req, res) => {
 
     let card = await Card.create({
         cardtype_id: req.body.cardtype_id,
-        book_id: req.body.book_id,
+        book_id: req.session.book_id,
         index_id: req.body.index_id,        
         // content_id : content._id,
         seq_in_index: get_max_seq(req.body.index_id),        
@@ -57,7 +57,7 @@ exports.create_card = async (req, res) => {
 };
 
 // 카드 순서를 변경합니다.
-exports.create_card = async (req, res) => {
+exports.change_card_order = async (req, res) => {
     console.log("카드 순서를 변경합니다.");
     console.log(req.body);
 
@@ -114,6 +114,62 @@ exports.change_card = async (req, res) => {
     res.json({isloggedIn : true, cardlist});
 };
 
+// 카드를 삭제합니다.
+exports.delete_card = async (req, res) => {
+    console.log("카드를 삭제합니다.");
+    console.log(req.body);
+
+    let card_delete_result = await Card.deleteOne({_id : req.body.card_id})
+    let seq_modi_result = await Card.updateMany(
+        {index_id : req.body.index_id,
+        seq_in_index : {$gt : req.body.seq_in_index}},
+        {$inc : {seq_in_index : -1}})
+    let content_delete_result = await Content.deleteOne({card_id : req.body.card_id});    
+
+    let cardlist = get_cardlist_func(req.body.index_id)
+
+    res.json({isloggedIn : true, cardlist});
+};
+
+// 카드를 대량 삭제합니다.
+exports.delete_many_card = async (req, res) => {
+    console.log("카드를 삭제합니다.");
+    console.log(req.body);
+
+    let card_delete_result = await Card.deleteMany({$in : {_id : req.body.card_id}})
+    let content_delete_result = await Content.deleteMany({$in : {_id : req.body.card_id}})
+    
+    let cardlist = get_cardlist_func(req.body.index_id)
+
+    res.json({isloggedIn : true, cardlist});
+};
+
+// 카드를 대량으로 다른 인덱스로 이동합니다.
+exports.move_many_card = async (req, res) => {
+    console.log("카드를 삭제합니다.");
+    console.log(req.body);
+
+    // 타겟 인덱스의 마지막 시퀀스를 구합니다.
+    let max_seq = get_max_seq(req.body.index_id);
+
+    // 카드의 인덱스 아이디와 시퀀스 정보를 변경합니다.
+    let card_modi_result = await Card.updateMany(
+        {$in : {_id : req.body.card_id}},
+        {index_id : req.body.index_id,
+        $inc : {seq_in_index : max_seq}})
+
+    // 근데 불안하단 말야. 시퀀스 정보가 폭발할까봐
+    // 음 max_seq가 크면 seq를 함 정리하는 것도 방법이겠구만
+
+    
+    
+    let cardlist = get_cardlist_func(req.body.index_id)
+
+    res.json({isloggedIn : true, cardlist});
+
+}
+
+
 
 // max 시퀀스를 찾아드립니다.
 const get_max_seq = async (index_id) => {   
@@ -134,7 +190,7 @@ const get_cardlist_func = async (index_id) => {
     let cardlist = await Card
         .find({index_id : index_id})
         .sort({seq_in_index : -1})
-        .pupulate('content_id')
+        .populate('content_id')
     
     return cardlist
 }

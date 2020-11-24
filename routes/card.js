@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/get-cardlist', isLoggedIn, Card_controller.get_cardlist);
 
 // 카드 생성하기
-router.get('/create-card', isLoggedIn, Card_controller.create_card);
+router.post('/create-card', isLoggedIn, Card_controller.create_card);
 
 // 카드 수정하기
 router.get('/change-card', isLoggedIn, Card_controller.change_card);
