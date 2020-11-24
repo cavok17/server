@@ -17,7 +17,7 @@ exports.get_cardlist = async (req, res) => {
     console.log("카드리스트를 보내줄게요");
     console.log(req.body);
 
-    let cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 
@@ -28,7 +28,8 @@ exports.create_card = async (req, res) => {
     console.log("카드를 만들어봅시다");
     console.log(req.body);
 
-    let max_seq = await get_max_seq(req.body.index_id)    
+    let max_seq = await get_max_seq(req.body.index_id)
+    console.log('max_seq', max_seq)
 
     let card = await Card.create({
         cardtype_id: req.body.cardtype_id,
@@ -179,12 +180,11 @@ const get_max_seq = async (index_id) => {
         .find({index_id : index_id})
         .select('seq_in_index')
         .sort({seq_in_index : -1})
-        .limit(1)
-    
+        .limit(1)    
     if (max_seq_card.length ===0){
         return -1
-    } else {
-        return max_seq_card.seq_in_index
+    } else {        
+        return max_seq_card[0].seq_in_index
     }    
 }
 
