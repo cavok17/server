@@ -51,7 +51,7 @@ exports.create_card = async (req, res) => {
         {content_id : content._id}
     )
     
-    let cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 
@@ -84,7 +84,7 @@ exports.change_card_order = async (req, res) => {
         current_seq_card = await current_seq_card.save();
     } 
 
-    let cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 };
@@ -110,7 +110,7 @@ exports.change_card = async (req, res) => {
         }
     );    
 
-    let cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 };
@@ -140,7 +140,7 @@ exports.delete_many_card = async (req, res) => {
     let card_delete_result = await Card.deleteMany({$in : {_id : req.body.card_id}})
     let content_delete_result = await Content.deleteMany({$in : {_id : req.body.card_id}})
     
-    let cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 };
@@ -151,7 +151,7 @@ exports.move_many_card = async (req, res) => {
     console.log(req.body);
 
     // 타겟 인덱스의 마지막 시퀀스를 구합니다.
-    let max_seq = get_max_seq(req.body.index_id);
+    let max_seq = await get_max_seq(req.body.index_id);
 
     // 카드의 인덱스 아이디와 시퀀스 정보를 변경합니다.
     let card_modi_result = await Card.updateMany(
@@ -164,7 +164,7 @@ exports.move_many_card = async (req, res) => {
 
     
     
-    let cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 
