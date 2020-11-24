@@ -6,7 +6,7 @@ const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const router = express.Router();
 
 // 카드 리스트 보여주기
-router.get('/get-cardlist', isLoggedIn, Card_controller.get_cardlist);
+router.post('/get-cardlist', isLoggedIn, Card_controller.get_cardlist);
 
 // 카드 생성하기
 router.post('/create-card', isLoggedIn, Card_controller.create_card);

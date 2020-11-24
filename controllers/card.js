@@ -192,7 +192,7 @@ const get_max_seq = async (index_id) => {
 const get_cardlist_func = async (index_id) => {
     let cardlist = await Card
         .find({index_id : index_id})
-        .sort({seq_in_index : -1})
+        .sort({seq_in_index : 1})
         .populate('content_id')
     
     return cardlist
