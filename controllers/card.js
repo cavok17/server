@@ -28,12 +28,13 @@ exports.create_card = async (req, res) => {
     console.log("카드를 만들어봅시다");
     console.log(req.body);
 
+    let max_seq = await get_max_seq(req.body.index_id)    
+
     let card = await Card.create({
         cardtype_id: req.body.cardtype_id,
         book_id: req.session.book_id,
         index_id: req.body.index_id,        
-        // content_id : content._id,
-        seq_in_index: get_max_seq(req.body.index_id),        
+        seq_in_index: max_seq + 1,        
     })
 
     let content = await Content.create({
@@ -173,11 +174,13 @@ exports.move_many_card = async (req, res) => {
 
 // max 시퀀스를 찾아드립니다.
 const get_max_seq = async (index_id) => {   
+    
     let max_seq_card = await Card
         .find({index_id : index_id})
         .select('seq_in_index')
         .sort({seq_in_index : -1})
         .limit(1)
+    
     if (max_seq_card.length ===0){
         return -1
     } else {
