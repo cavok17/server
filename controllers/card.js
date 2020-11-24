@@ -194,6 +194,7 @@ const get_cardlist_func = async (index_id) => {
         .find({index_id : index_id})
         .sort({seq_in_index : 1})
         .populate('content_id')
+        .populate('cardtype_id')
     
     return cardlist
 }
