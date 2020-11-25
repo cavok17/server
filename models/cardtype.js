@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const cardtypeschema = new mongoose.Schema({  
     book_id: {type:mongoose.Schema.Types.ObjectId, ref:'Book'},
-    seq : Number,
+    // seq : Number,
     type: String,
     nick : String,
     importance: Boolean,

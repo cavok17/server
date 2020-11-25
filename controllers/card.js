@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const fs = require("fs");
 const multer = require('multer');
-const upload = multer({dest : 'uploads/'});
+const readXlsxFile = require('read-excel-file/node');
 
 // 모델 경로
 const User = require('../models/user');
@@ -11,6 +12,19 @@ const Index = require('../models/index');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const book = require('../models/book');
+
+// const upload = multer({
+//     storage : multer.diskStorage({
+//       destination(req, file, done) {
+//         done(null, '../uploads/');
+//       },
+//       filename(req, file, done) {
+//         const ext = path.extname(file.originalname);
+//         done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+//       },
+//     }),
+//     limits : {fileSize : 10*1024*1024}
+//   })
 
 // 카드를 가져옵니다.
 exports.get_cardlist = async (req, res) => {
@@ -28,35 +42,105 @@ exports.create_card = async (req, res) => {
     console.log("카드를 만들어봅시다");
     console.log(req.body);
 
-    let max_seq = await get_max_seq(req.body.index_id)
+    let new_seq_in_index
+    if (req.body.seq_in_index){
+        new_seq_in_index = req.body.seq_in_index + 1
+        let seq_modi_result = await Card.updateMany(
+            {index_id : req.body.index_id,
+            seq_in_index : {$gte : new_seq_in_index}},
+            {$inc : {seq_in_index : 1}}
+        )
+    } else {
+        let max_seq = await get_max_seq(req.body.index_id)
+        new_seq_in_index = max_seq + 1
+    }
+    
     console.log('max_seq', max_seq)
 
     let card = await Card.create({
         cardtype_id: req.body.cardtype_id,
         book_id: req.session.book_id,
         index_id: req.body.index_id,        
-        seq_in_index: max_seq + 1,        
-    })
-
-    let content = await Content.create({
-        card_id : card._id,
-        importance : req.body.importance,
-        first_face : req.body.first_face,
-        second_face : req.body.second_face,
-        third_face : req.body.third_face,
-        annotation : req.body.annotation,
-    })
-
-    let content_id_update = await Card.updateOne(
-        {_id : card._id},
-        {content_id : content._id}
-    )
+        seq_in_index: new_seq_in_index,
+        content_of_importance : req.body.importance,
+        content_of_first_face : req.body.first_face,
+        content_of_second_face : req.body.second_face,
+        content_of_third_face : req.body.third_face,
+        content_of_annotation : req.body.annotation,
+    })    
     
     let cardlist = await get_cardlist_func(req.body.index_id)
-
     res.json({isloggedIn : true, cardlist});
-
 };
+
+// 엑셀 파일로 카드를 생성합니다.
+exports.create_card_by_excel = async (req, res) => {
+    console.log("엑셀 파일로 카드를 생성합니다.");
+    console.log(req.file);
+    
+    let max_seq = await get_max_seq(req.body.index_id)
+
+    let cardtypes = await Cardtype.find({book_id : req.session.book_id},
+        {nick:1, importance:1, num_column:1, _id:0});
+    // console.log(cardtypes)
+
+    let new_cards = []
+    readXlsxFile(req.file.path).then((table) =>{
+        table.forEach((row)=>{                        
+            
+            let content_of_importance = []
+            let content_of_first_face = [] 
+            let content_of_second_face = []
+            let content_of_third_face = []
+            let content_of_annotation = []            
+            let new_card = []  
+            let current_row = 1            
+            max_seq += 1
+            
+            let cardtype = cardtypes.find((tmp_cardtype) => {
+                // console.log(row[0])
+                return tmp_cardtype.nick === row[0]
+            })            
+            
+            if (cardtype.importance === true){
+                content_of_importance.push(row[current_row])
+                current_row += 1};
+            for (i=0; i < cardtype.num_column.face1; i++){
+                content_of_first_face.push(row[current_row])
+                current_row += 1};
+            for (i=0; i < cardtype.num_column.face2; i++){
+                content_of_second_face.push(row[current_row])
+                current_row += 1};
+            for (i=0; i < cardtype.num_column.face3; i++){
+                content_of_third_face.push(row[current_row])
+                current_row += 1};
+            for (i=0; i < cardtype.num_column.annot; i++){
+                content_of_annotation.push(row[current_row]);
+                current_row += 1};
+            
+            new_card = {
+                cardtype_id: req.body.cardtype_id,
+                book_id: req.session.book_id,
+                index_id: req.body.index_id,        
+                seq_in_index: max_seq,
+                content_of_importance,
+                content_of_first_face,
+                content_of_second_face,
+                content_of_third_face,
+                content_of_annotation,
+            }
+            // console.log(new_card)
+            // let new_cards = []
+            new_cards.push(new_card)
+            // console.log('new_cards', new_cards)            
+        })
+        return new_cards
+    }).then((new_cards) => {
+        console.log('new_cards', new_cards)
+        let cards = Card.insertMany(new_cards)
+    })    
+};
+    
 
 // 카드 순서를 변경합니다.
 exports.change_card_order = async (req, res) => {
@@ -64,7 +148,8 @@ exports.change_card_order = async (req, res) => {
     console.log(req.body);
 
     let current_seq_card = await Card.findOne({_id : req.body.card_id});
-    let current_seq = current_seq_card[0].seq_in_index;
+    // let current_seq = current_seq_card[0].seq_in_index;
+    let current_seq = req.body.seq_in_index;
     let target_seq = req.body.target_seq;
 
     if (current_seq > target_seq){
@@ -99,17 +184,12 @@ exports.change_card = async (req, res) => {
         {_id : req.body.card_id},
         {
            cardtype_id : req.body.cardtype_id,
-           importance :  req.body.importance,
-        });
-    let content_edit_result = await Content.updateOne(
-        {card_id : req.body.card_id},
-        {
-           first_face : req.body.first_face,
-           second_face : req.body.second_face,
-           third_face : req.body.third_face,
-           annotation : req.body.annotation,           
-        }
-    );    
+           content_of_importance :  req.body.importance,
+           content_of_first_face : req.body.first_face,
+           content_of_second_face : req.body.second_face,
+           content_of_third_face : req.body.third_face,
+           content_of_annot : req.body.annotation,           
+        });    
 
     let cardlist = await get_cardlist_func(req.body.index_id)
 
@@ -125,11 +205,9 @@ exports.delete_card = async (req, res) => {
     let seq_modi_result = await Card.updateMany(
         {index_id : req.body.index_id,
         seq_in_index : {$gt : req.body.seq_in_index}},
-        {$inc : {seq_in_index : -1}})
-    let content_delete_result = await Content.deleteOne({card_id : req.body.card_id});    
+        {$inc : {seq_in_index : -1}})    
 
     let cardlist = get_cardlist_func(req.body.index_id)
-
     res.json({isloggedIn : true, cardlist});
 };
 
@@ -138,8 +216,7 @@ exports.delete_many_card = async (req, res) => {
     console.log("카드를 삭제합니다.");
     console.log(req.body);
 
-    let card_delete_result = await Card.deleteMany({$in : {_id : req.body.card_id}})
-    let content_delete_result = await Content.deleteMany({$in : {_id : req.body.card_id}})
+    let card_delete_result = await Card.deleteMany({$in : {_id : req.body.card_id}})    
     
     let cardlist = await get_cardlist_func(req.body.index_id)
 
@@ -161,15 +238,15 @@ exports.move_many_card = async (req, res) => {
         $inc : {seq_in_index : max_seq}})
 
     // 근데 불안하단 말야. 시퀀스 정보가 폭발할까봐
-    // 음 max_seq가 크면 seq를 함 정리하는 것도 방법이겠구만
-
-    
+    // 음 max_seq가 크면 seq를 함 정리하는 것도 방법이겠구만    
     
     let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 
 }
+
+
 
 
 
@@ -193,7 +270,7 @@ const get_cardlist_func = async (index_id) => {
     let cardlist = await Card
         .find({index_id : index_id})
         .sort({seq_in_index : 1})
-        .populate('content_id')
+        .populate('external_card_id')
         .populate('cardtype_id')
     
     return cardlist

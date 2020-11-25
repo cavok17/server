@@ -9,11 +9,16 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const path = require("path");
 
+
+
 dotenv.config({ path: path.join(__dirname, '.env')});
 const app = express();
 app.use(cors());
 const passportConfig = require('./passport');
 passportConfig();
+
+
+
 
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
@@ -35,6 +40,7 @@ app.use(session({
 //   store : new FileStore(fileStoreOptions),
   store : new FileStore({logFn : function(){}}),
 }));
+
 
 const userRouter = require('./routes/user');
 const bookRouter = require('./routes/book');
