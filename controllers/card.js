@@ -7,24 +7,14 @@ const readXlsxFile = require('read-excel-file/node');
 const User = require('../models/user');
 const Book = require('../models/book'); 
 const Card = require('../models/card');
+const Card_external = require('../models/card_external');
 const Content = require('../models/content');
 const Index = require('../models/index');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const book = require('../models/book');
 
-// const upload = multer({
-//     storage : multer.diskStorage({
-//       destination(req, file, done) {
-//         done(null, '../uploads/');
-//       },
-//       filename(req, file, done) {
-//         const ext = path.extname(file.originalname);
-//         done(null, path.basename(file.originalname, ext) + Date.now() + ext);
-//       },
-//     }),
-//     limits : {fileSize : 10*1024*1024}
-//   })
+
 
 // 카드를 가져옵니다.
 exports.get_cardlist = async (req, res) => {
@@ -138,7 +128,14 @@ exports.create_card_by_excel = async (req, res) => {
     }).then((new_cards) => {
         console.log('new_cards', new_cards)
         let cards = Card.insertMany(new_cards)
-    })    
+    })
+
+    // 파일 삭제 로직 필요함 ------------------------->
+
+
+    let cardlist = await get_cardlist_func(req.body.index_id)
+    res.json({isloggedIn : true, cardlist});
+
 };
     
 
