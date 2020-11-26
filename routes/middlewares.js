@@ -34,3 +34,9 @@ exports.upload = multer({
     }),
     limits : {fileSize : 10*1024*1024}
   })
+
+// //   메모리로 바로 저장. 그럼 buffer에 담기는데, 이걸 어떻게 읽을지는 모르겠다
+// exports.upload = multer({
+//     storage : multer.memoryStorage(),
+//     limits : {fileSize : 10*1024*1024}
+// })

@@ -45,7 +45,7 @@ exports.create_card = async (req, res) => {
         new_seq_in_index = max_seq + 1
     }
     
-    console.log('max_seq', max_seq)
+    console.log('new_seq_in_index', new_seq_in_index)
 
     let card = await Card.create({
         cardtype_id: req.body.cardtype_id,
@@ -126,7 +126,7 @@ exports.create_card_by_excel = async (req, res) => {
             // console.log('new_cards', new_cards)            
         })
         
-        // fs.unlink(req.file.path)
+        fs.unlink(req.file.path)
 
         return new_cards
 

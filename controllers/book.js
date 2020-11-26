@@ -5,9 +5,8 @@ const User = require('../models/user');
 const Book = require('../models/book'); 
 const Card = require('../models/card');
 const Index = require('../models/index');
-const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
-const book = require('../models/book');
+const Config_study = require('../models/config_study');
 // const { countDocuments } = require("../models/user");
 
 // 시퀀스 정보를 전달하는 공용함수입니다.
@@ -234,8 +233,13 @@ const create_book =  async (req, res) => {
     let category = await Category.updateOne(
         {_id : req.body.category_id},
         {$push : {book_ids : book._id}}
-    );     
+    );
     
+    // 학습설정도 만들고
+    let config_study = await Config_study.create({        
+        book_id : book._id,
+    });
+
     res.json({isloggedIn : true, msg : "새 책 생성 완료!"});      
 };
 
