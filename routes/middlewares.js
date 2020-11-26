@@ -28,7 +28,8 @@ exports.upload = multer({
       },
       filename(req, file, done) {        
         const ext = path.extname(file.originalname);        
-        done(null, path.basename(file.originalname, ext) + Date.now() + ext);        
+        done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+        console.log('upload를 실행하였어요')
       },
     }),
     limits : {fileSize : 10*1024*1024}

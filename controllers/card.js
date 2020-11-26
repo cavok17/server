@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const fs = require("fs");
+const fs = require("fs").promises;
 const multer = require('multer');
 const readXlsxFile = require('read-excel-file/node');
 
@@ -56,7 +56,7 @@ exports.create_card = async (req, res) => {
         content_of_first_face : req.body.first_face,
         content_of_second_face : req.body.second_face,
         content_of_third_face : req.body.third_face,
-        content_of_annotation : req.body.annotation,
+        content_of_annot : req.body.annotation,
     })    
     
     let cardlist = await get_cardlist_func(req.body.index_id)
@@ -67,6 +67,7 @@ exports.create_card = async (req, res) => {
 exports.create_card_by_excel = async (req, res) => {
     console.log("엑셀 파일로 카드를 생성합니다.");
     console.log(req.file);
+    console.log(req.body);
     
     let max_seq = await get_max_seq(req.body.index_id)
 
@@ -82,7 +83,7 @@ exports.create_card_by_excel = async (req, res) => {
             let content_of_first_face = [] 
             let content_of_second_face = []
             let content_of_third_face = []
-            let content_of_annotation = []            
+            let content_of_annot = []            
             let new_card = []  
             let current_row = 1            
             max_seq += 1
@@ -105,7 +106,7 @@ exports.create_card_by_excel = async (req, res) => {
                 content_of_third_face.push(row[current_row])
                 current_row += 1};
             for (i=0; i < cardtype.num_column.annot; i++){
-                content_of_annotation.push(row[current_row]);
+                content_of_annot.push(row[current_row]);
                 current_row += 1};
             
             new_card = {
@@ -117,24 +118,26 @@ exports.create_card_by_excel = async (req, res) => {
                 content_of_first_face,
                 content_of_second_face,
                 content_of_third_face,
-                content_of_annotation,
+                content_of_annot,
             }
             // console.log(new_card)
             // let new_cards = []
-            new_cards.push(new_card)
+            // new_cards.push(new_card)
             // console.log('new_cards', new_cards)            
         })
+        
+        // fs.unlink(req.file.path)
+
         return new_cards
+
     }).then((new_cards) => {
         console.log('new_cards', new_cards)
         let cards = Card.insertMany(new_cards)
     })
 
-    // 파일 삭제 로직 필요함 ------------------------->
-
 
     let cardlist = await get_cardlist_func(req.body.index_id)
-    res.json({isloggedIn : true, cardlist});
+    res.json({isloggedIn : true, msg : '업로드 완료', cardlist});
 
 };
     
