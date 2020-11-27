@@ -15,10 +15,30 @@ const Cardtype = require('../models/cardtype');
 const book = require('../models/book');
 
 
+// 인덱스를 보내줍니다..
+exports.get_index = async (req, res) => {
+    console.log("인덱스를 보내줍디다.");
+    console.log(req.body);
+
+    let book_and_index_list = [] 
+
+    for (i=0; i<req.body.book_ids.length; i++){
+        let index = await Index.find({book_id : req.body.book_ids[i]})
+            .sort({seq : 1})
+        let book_and_index = {
+            book_id : req.body.book_ids[i],
+            index : index
+        }
+        book_and_index_list.push(book_and_index)
+    }
+
+    console.log(book_and_index_list)
+    res.json({isloggedIn : true, book_and_index_list, });    
+}
 
 // 해당 목차의 카드를 전달합니다.
-exports.get_cardlist = async (req, res) => {
-    console.log("카드리스트를 보내줄게요");
+exports.start_study = async (req, res) => {
+    console.log("공부를 시작합시다.");
     console.log(req.body);
 
     let cardlist = []
@@ -27,10 +47,36 @@ exports.get_cardlist = async (req, res) => {
             .find({
                 book_id : req.body.index_array[i].book_id,
                 index_id : req.body.index_array[i].index_id},
-                {cardtype_id : 1, index_id : 1, seq_in_index : 1})
-
+                {cardtype_id : 1, index_id : 1, seq_in_index : 1, willstudy_time :1})
+        // 인덱스의 시퀀스가 필요하면 파퓰레이트 시키면 되겠지요.
         cardlist.push(tmp_cardlist)
-    }    
+    }
+    
+    // 순서를 섞고
+    if(req.body.shuffle == true){
+        for (let i = cardlist.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1)); // 무작위 인덱스(0 이상 i 미만)  
+            [array[i], array[j]] = [array[j], array[i]];
+        }    
+    }
+
+    // 복습 필요 순서로 정렬하고
+    if(req.body.sort_by_time == true){
+        cardlist.sort((a,b) => a.willstudy_time - b.willstudy_time)
+    }
+
+    // 공부 대상 전체 리스트를 일단 저장하고
+    let studyingcard_first = await Studyingcard_first.updateOne(
+        {user_id : req.user},
+        {cardlist : cardlist});
+    
+    // 갯수를 제한해서 실제로 공부할 녀석만 발라내고
+    let studyingcard_second = cardlist.slice()
+
+    // 세컨드에 저장한다.
+
+    // 그리고 거기서 열 장만 뽑아서 뿌려준다.
+
 
     res.json({isloggedIn : true, cardlist});
 
