@@ -20,12 +20,14 @@ exports.get_index = async (req, res) => {
     console.log("인덱스를 보내줍디다.");
     console.log(req.body);
 
-    let book_and_index_list = [] 
+    let book_and_index_list = []
 
-    for (i=0; i<req.body.book_ids.length; i++){
-        let book = await Book.findOne({book_id : req.body.book_ids[i]},
+    req.session.book_id = req.body.book_ids
+
+    for (i=0; i<req.session.book_id.length; i++){
+        let book = await Book.findOne({_id : req.session.book_id[i]},
             {title : 1})
-        let index = await Index.find({book_id : req.body.book_ids[i]})
+        let index = await Index.find({book_id : req.session.book_id[i]})
             .sort({seq : 1})
         let book_and_index = {book, index}
         book_and_index_list.push(book_and_index)
@@ -47,6 +49,8 @@ exports.start_study = async (req, res) => {
                 book_id : req.body.index_array[i].book_id,
                 index_id : req.body.index_array[i].index_id},
                 {cardtype_id : 1, index_id : 1, seq_in_index : 1, willstudy_time :1})
+            .populate({path : 'index_id', select : 'seq'})
+            .sort({'index_id.seq' : 1})
         // 인덱스의 시퀀스가 필요하면 파퓰레이트 시키면 되겠지요.
         cardlist.push(tmp_cardlist)
     }
