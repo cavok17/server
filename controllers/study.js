@@ -22,7 +22,9 @@ exports.get_index = async (req, res) => {
 
     let book_and_index_list = []
 
-    req.session.book_id = req.body.book_ids
+    if (req.body.book_ids){
+        req.session.book_id = req.body.book_ids
+    }
 
     for (i=0; i<req.session.book_id.length; i++){
         let book = await Book.findOne({_id : req.session.book_id[i]},
