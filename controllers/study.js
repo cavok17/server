@@ -23,12 +23,11 @@ exports.get_index = async (req, res) => {
     let book_and_index_list = [] 
 
     for (i=0; i<req.body.book_ids.length; i++){
+        let book = await Book.findOne({book_id : req.body.book_ids[i]},
+            {title : 1})
         let index = await Index.find({book_id : req.body.book_ids[i]})
             .sort({seq : 1})
-        let book_and_index = {
-            book_id : req.body.book_ids[i],
-            index : index
-        }
+        let book_and_index = {book, index}
         book_and_index_list.push(book_and_index)
     }
 
