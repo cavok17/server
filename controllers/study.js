@@ -12,19 +12,24 @@ const Content = require('../models/content');
 const Index = require('../models/index');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
-const book = require('../models/book');
+const Studyingcard_total = require('../models/studyingcard_total');
+const Studyingcard_current = require('../models/studyingcard_current');
 
 
 // 인덱스를 보내줍니다..
 exports.get_index = async (req, res) => {
-    console.log("인덱스를 보내줍디다.");
+    console.log("인덱스를 보내줍니다.");
     console.log(req.body);
 
+        
+    
     let book_and_index_list = []
+
 
     if (req.body.book_ids){
         req.session.book_id = req.body.book_ids
     }
+    console.log(req.session)
 
     for (i=0; i<req.session.book_id.length; i++){
         let book = await Book.findOne({_id : req.session.book_id[i]},
@@ -32,51 +37,100 @@ exports.get_index = async (req, res) => {
         let index = await Index.find({book_id : req.session.book_id[i]})
             .sort({seq : 1})
         let book_and_index = {book, index}
+        // console.log(book_and_index)
         book_and_index_list.push(book_and_index)
     }
 
+    console.log('여기까진 문제 없죠?')
+    // 학습 설정 관련 값을 가져와보려고 합니다.
+    // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
+    if (req.session.book_id.length >= 2){
+        study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
+    } else {
+        study_config = await Book.findOne({id : req.session.book_id[0]}, {study_config : 1, _id : 0})
+    }
+
     console.log(book_and_index_list)
-    res.json({isloggedIn : true, book_and_index_list, });    
+    res.json({isloggedIn : true, book_and_index_list, study_config});    
 }
 
 // 해당 목차의 카드를 전달합니다.
 exports.start_study = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
+    
+    // 스터디 콘피그 수정해주고
+    if(req.body.study_area.length ===1){
+        book_modi_result = await Book.updateOne(
+            {_id : req.body.study_area.length[0].book_id},
+            {'study_config.num_card_new' : req.body.num_card_new,
+            'study_config.num_card_re' : req.body.num_card_re,
+            'study_config.card_order' : req.body.card_order}
+        )
+    } else {
+        user_modi_result = await User.updateOne(
+            {user_id : req.user},
+            {'study_config.num_card_new' : req.body.num_card_new,
+            'study_config.num_card_re' : req.body.num_card_re,
+            'study_config.card_order' : req.body.card_order}
+        )
+    };
 
-    let cardlist = []
-    for (i=0; i<req.body.index_array.length; i++){
+    // 이제 전체 리스트를 만들어보자
+    // 일단 해당 조건의 카드를 받아와
+    let total_cardlist = []
+    for (i=0; i<req.body.study_area.length; i++){        
         let tmp_cardlist = await Card
             .find({
-                book_id : req.body.index_array[i].book_id,
-                index_id : req.body.index_array[i].index_id},
+                book_id : req.body.study_area[i].book_id,
+                index_id : req.body.study_area[i].index_id},                
                 {cardtype_id : 1, index_id : 1, seq_in_index : 1, willstudy_time :1})
             .populate({path : 'index_id', select : 'seq'})
-            .sort({'index_id.seq' : 1})
-        // 인덱스의 시퀀스가 필요하면 파퓰레이트 시키면 되겠지요.
-        cardlist.push(tmp_cardlist)
+            .sort({'seq_in_index' : 1})
+            // .sort({'index_id.seq' : 1, seq_in_index : 1, })            
+            
+        // populate한 것으로는 sort는 안 되는구만 따로 정렬을 시켜야 함
+        tmp_cardlist.sort((a,b) => a.index_id.seq - b.index_id.seq )        
+        total_cardlist.push(tmp_cardlist)
     }
-    
-    // 순서를 섞고
-    if(req.body.shuffle == true){
-        for (let i = cardlist.length - 1; i > 0; i--) {
+
+    // 순서를 섞어야되믄 순서를 섞고
+    if(req.body.card_order === 'shuffle'){
+        for (let i = total_cardlist.length - 1; i > 0; i--) {
             let j = Math.floor(Math.random() * (i + 1)); // 무작위 인덱스(0 이상 i 미만)  
             [array[i], array[j]] = [array[j], array[i]];
         }    
     }
 
-    // 복습 필요 순서로 정렬하고
-    if(req.body.sort_by_time == true){
+    // 복습 필요 순서로 정렬해야되믄 정렬도 하고
+    if(req.body.card_order === 'sort_by_time'){
         cardlist.sort((a,b) => a.willstudy_time - b.willstudy_time)
     }
 
-    // 공부 대상 전체 리스트를 일단 저장하고
-    let studyingcard_first = await Studyingcard_first.updateOne(
+    // 다 됐으믄 전체 리스트를 수정하자고하자고
+    let studyingcard_total = await Studyingcard_total.updateOne(
         {user_id : req.user},
-        {cardlist : cardlist});
+        {cardlist : total_cardlist}
+    )
     
-    // 갯수를 제한해서 실제로 공부할 녀석만 발라내고
-    let studyingcard_second = cardlist.slice()
+    // 복습카드와 신규카드를 구분하는 작업이 필요함
+
+    // 다 됐으믄 현재 공부카드만 남겨놓자고
+    
+    let studyingcard_current = await Studyingcard_current.updateOne(
+        {user_id : req.user},
+        {cardlist : current_cardlist}
+    )
+    
+
+
+    // // 공부 대상 전체 리스트를 일단 저장하고
+    // let studyingcard_first = await Studyingcard_first.updateOne(
+    //     {user_id : req.user},
+    //     {cardlist : cardlist});
+    
+    // // 갯수를 제한해서 실제로 공부할 녀석만 발라내고
+    // let studyingcard_second = cardlist.slice()
 
     // 세컨드에 저장한다.
 

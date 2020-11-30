@@ -11,6 +11,6 @@ const index_schema = new mongoose.Schema({
     // num_total_created_cards : {type : Number,default : 0,},    
 });
 
-module.exports = mongoose.model("index", index_schema)
+module.exports = mongoose.model("Index", index_schema)
 // module.exports = mongoose.model("users", userschema)
 

@@ -71,46 +71,71 @@ exports.create_card_by_excel = async (req, res) => {
     
     let max_seq = await get_max_seq(req.body.index_id)
 
+    // 일단 해당책의 카드타입을 다 가져오시오.
     let cardtypes = await Cardtype.find({book_id : req.session.book_id},
-        {nick:1, importance:1, num_column:1, _id:0});
-    // console.log(cardtypes)
+        {nick:1, importance:1, num_column:1});
+    console.log(cardtypes)
 
     let new_cards = []
+    let failure_list = []
+    let current_row 
     readXlsxFile(req.file.path).then((table) =>{
-        table.forEach((row)=>{                        
-            
+        // for (row in table){
+        // table.forEach((row)=>{
+        // let new_cards = []
+        // let failure_list = []
+        // console.table(table)
+
+        for (i=0; i<table.length; i++){            
             let content_of_importance = []
             let content_of_first_face = [] 
             let content_of_second_face = []
             let content_of_third_face = []
             let content_of_annot = []            
             let new_card = []  
-            let current_row = 1            
+            
+            current_row = 1            
             max_seq += 1
             
+            // 각 행에 매칭되는 카드타입을 찾아야 혀.
             let cardtype = cardtypes.find((tmp_cardtype) => {
                 // console.log(row[0])
-                return tmp_cardtype.nick === row[0]
-            })            
+                return tmp_cardtype.nick === table[i][0]
+            })
+            // console.log('table[i]',table[i])            
+
+            // 만약 매칭되는 게 없으믄 failure_list에 추가하고, for문을 위로 올려줘요
+            // foreach를 쓰믄 continue가 안 먹네 for in이나 for of를 써야제
+            if(cardtype == null){
+                failure_list.push(i+1)
+                continue;
+            }            
             
             if (cardtype.importance === true){
-                content_of_importance.push(row[current_row])
-                current_row += 1};
-            for (i=0; i < cardtype.num_column.face1; i++){
-                content_of_first_face.push(row[current_row])
-                current_row += 1};
-            for (i=0; i < cardtype.num_column.face2; i++){
-                content_of_second_face.push(row[current_row])
-                current_row += 1};
-            for (i=0; i < cardtype.num_column.face3; i++){
-                content_of_third_face.push(row[current_row])
-                current_row += 1};
-            for (i=0; i < cardtype.num_column.annot; i++){
-                content_of_annot.push(row[current_row]);
+                content_of_importance.push(table[i][current_row])                
+                current_row += 1
+            };            
+
+            for (j=0; j < cardtype.num_column.face1; j++){                
+                content_of_first_face.push(table[i][current_row])
+                current_row += 1};            
+
+            for (j=0; j < cardtype.num_column.face2; j++){                
+                content_of_second_face.push(table[i][current_row])
+                current_row += 1};            
+
+            for (j=0; j < cardtype.num_column.face3; j++){
+                content_of_third_face.push(table[i][current_row])
+                current_row += 1};                
+
+            for (j=0; j < cardtype.num_column.annot; j++){
+                content_of_annot.push(table[i][current_row]);
                 current_row += 1};
             
+            
+            // new_card 객체를 만들고
             new_card = {
-                cardtype_id: req.body.cardtype_id,
+                cardtype_id: cardtype._id,
                 book_id: req.session.book_id,
                 index_id: req.body.index_id,        
                 seq_in_index: max_seq,
@@ -120,22 +145,20 @@ exports.create_card_by_excel = async (req, res) => {
                 content_of_third_face,
                 content_of_annot,
             }
-            // console.log(new_card)
-            // let new_cards = []
-            // new_cards.push(new_card)
-            // console.log('new_cards', new_cards)            
-        })
-        
+            // new_cards에 잘 모아놓고
+            new_cards.push(new_card)
+        }
+                
         fs.unlink(req.file.path)
 
         return new_cards
-
     }).then((new_cards) => {
-        console.log('new_cards', new_cards)
+        // console.log('new_cards', new_cards)
+        console.log('failure_list', failure_list)
+        console.log('저장해야지');
         let cards = Card.insertMany(new_cards)
-    })
-
-
+    })    
+    
     let cardlist = await get_cardlist_func(req.body.index_id)
     res.json({isloggedIn : true, msg : '업로드 완료', cardlist});
 

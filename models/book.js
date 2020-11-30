@@ -28,7 +28,12 @@ const book_schema = new mongoose.Schema({
         time_study: {type : Date, default : null},
         time_modify: {type : Date, default : null},
         study_mode : {type : String, default : '0'},
-    },     
+    },
+    study_config : {
+        num_card_new : {type : Number, default : 50},
+        num_card_re : {type : Number, default : 50},
+        card_order : {type : String, default : 50}
+    }
 });
 
 module.exports = mongoose.model("Book", book_schema)

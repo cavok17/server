@@ -12,7 +12,13 @@ const userschema = new mongoose.Schema({
   write_config : {
     likebook : {type : Boolean, default : true},
     hide_or_show : {type : Boolean, default : true}
+  },
+  study_config : {
+    num_card_new : {type : Number, default : 50},
+    num_card_re : {type : Number, default : 50},
+    card_order : {type : String, default : 'standard'}
   }
+
   
   // newbook_no: {type: Number, default :0},
   // newcategory_no: {type: Number, default :1}

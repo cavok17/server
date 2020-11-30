@@ -5,7 +5,7 @@ const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 
 const User = require('../models/user');
 const Category = require('../models/category');
-const Studyingcard = require('../models/studyingcard_first');
+const Studyingcard = require('../models/studyingcard_total');
 
 const router = express.Router();
 
