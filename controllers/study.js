@@ -23,7 +23,7 @@ exports.save_booklist_in_session = async (req, res) => {
 
     if (req.body.book_ids){
         req.session.book_ids = req.body.book_ids
-        
+        console.log('Sucess!!!!!!!!!!!!!')
     }
 
     res.json({msg : 'Sucess!!!!!!!!!!!!!'})
@@ -35,7 +35,7 @@ exports.save_booklist_in_session = async (req, res) => {
 exports.get_index = async (req, res) => {
     console.log("선택된 책의 인덱스를 보내줍니다.");
     console.log('body', req.body);
-    console.log('session', req.session)        
+    console.log('study_session', req.session)        
     
     let book_and_index_list = []
 
@@ -50,35 +50,35 @@ exports.get_index = async (req, res) => {
     }
 
     // selected_index를 초기화합니다.
-    // let selected_index = []
-    // req.session.book_ids.forEach((book_id) => {
-    //     console.log(book_id)
-    //     let single_set = {
-    //         book_id : book_id,
-    //         index : []
-    //     }
-    //     selected_index.push(single_set)
+    let selected_index = []
+    req.session.book_ids.forEach((book_id) => {
+        console.log(book_id)
+        let single_set = {
+            book_id : book_id,
+            index : []
+        }
+        selected_index.push(single_set)
 
-    // })
+    })
     
-    // console.log('selected_index', selected_index)
-    // let selected_index_update = await Selected_index.updateOne(
-    //     {user_id : req.session.passport.user},
-    //     {
-    //         'num_cards.face1' : 0,
-    //         'num_cards.face2' : 0,
-    //         'num_cards.face3' : 0,
-    //         selected_index : selected_index
-    //     }
-    // )
+    console.log('selected_index', selected_index)
+    let selected_index_update = await Selected_index.updateOne(
+        {user_id : req.session.passport.user},
+        {
+            'num_cards.face1' : 0,
+            'num_cards.face2' : 0,
+            'num_cards.face3' : 0,
+            selected_index : selected_index
+        }
+    )
 
     console.log('여기까진 문제 없죠?')
     // 학습 설정 관련 값을 가져와보려고 합니다.
     // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
-    if (req.session.book_id.length >= 2){
+    if (req.session.book_ids.length >= 2){
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
     } else {
-        study_config = await Book.findOne({id : req.session.book_id[0]}, {study_config : 1, _id : 0})
+        study_config = await Book.findOne({id : req.session.book_ids[0]}, {study_config : 1, _id : 0})
     }
 
     // console.log(book_and_index_list)
