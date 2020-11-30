@@ -7,6 +7,9 @@ const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const router = express.Router();
 
 // 인덱스를 보내줍니다.
+router.post('/save-booklist-in-session', isLoggedIn, Study_controller.save_booklist_in_session);
+
+// 인덱스를 보내줍니다.
 // router.post('/get-index', isLoggedIn, Study_controller.get_index);
 router.post('/get-index', Study_controller.get_index);
 

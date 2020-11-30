@@ -16,20 +16,28 @@ const Selected_index = require('../models/selected_index');
 const Studyingcard_total = require('../models/studyingcard_total');
 const Studyingcard_current = require('../models/studyingcard_current');
 
+// 선택된 책 정보를 세션에 저장합니다.
+exports.save_booklist_in_session = async (req, res) => {
+    console.log("선택된 책 정보를 세션에 저장합니다.");
+    console.log(req.body);        
+
+    if (req.body.book_ids){
+        req.session.book_ids = req.body.book_ids
+        
+    }
+
+    res.json({msg : 'Sucess!!!!!!!!!!!!!'})
+}
+
+
 
 // 선택된 책의 인덱스를 보내줍니다..
 exports.get_index = async (req, res) => {
     console.log("선택된 책의 인덱스를 보내줍니다.");
-    console.log(req.body);
+    console.log('body', req.body);
+    console.log('session', req.session)        
     
     let book_and_index_list = []
-
-    if (req.body.book_ids){
-        req.session.book_ids = req.body.book_ids
-        console.log(req.session)
-        return
-    }
-    // console.log(req.session)
 
     for (i=0; i<req.session.book_ids.length; i++){
         let book = await Book.findOne({_id : req.session.book_ids[i]},
