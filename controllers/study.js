@@ -37,11 +37,12 @@ exports.get_index = async (req, res) => {
     console.log('body', req.body);
     console.log('study_session', req.session)        
     
+    // 책과 인덱스 정보를 요청합니다.
     let book_and_index_list = []
-
     for (i=0; i<req.session.book_ids.length; i++){
         let book = await Book.findOne({_id : req.session.book_ids[i]},
             {title : 1})
+        // 파퓰된 녀석들 기준으로 sort가 안 되는 것 같아서 따로 find를 함
         let index = await Index.find({book_id : req.session.book_ids[i]})
             .sort({seq : 1})
         let book_and_index = {book, index}
@@ -49,8 +50,9 @@ exports.get_index = async (req, res) => {
         book_and_index_list.push(book_and_index)
     }
 
-    // selected_index를 초기화합니다.
+    // 목차 선택에서 선택된 목차를 저장할 selected_index를 초기화합니다.
     let selected_index = []
+    // 개별 책 단위로 오브젝트를 만들고, 이걸 하나의 배열에 밀어 넣는다.
     req.session.book_ids.forEach((book_id) => {
         console.log(book_id)
         let single_set = {
@@ -58,10 +60,9 @@ exports.get_index = async (req, res) => {
             index : []
         }
         selected_index.push(single_set)
-
-    })
-    
+    })    
     console.log('selected_index', selected_index)
+    // 그리고는 선택된 책 기준으로 리셋을 헌다.
     let selected_index_update = await Selected_index.updateOne(
         {user_id : req.session.passport.user},
         {
@@ -73,14 +74,13 @@ exports.get_index = async (req, res) => {
     )
 
     console.log('여기까진 문제 없죠?')
-    // 학습 설정 관련 값을 가져와보려고 합니다.
+    // 학습 설정 관련 값도 뿌려주려고 합니다.
     // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
     if (req.session.book_ids.length >= 2){
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
     } else {
         study_config = await Book.findOne({id : req.session.book_ids[0]}, {study_config : 1, _id : 0})
     }
-
     // console.log(book_and_index_list)
     res.json({isloggedIn : true, book_and_index_list, study_config});    
 }
