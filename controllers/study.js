@@ -22,7 +22,10 @@ exports.save_booklist_in_session = async (req, res) => {
     console.log(req.body);        
 
     if (req.body.book_ids){
-        req.session.book_ids = req.body.book_ids        
+        req.session.book_ids = req.body.book_ids
+        req.session.num_total =0
+        req.session.num_new =0
+        req.session.num_need_study =0
         console.log('Sucess!!!!!!!!!!!!!')
     }
 
@@ -65,6 +68,7 @@ exports.get_index = async (req, res) => {
         {user_id : req.session.passport.user}
     )
     let selected_index_update = await Selected_index.insertMany(selected_index)
+    
 
     console.log('여기까진 문제 없죠?')
     // 학습 설정 관련 값도 뿌려주려고 합니다.
