@@ -3,11 +3,8 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const selected_index_schema = new mongoose.Schema({
     user_id : String,
-    num_cards : {
-        face_1 : Number,
-        face_2 : Number,
-        face_3 : Number,
-    },
+    book_id: {type:mongoose.ObjectId, ref:'Book'},
+    seq : Number,    
     selected_index : Array,            
 });
 

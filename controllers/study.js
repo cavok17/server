@@ -22,8 +22,7 @@ exports.save_booklist_in_session = async (req, res) => {
     console.log(req.body);        
 
     if (req.body.book_ids){
-        req.session.book_ids = req.body.book_ids
-        console.log(req.session)
+        req.session.book_ids = req.body.book_ids        
         console.log('Sucess!!!!!!!!!!!!!')
     }
 
@@ -52,24 +51,20 @@ exports.get_index = async (req, res) => {
     // 목차 선택에서 선택된 목차를 저장할 selected_index를 초기화합니다.
     let selected_index = []
     // 개별 책 단위로 오브젝트를 만들고, 이걸 하나의 배열에 밀어 넣는다.
-    req.session.book_ids.forEach((book_id) => {        
+    req.session.book_ids.forEach((book_id, index) => {        
         let single_set = {
+            user_id : req.session.passport.user,
             book_id : book_id,
+            seq : index,
             index : []
         }
         selected_index.push(single_set)
-    })    
-    // console.log('selected_index', selected_index)
+    })        
     // 그리고는 선택된 책 기준으로 리셋을 헌다.
-    let selected_index_update = await Selected_index.updateOne(
-        {user_id : req.session.passport.user},
-        {
-            'num_cards.face1' : 0,
-            'num_cards.face2' : 0,
-            'num_cards.face3' : 0,
-            selected_index : selected_index
-        }
+    let delete_result = await Selected_index.deleteMany(
+        {user_id : req.session.passport.user}
     )
+    let selected_index_update = await Selected_index.insertMany(selected_index)
 
     console.log('여기까진 문제 없죠?')
     // 학습 설정 관련 값도 뿌려주려고 합니다.
@@ -79,9 +74,35 @@ exports.get_index = async (req, res) => {
     } else {
         study_config = await Book.findOne({id : req.session.book_ids[0]}, {study_config : 1, _id : 0})
     }
-    // console.log(book_and_index_list)
+    
     res.json({isloggedIn : true, book_and_index_list, study_config});    
 }
+
+// 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
+exports.click_index = async (req, res) => {
+    console.log("인덱스 선택했니? 잘했다야");
+    console.log(req.body);
+
+    let num_total = await Card.countDocuments({index_id : req.body.index_id})
+    let num_new  = await Card.countDocuments({index_id : req.body.index_id, willstudy_time : null})
+    num_need_study = 0
+    // num_need_study = await Card.countDocuments({index_id : req.body.index_id, willstudy_time})
+    let num_card = {num_total, num_new, num_need_study}
+    
+
+    if (req.body.status === true){
+        selected_index = await Selected_index.updateOne(
+            {book_id : req.body.book_id},
+            {$push : {selected_index : req.body.index_id}})
+    } else if (req.body.status === false){
+        selected_index = await Selected_index.updateOne(
+            {book_id : req.body.book_id},
+            {$pull : {selected_index : req.body.index_id}})
+    }
+
+    res.json({num_card})
+}
+
 
 // 해당 목차의 카드를 전달합니다.
 exports.start_study = async (req, res) => {
@@ -170,14 +191,7 @@ exports.start_study = async (req, res) => {
 
 };
 
-// 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
-exports.click_index = async (req, res) => {
-    console.log("인덱스 선택했니?.");
-    console.log(req.body);
 
-
-
-}
 
 // 순서 섞는 함수
 const shuffle = function(array) {
