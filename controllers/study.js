@@ -21,7 +21,7 @@ exports.save_booklist_in_session = async (req, res) => {
     console.log("선택된 책 정보를 세션에 저장합니다.");
     console.log(req.body);        
 
-    if (req.body.book_ids){
+    if (req.body.book_ids.length >0){
         req.session.book_ids = req.body.book_ids
         req.session.num_total =0
         req.session.num_new =0
