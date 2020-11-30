@@ -85,10 +85,22 @@ exports.click_index = async (req, res) => {
 
     let num_total = await Card.countDocuments({index_id : req.body.index_id})
     let num_new  = await Card.countDocuments({index_id : req.body.index_id, willstudy_time : null})
-    num_need_study = 0
+    let num_need_study = 0
     // num_need_study = await Card.countDocuments({index_id : req.body.index_id, willstudy_time})
-    let num_card = {num_total, num_new, num_need_study}
     
+    if (req.body.status === true) {
+        req.session.num_total += num_total
+        req.session.num_new += num_new
+        req.session.num_need_study += num_need_study
+    } else {
+        req.session.num_total -= num_total
+        req.session.num_new -= num_new
+        req.session.num_need_study -= num_need_study
+    }
+    let num_card = {
+        num_total : req.session.num_total, 
+        num_new : req.session.num_new, 
+        num_need_study : req.session.num_need_study}    
 
     if (req.body.status === true){
         selected_index = await Selected_index.updateOne(
@@ -100,6 +112,7 @@ exports.click_index = async (req, res) => {
             {$pull : {selected_index : req.body.index_id}})
     }
 
+    console.log(num_card)
     res.json({num_card})
 }
 
