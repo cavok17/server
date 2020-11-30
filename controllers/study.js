@@ -23,6 +23,7 @@ exports.save_booklist_in_session = async (req, res) => {
 
     if (req.body.book_ids){
         req.session.book_ids = req.body.book_ids
+        console.log(req.session)
         console.log('Sucess!!!!!!!!!!!!!')
     }
 
@@ -34,34 +35,31 @@ exports.save_booklist_in_session = async (req, res) => {
 // 선택된 책의 인덱스를 보내줍니다..
 exports.get_index = async (req, res) => {
     console.log("선택된 책의 인덱스를 보내줍니다.");
-    console.log('body', req.body);
-    console.log('study_session', req.session)        
+    console.log('body', req.body);    
     
     // 책과 인덱스 정보를 요청합니다.
     let book_and_index_list = []
     for (i=0; i<req.session.book_ids.length; i++){
         let book = await Book.findOne({_id : req.session.book_ids[i]},
-            {title : 1})
+            {title : 1})        
         // 파퓰된 녀석들 기준으로 sort가 안 되는 것 같아서 따로 find를 함
         let index = await Index.find({book_id : req.session.book_ids[i]})
             .sort({seq : 1})
-        let book_and_index = {book, index}
-        // console.log(book_and_index)
+        let book_and_index = {book, index}        
         book_and_index_list.push(book_and_index)
     }
 
     // 목차 선택에서 선택된 목차를 저장할 selected_index를 초기화합니다.
     let selected_index = []
     // 개별 책 단위로 오브젝트를 만들고, 이걸 하나의 배열에 밀어 넣는다.
-    req.session.book_ids.forEach((book_id) => {
-        console.log(book_id)
+    req.session.book_ids.forEach((book_id) => {        
         let single_set = {
             book_id : book_id,
             index : []
         }
         selected_index.push(single_set)
     })    
-    console.log('selected_index', selected_index)
+    // console.log('selected_index', selected_index)
     // 그리고는 선택된 책 기준으로 리셋을 헌다.
     let selected_index_update = await Selected_index.updateOne(
         {user_id : req.session.passport.user},
