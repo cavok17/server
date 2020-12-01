@@ -50,7 +50,7 @@ exports.get_index = async (req, res) => {
         let single_set = {
             user_id : req.session.passport.user,
             book_id : book_id,
-            seq : index,
+            // seq : index,
             index : []
         }
         selected_index.push(single_set)
@@ -115,16 +115,19 @@ exports.click_up = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
 
-    let book = await Selected_index.findOne({book_id : req.body.book_id})
-    
-    // 윗 녀석을 아래로 한 칸 내립니다.
-    let seq_modi_result = await Selected_index.updateOne(
-        {user_id : req.user, seq : book.seq-1},
-        {$inc : {seq : 1}})
+    // 잘라내고
+    let selected_booklist = req.session.book_ids
+    let current_position = selected_booklist.indexOf(req.body.book_id)
+    let piece_of_booklist = selected_booklist.splice(current_position, 1)
 
-    // 해당 북을 위로 올립니다.
-    book.seq -=1
-    book = await book.save()
+    // 다시 밀어넣자
+    if(current_position-1 <0) {
+        return
+    } else {
+        selected_booklist.splice(current_position-1, 0, piece_of_booklist[0])
+        console.log(selected_booklist)
+        req.session.book_ids = selected_booklist
+    }    
     
     // 책과 인덱스 리스트를 받아옵니다.
     let book_and_index_list = await get_book_and_index_list(req, res)
@@ -137,17 +140,20 @@ exports.click_down = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
 
-    let book = await Selected_index.findOne({book_id : req.body.book_id})
-    
-    // 아랫 녀석을 위로 한 칸 올립니다.
-    let seq_modi_result = await Selected_index.updateOne(
-        {user_id : req.user, seq : book.seq+1},
-        {$inc : {seq : -1}})
-    
-    // 해당 북을 아래로 내립니다.
-    book.seq +=1
-    book = await book.save()
-    
+    // 잘라내고
+    let selected_booklist = req.session.book_ids
+    let current_position = selected_booklist.indexOf(req.body.book_id)
+    let piece_of_booklist = selected_booklist.splice(current_position, 1)
+
+    // 다시 밀어넣자
+    if(current_position + 1 > selected_booklist.length) {
+        return
+    } else {
+        selected_booklist.splice(current_position + 1, 0, piece_of_booklist[0])
+        console.log(selected_booklist)
+        req.session.book_ids = selected_booklist
+    }  
+
     // 책과 인덱스 리스트를 받아옵니다.
     let book_and_index_list = await get_book_and_index_list(req, res)
 
@@ -179,11 +185,12 @@ exports.start_study = async (req, res) => {
     // 이제 전체 리스트를 만들어보자
     // 일단 해당 조건의 카드를 받아와
     let total_cardlist = []
-    for (i=0; i<req.body.study_area.length; i++){        
+    for (i=0; i<req.session.book_ids.length; i++){
+        let selected_index_of_the_book = await Selected_index.findOne({book_id : req.session.book_ids[i].book_id})
         let tmp_cardlist = await Card
             .find({
-                book_id : req.body.study_area[i].book_id,
-                index_id : req.body.study_area[i].index_id},                
+                book_id : req.session.book_ids[i].book_id,
+                index_id : selected_index_of_the_book.selected_index},                
                 {cardtype_id : 1, index_id : 1, seq_in_index : 1, willstudy_time :1})
             .populate({path : 'index_id', select : 'seq'})
             .sort({'seq_in_index' : 1})
