@@ -38,19 +38,10 @@ exports.save_booklist_in_session = async (req, res) => {
 exports.get_index = async (req, res) => {
     console.log("선택된 책의 인덱스를 보내줍니다.");
     console.log('body', req.body);    
-    
-    // 책과 인덱스 정보를 요청합니다.
-    let book_and_index_list = []
-    for (i=0; i<req.session.book_ids.length; i++){
-        let book = await Book.findOne({_id : req.session.book_ids[i]},
-            {title : 1})        
-        // 파퓰된 녀석들 기준으로 sort가 안 되는 것 같아서 따로 find를 함
-        let index = await Index.find({book_id : req.session.book_ids[i]})
-            .sort({seq : 1})
-        let book_and_index = {book, index}        
-        book_and_index_list.push(book_and_index)
-    }
 
+    // 책과 인덱스 리스트를 받아옵니다.
+    let book_and_index_list = get_book_and_index_list(req, res)
+    
     // 목차 선택에서 선택된 목차를 저장할 selected_index를 초기화합니다.
     let selected_index = []
     // 개별 책 단위로 오브젝트를 만들고, 이걸 하나의 배열에 밀어 넣는다.
@@ -62,15 +53,13 @@ exports.get_index = async (req, res) => {
             index : []
         }
         selected_index.push(single_set)
-    })        
+    })    
     // 그리고는 선택된 책 기준으로 리셋을 헌다.
     let delete_result = await Selected_index.deleteMany(
         {user_id : req.session.passport.user}
     )
     let selected_index_update = await Selected_index.insertMany(selected_index)
     
-
-    console.log('여기까진 문제 없죠?')
     // 학습 설정 관련 값도 뿌려주려고 합니다.
     // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
     if (req.session.book_ids.length >= 2){
@@ -120,6 +109,49 @@ exports.click_index = async (req, res) => {
     res.json({num_card})
 }
 
+// 책의 순서를 올립니다.
+exports.click_up = async (req, res) => {
+    console.log("공부를 시작합시다.");
+    console.log(req.body);
+
+    let book = await Selected_index.findOne({book_id : req.body.book_id})
+    
+    // 윗 녀석을 아래로 한 칸 내립니다.
+    let seq_modi_result = await Selected_index.updateOne(
+        {user_id : req.user, seq : book.seq-1},
+        {$inc : {seq : 1}})
+
+    // 해당 북을 위로 올립니다.
+    book.seq -=1
+    book = await book.save()
+    
+    // 책과 인덱스 리스트를 받아옵니다.
+    let book_and_index_list = get_book_and_index_list(req, res)
+
+    res.json({isloggedIn : true, book_and_index_list,});    
+}
+
+// 책의 순서를 내립니다.
+exports.click_down = async (req, res) => {
+    console.log("공부를 시작합시다.");
+    console.log(req.body);
+
+    let book = await Selected_index.findOne({book_id : req.body.book_id})
+    
+    // 아랫 녀석을 위로 한 칸 올립니다.
+    let seq_modi_result = await Selected_index.updateOne(
+        {user_id : req.user, seq : book.seq+1},
+        {$inc : {seq : -1}})
+    
+    // 해당 북을 아래로 내립니다.
+    book.seq +=1
+    book = await book.save()
+    
+    // 책과 인덱스 리스트를 받아옵니다.
+    let book_and_index_list = get_book_and_index_list(req, res)
+
+    res.json({isloggedIn : true, book_and_index_list,});    
+}
 
 // 해당 목차의 카드를 전달합니다.
 exports.start_study = async (req, res) => {
@@ -208,6 +240,22 @@ exports.start_study = async (req, res) => {
 
 };
 
+const get_book_and_index_list = async function(req, res) {
+    // 책과 인덱스 정보를 요청합니다.
+    let book_and_index_list = []
+    for (i=0; i<req.session.book_ids.length; i++){
+        let book = await Book.findOne({_id : req.session.book_ids[i]},
+            {title : 1})        
+        // 파퓰된 녀석들 기준으로 sort가 안 되는 것 같아서 따로 find를 함
+        let index = await Index.find({book_id : req.session.book_ids[i]})
+            .sort({seq : 1})
+        let book_and_index = {book, index}        
+        book_and_index_list.push(book_and_index)
+    }
+
+
+    return book_and_index_list
+}
 
 
 // 순서 섞는 함수
