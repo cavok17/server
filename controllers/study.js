@@ -40,7 +40,8 @@ exports.get_index = async (req, res) => {
     console.log('body', req.body);    
 
     // 책과 인덱스 리스트를 받아옵니다.
-    let book_and_index_list = get_book_and_index_list(req, res)
+    let book_and_index_list = await get_book_and_index_list(req, res)
+    console.log(book_and_index_list)
     
     // 목차 선택에서 선택된 목차를 저장할 selected_index를 초기화합니다.
     let selected_index = []
@@ -126,7 +127,7 @@ exports.click_up = async (req, res) => {
     book = await book.save()
     
     // 책과 인덱스 리스트를 받아옵니다.
-    let book_and_index_list = get_book_and_index_list(req, res)
+    let book_and_index_list = await get_book_and_index_list(req, res)
 
     res.json({isloggedIn : true, book_and_index_list,});    
 }
@@ -148,7 +149,7 @@ exports.click_down = async (req, res) => {
     book = await book.save()
     
     // 책과 인덱스 리스트를 받아옵니다.
-    let book_and_index_list = get_book_and_index_list(req, res)
+    let book_and_index_list = await get_book_and_index_list(req, res)
 
     res.json({isloggedIn : true, book_and_index_list,});    
 }
@@ -242,6 +243,7 @@ exports.start_study = async (req, res) => {
 
 const get_book_and_index_list = async function(req, res) {
     // 책과 인덱스 정보를 요청합니다.
+    console.log('여기까지 오기는 하냐')
     let book_and_index_list = []
     for (i=0; i<req.session.book_ids.length; i++){
         let book = await Book.findOne({_id : req.session.book_ids[i]},
@@ -252,8 +254,6 @@ const get_book_and_index_list = async function(req, res) {
         let book_and_index = {book, index}        
         book_and_index_list.push(book_and_index)
     }
-
-
     return book_and_index_list
 }
 
