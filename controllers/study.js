@@ -147,52 +147,66 @@ exports.click_index = async (req, res) => {
 
 // 책의 순서를 올립니다.
 exports.click_up = async (req, res) => {
-    console.log("공부를 시작합시다.");
+    console.log("책아! 위로 올라갓!");
     console.log(req.body);
 
-    // 잘라내고
-    let selected_booklist = req.session.book_ids
-    let current_position = selected_booklist.indexOf(req.body.book_id)
-    let piece_of_booklist = selected_booklist.splice(current_position, 1)
+    // 기본 정보를 만들고
+    let selected_book = await Selected_bookNindex.findOne(
+        {session_id : req.body.session_id,
+        book_id : req.body.book_id})
+    let current_seq = selected_book.seq
 
-    // 다시 밀어넣자
-    if(current_position-1 <0) {
+    // 순서를 조정하자
+    if(current_seq-1 <0) {
         return
     } else {
-        selected_booklist.splice(current_position-1, 0, piece_of_booklist[0])
-        console.log(selected_booklist)
-        req.session.book_ids = selected_booklist
+        let upper_book_modi = await Selected_bookNindex.updateOne(
+            {session_id : req.body.session_id,
+            seq : current_seq-1},
+            {$inc : {seq : 1}})
+        selected_book.seq -= 1
+        selected_book = await selected_book.save()        
     }    
     
     // 책과 인덱스 리스트를 받아옵니다.
-    let book_and_index_list = await get_book_and_index_list(req, res)
+    let bookNindex_list = await get_bookNindex_list(req, res)
 
-    res.json({isloggedIn : true, book_and_index_list,});    
+    res.json({isloggedIn : true, bookNindex_list,});    
 }
 
 // 책의 순서를 내립니다.
 exports.click_down = async (req, res) => {
-    console.log("공부를 시작합시다.");
+    console.log("책아! 아래로 내려갓!");
     console.log(req.body);
 
-    // 잘라내고
-    let selected_booklist = req.session.book_ids
-    let current_position = selected_booklist.indexOf(req.body.book_id)
-    let piece_of_booklist = selected_booklist.splice(current_position, 1)
+    // 기본 정보를 만들고
+    let selected_book = await Selected_bookNindex.findOne(
+        {session_id : req.body.session_id,
+        book_id : req.body.book_id})
+    let current_seq = selected_book.seq
+    let max_seq_book = await Selected_bookNindex
+        .find({session_id : req.body.session_id})
+        .sort({seq : -1})
+        .limit(1)
+    let max_seq = max_seq_book[0].seq
 
-    // 다시 밀어넣자
-    if(current_position + 1 > selected_booklist.length) {
+
+    // 순서를 조정하자
+    if(current_seq === max_seq) {
         return
     } else {
-        selected_booklist.splice(current_position + 1, 0, piece_of_booklist[0])
-        console.log(selected_booklist)
-        req.session.book_ids = selected_booklist
-    }  
-
+        let upper_book_modi = await Selected_bookNindex.updateOne(
+            {session_id : req.body.session_id,
+            seq : current_seq+1},
+            {$inc : {seq : -1}})
+        selected_book.seq += 1
+        selected_book = await selected_book.save()        
+    }    
+    
     // 책과 인덱스 리스트를 받아옵니다.
-    let book_and_index_list = await get_book_and_index_list(req, res)
+    let bookNindex_list = await get_bookNindex_list(req, res)
 
-    res.json({isloggedIn : true, book_and_index_list,});    
+    res.json({isloggedIn : true, bookNindex_list,});  
 }
 
 // 해당 목차의 카드를 전달합니다.
