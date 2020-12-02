@@ -30,9 +30,11 @@ exports.save_booklist= async (req, res) => {
     // 셀렉된 걸 구조화합니다.
     let bookNindex_list = []
     for (i=0; i<req.body.book_ids.length; i++){
+        let book = await Book.findOne({_id : req.body.book_ids[i]})
         let single_book = {
             session_id : session._id,
             book_id : req.body.book_ids[i],
+            book_title : book.title,
             seq : i,
             index_ids : []
         }
