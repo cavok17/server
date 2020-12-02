@@ -25,7 +25,7 @@ exports.save_booklist= async (req, res) => {
 
     // 일단 세션을 생성합니다.
     // let session = await Session.create({user_id : req.session.passport.user})
-    let session = await Session.create({user_id : 'taeho'})
+    let session = await Session.create({user_id : req.session.passport.user})
 
     // 셀렉된 걸 구조화합니다.
     let bookNindex_list = []
@@ -64,7 +64,7 @@ exports.get_index = async (req, res) => {
     let selected_bookNindex = await Selected_bookNindex.find({session_id : session_id})
     if (selected_bookNindex.length >= 2){
         // study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
-        study_config = await User.findOne({user_id : 'taeho'}, {study_config : 1, _id : 0})        
+        study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
     } else {
         study_config = await Book.findOne({_id : selected_bookNindex[0].book_id}, {study_config : 1, _id : 0})
     }
