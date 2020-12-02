@@ -7,6 +7,7 @@ const cardschema = new mongoose.Schema({
   index_id: {type:mongoose.ObjectId, ref:'Index'},
   seq_in_index: Number,
   source_of_content : {type : String, default : 'internal'},
+  status : {type : String, default : 'new'},
   // 반댓말은 external
   content_of_importance : Array,
   content_of_first_face : Array,
@@ -17,7 +18,7 @@ const cardschema = new mongoose.Schema({
   flag : {type : Number, default : null},
   time_created : {type : Date, default : null},
   recent_study_time : {type : Date, default : null},
-  willstudy_time: {type : Date, default : null},
+  need_study_time: {type : Date, default : null},
   exp : {type : Number, default : 0},
   level : {type : Number, default : 0},
 });

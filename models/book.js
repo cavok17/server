@@ -22,7 +22,7 @@ const book_schema = new mongoose.Schema({
     // num_cards: {type : Number, default : 0},
     // new_index_no : {type : Number, default : 1},
     // new_card_no : {type : Number, default : 0},
-    time_create: {type : Date, default : Date.now},    
+    time_created: {type : Date, default : Date.now},    
     recent :{
         num_card_created : {type : Number, default : null},
         time_study: {type : Date, default : null},
@@ -30,9 +30,20 @@ const book_schema = new mongoose.Schema({
         study_mode : {type : String, default : '0'},
     },
     study_config : {
-        num_card_new : {type : Number, default : 50},
-        num_card_re : {type : Number, default : 50},
-        card_order : {type : String, default : 50}
+        card_order : {type : String, default : 'sort_by_index'},
+        re_card_collect_criteria : {type : String, default : 'all'},
+        on_off : {
+            yet : {type : String, default : 'on'},
+            re : {type : String, default : 'on'},
+            hold : {type : String, default : 'off'},
+            completed : {type : String, default : 'off'},
+        },
+        num_cards : {
+            yet : {type : Number, default : 50},
+            re : {type : Number, default : 50},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        }              
     }
 });
 

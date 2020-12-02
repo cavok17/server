@@ -14,10 +14,21 @@ const userschema = new mongoose.Schema({
     hide_or_show : {type : Boolean, default : true}
   },
   study_config : {
-    num_card_new : {type : Number, default : 50},
-    num_card_re : {type : Number, default : 50},
-    card_order : {type : String, default : 'standard'}
-  }
+    card_order : {type : String, default : 'sort_by_index'},
+    re_card_collect_criteria : {type : String, default : 'all'},
+    on_off : {
+        yet : {type : String, default : 'on'},
+        re : {type : String, default : 'on'},
+        hold : {type : String, default : 'off'},
+        completed : {type : String, default : 'off'},
+    },
+    num_cards : {
+        yet : {type : Number, default : 100},
+        re : {type : Number, default : 100},
+        hold : {type : Number, default : 0},
+        completed : {type : Number, default : 0},
+    }              
+}
 
   
   // newbook_no: {type: Number, default :0},
