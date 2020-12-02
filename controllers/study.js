@@ -43,14 +43,6 @@ exports.save_booklist= async (req, res) => {
     // 셀렉된 걸 저장합니다.
     let selected_bookNindex = await Selected_bookNindex.insertMany(bookNindex_list)
 
-    // // 이 아래는 필요없습니다.
-    // if (req.body.book_ids.length >0){        
-    //     req.session.num_total =0
-    //     req.session.num_new =0
-    //     req.session.num_need_study =0
-    //     console.log('Sucess!!!!!!!!!!!!!')
-    // }
-
     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 }
 
@@ -83,90 +75,72 @@ exports.click_index = async (req, res) => {
     console.log("인덱스 선택했니? 잘했다야");
     console.log(req.body);
 
-    // 일단 session 정보를 불러옵시다.
-    let session = await Session.findOne({_id : req.body.session_id})
+    let session_id = req.body.session_id
+    let num_total_cards = {}
+
+    // 일단 selected를 불러옵시다.
+    let selected_bookNindex = await Selected_bookNindex.findOne({session_id : session_id})
 
     // 만약 true면 추가 index 정보를 push하고
-    if (req.body.status ===true){
+    breakme : if (req.body.status ===true){
+        // 중복 체크부터 허시죠
+        let position_of_target_index = selected_bookNindex.indexes.findIndex((single_index) => {
+            return single_index.index_id === req.body.index_id
+        })
+        if (position_of_target_index > 0){
+            console.log('중복이네요')
+            break breakme
+        }
+
+        // 일단 카드가 몇 개인지 세어보죠
         let cards = await Card.find(
             {index_id : req.body.index_id},
             {status : 1, need_study_time :1, _id:0})
-        
-        let num_cards = {}
+                
         let tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate()+1)
         tomorrow.setHours(0,0,0,0)
 
-        let yet = cards.filter((card) => card.status === 'yet').length        
+        let yet = cards.filter((card) => card.status === 'yet').length                
         let re = cards.filter((card) => card.status === 're').length
         let hold = cards.filter((card) => card.status === 'hold').length
         let completed = cards.filter((card) => card.status === 'completed').length
-        let total = num_cards.new + num_cards.re + num_cards.hold +num_cards.completed
+        let total = yet + re + hold +completed        
         let re_until_now = cards
             .filter((card) => card.status === 're')
             .filter((card) => card.need_study_time < Date.now()).length
         let re_until_today = cards
             .filter((card) => card.status === 're')
             .filter((card) => card.need_study_time < tomorrow.getTime()).length
-
-        session.num_cards.yet += yet
-        session.num_cards.re += re
-        session.num_cards.hold += hold
-        session.num_cards.completed += completed
-        session.num_cards.total += total
-        session.num_cards.re_until_now += re_until_now
-        session.num_cards.re_until_today += re_until_today
         
-        book_seq = session.book_and_index_list.findIndex((list) => {
-            return list.book_id === req.body.book_id
+        // 데이터 구조화해서 추가해야제
+        let new_index_info = {
+            index_id : req.body.index_id,
+            yet, re, hold, completed, total, re_until_now, re_until_today}
+        
+        selected_bookNindex.indexes.push(new_index_info)
+        selected_bookNindex = await selected_bookNindex.save()
+                
+    } else if (req.body.status === false) {
+        // 일단 index_id가 어디있는지 찾아보자고
+        let position_of_target_index = selected_bookNindex.indexes.findIndex((single_index) => {
+            return single_index.index_id === req.body.index_id
         })
-        session.book_and_index_list[i].index_ids.push(req.body.index_id)
+        console.log('position_of_target_index', position_of_target_index)
+        if(position_of_target_index === -1){
+            console.log('그런 애 없다는디')
+        }
         
-        session = await session.save()
-
-        res.json({isloggedIn : true, session_id, });    
-        
+        // 찾았으니까 지워야지
+        selected_bookNindex.indexes.splice(position_of_target_index, 1)
+        selected_bookNindex = await selected_bookNindex.save()
     }
 
+    num_total_cards = await get_num_cards (session_id)
 
-
-    
-    
-    // for (i=0; i<cards.length; i++){
-
-    // }
-    // let num_total = await Card.countDocuments({index_id : req.body.index_id})
-    // let num_new  = await Card.countDocuments({index_id : req.body.index_id, willstudy_time : null})
-    // let num_need_study = 0
-    // num_need_study = await Card.countDocuments({index_id : req.body.index_id, willstudy_time})
-    
-    if (req.body.status === true) {
-        req.session.num_total += num_total
-        req.session.num_new += num_new
-        req.session.num_need_study += num_need_study
-    } else {
-        req.session.num_total -= num_total
-        req.session.num_new -= num_new
-        req.session.num_need_study -= num_need_study
-    }
-    let num_card = {
-        num_total : req.session.num_total, 
-        num_new : req.session.num_new, 
-        num_need_study : req.session.num_need_study}    
-
-    if (req.body.status === true){
-        selected_index = await Selected_index.updateOne(
-            {book_id : req.body.book_id},
-            {$push : {selected_index : req.body.index_id}})
-    } else if (req.body.status === false){
-        selected_index = await Selected_index.updateOne(
-            {book_id : req.body.book_id},
-            {$pull : {selected_index : req.body.index_id}})
-    }
-
-    console.log(num_card)
-    res.json({num_card})
+    res.json({isloggedIn : true, session_id, num_total_cards});    
 }
+
 
 // 책의 순서를 올립니다.
 exports.click_up = async (req, res) => {
@@ -391,8 +365,36 @@ const sort_by_time = function(array) {
 // 난이도 평가를 하면....원본에 업데이트하고
 // phase 2에는 복습 필요시점만 업데이트하고
 
+const get_num_cards = async function(session_id) {
+    // 이제 다 합쳐서 순서를 뽑아야제       
+    let selected_bookNindexes = await Selected_bookNindex.find(
+        {session_id : session_id},
+        {indexes : 1})
+    
+    let num_total_cards = {
+        yet : 0, 
+        re :0, 
+        hold : 0, 
+        completed :0, 
+        total :0, 
+        re_until_now : 0, 
+        re_until_today : 0,
+    }
 
-
+    for (i=0; i<selected_bookNindexes.length; i++){
+        for(j=0; j<selected_bookNindexes[i].indexes.length; j++){
+            num_total_cards.yet += selected_bookNindexes[i].indexes[j].yet
+            num_total_cards.re += selected_bookNindexes[i].indexes[j].re
+            num_total_cards.hold += selected_bookNindexes[i].indexes[j].hold
+            num_total_cards.completed += selected_bookNindexes[i].indexes[j].completed
+            num_total_cards.total += selected_bookNindexes[i].indexes[j].total
+            num_total_cards.re_until_now += selected_bookNindexes[i].indexes[j].re_until_now
+            num_total_cards.re_until_today += selected_bookNindexes[i].indexes[j].re_until_today            
+        }
+    }
+    
+    return num_total_cards
+}
 
 
 

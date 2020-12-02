@@ -4,8 +4,17 @@ const mongoose = require("mongoose");
 const selected_bookNindex_schema = new mongoose.Schema({    
     session_id : {type:mongoose.ObjectId, ref:'Session'},
     book_id: {type:mongoose.ObjectId, ref:'Book'},
+    // num_total_cards : {
+    //     yet : {type : Number, default : 0},
+    //     re : {type : Number, default : 0},
+    //     hold : {type : Number, default : 0},
+    //     completed : {type : Number, default : 0},
+    //     total : {type : Number, default : 0},
+    //     re_until_now : {type : Number, default : 0},
+    //     re_until_today : {type : Number, default : 0},
+    // },
     seq : Number,   
-    index_ids : [{type:mongoose.ObjectId, ref:'Index'}]
+    indexes : Array,
 });
 
 module.exports = mongoose.model("Selected_bookNindex", selected_bookNindex_schema)

@@ -16,7 +16,7 @@ router.post('/get-index', Study_controller.get_index);
 router.post('/start-study', isLoggedIn, Study_controller.start_study);
 
 // 목차를 선택합니다.
-router.post('/click-index', isLoggedIn, Study_controller.click_index);
+router.post('/click-index', Study_controller.click_index);
 
 // 책을 위로 올립니다.
 router.post('/click-up', isLoggedIn, Study_controller.click_up);
