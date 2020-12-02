@@ -24,23 +24,24 @@ exports.save_booklist= async (req, res) => {
     console.log(req.body);
 
     // 일단 세션을 생성합니다.
-    // let session = await Session.create({user_id : req.session.passport.user})
     let session = await Session.create({user_id : req.session.passport.user})
+    // let session = await Session.create({user_id : 'taeho'})
 
     // 셀렉된 걸 구조화합니다.
     let bookNindex_list = []
     for (i=0; i<req.body.book_ids.length; i++){
         let book = await Book.findOne({_id : req.body.book_ids[i]})
+        console.log('book',book)
         let single_book = {
             session_id : session._id,
             book_id : req.body.book_ids[i],
-            book_title : book.title,
+            title : book.title,
             seq : i,
             index_ids : []
         }
         bookNindex_list.push(single_book)
     }
-    console.log(bookNindex_list)
+    // console.log(bookNindex_list)
 
     // 셀렉된 걸 저장합니다.
     let selected_bookNindex = await Selected_bookNindex.insertMany(bookNindex_list)
@@ -57,14 +58,14 @@ exports.get_index = async (req, res) => {
 
     // 책과 인덱스 리스트를 받아옵니다.
     let bookNindex_list = await get_bookNindex_list(session_id)
-    console.log(bookNindex_list)
+    // console.log(bookNindex_list)
     
     // 학습 설정 관련 값도 뿌려주려고 합니다.
     // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
     let selected_bookNindex = await Selected_bookNindex.find({session_id : session_id})
-    if (selected_bookNindex.length >= 2){
-        // study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
+    if (selected_bookNindex.length >= 2){        
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
+        // study_config = await User.findOne({user_id : 'taeho'}, {study_config : 1, _id : 0})        
     } else {
         study_config = await Book.findOne({_id : selected_bookNindex[0].book_id}, {study_config : 1, _id : 0})
     }
@@ -323,6 +324,7 @@ const get_bookNindex_list = async function(session_id) {
         
         let single_bookNindex = {
             book_id : selected_books[i].book_id,
+            title : selected_books[i].title,
             index_ids : indexes_of_one_book,
         }
 

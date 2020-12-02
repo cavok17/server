@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const selected_bookNindex_schema = new mongoose.Schema({    
     session_id : {type:mongoose.ObjectId, ref:'Session'},
     book_id: {type:mongoose.ObjectId, ref:'Book'},
-    book_title : String,
+    title : String,
     // num_total_cards : {
     //     yet : {type : Number, default : 0},
     //     re : {type : Number, default : 0},
