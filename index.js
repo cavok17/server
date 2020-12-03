@@ -13,11 +13,12 @@ const path = require("path");
 
 dotenv.config({ path: path.join(__dirname, '.env')});
 const app = express();
-app.use(
-  cors({
-    credentials : true,
-    origin : "http://localhost:3000"
-  }));
+// app.use(
+//   cors({
+//     credentials : true,
+//     origin : "http://localhost:3000"
+//   }));
+app.use(cors());
 const passportConfig = require('./passport');
 passportConfig();
 

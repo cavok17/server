@@ -3,11 +3,12 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const cardschema = new mongoose.Schema({
   cardtype_id: {type:mongoose.ObjectId, ref:'Cardtype'},
+  cardtype : String,
   book_id: {type:mongoose.ObjectId, ref:'Book'},
   index_id: {type:mongoose.ObjectId, ref:'Index'},
   seq_in_index: Number,
   source_of_content : {type : String, default : 'internal'},
-  status : {type : String, default : 'new'},
+  status : {type : String, default : 'yet'},
   // 반댓말은 external
   content_of_importance : Array,
   content_of_first_face : Array,

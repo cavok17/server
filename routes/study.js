@@ -13,7 +13,7 @@ router.post('/save-booklist', Study_controller.save_booklist);
 router.post('/get-index', Study_controller.get_index);
 
 // 학습을 시작합니다.
-router.post('/start-study', isLoggedIn, Study_controller.start_study);
+router.post('/start-study', Study_controller.start_study);
 
 // 목차를 선택합니다.
 router.post('/click-index', Study_controller.click_index);

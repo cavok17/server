@@ -31,7 +31,7 @@ exports.save_booklist= async (req, res) => {
     let bookNindex_list = []
     for (i=0; i<req.body.book_ids.length; i++){
         let book = await Book.findOne({_id : req.body.book_ids[i]})
-        console.log('book',book)
+        // console.log('book',book)
         let single_book = {
             session_id : session._id,
             book_id : req.body.book_ids[i],
@@ -43,6 +43,7 @@ exports.save_booklist= async (req, res) => {
     }
     // console.log(bookNindex_list)
 
+    console.log('bookNindex_list', bookNindex_list)
     // 셀렉된 걸 저장합니다.
     let selected_bookNindex = await Selected_bookNindex.insertMany(bookNindex_list)
 
@@ -214,31 +215,78 @@ exports.start_study = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
     
+    let bookNindex_list = await Selected_bookNindex
+    .find({session_id : req.body.session_id})
+    .sort({seq : 1})
+
     // 스터디 콘피그 수정해주고
     let update_object = {
         'study_config.card_order' : req.body.card_order,
         // sort_by_index, sort_by_restudytime, random
-        'study_config.re_card_collect_criteria' : req.body.studing_card_select_criteria,
+        'study_config.re_card_collect_criteria' : req.body.re_card_collect_criteria,
         // all, now, today
-        'study_config.on_off.new' : req.body.on_off_new,
-        'study_config.on_off.re' : req.body.on_off_studying,
-        'study_config.on_off.hold' : req.body.on_off_hold,
-        'study_config.on_off.completed' : req.body.on_off_completed,
-        'study_config.num_cards.new' : req.body.num_card_new,
-        'study_config.num_cards.re' : req.body.num_card_studying,
-        'study_config.num_cards.hold' : req.body.num_card_hold,
-        'study_config.num_cards.completed' : req.body.num_card_completed,
+        'study_config.on_off.yet' : req.body.on_off.yet,
+        'study_config.on_off.re' : req.body.on_off.re,
+        'study_config.on_off.hold' : req.body.on_off.hold,
+        'study_config.on_off.completed' : req.body.on_off.completed,
+        'study_config.num_cards.yet' : req.body.num_cards.yet,
+        'study_config.num_cards.re' : req.body.num_cards.re,
+        'study_config.num_cards.hold' : req.body.num_cards.hold,
+        'study_config.num_cards.completed' : req.body.num_cards.completed,
     }
-    if(req.body.study_area.length ===1){
-        book_modi_result = await Book.updateOne(
-            {_id : req.body.study_area.length[0].book_id}, update_object)
+    if(bookNindex_list ===1){
+        let book_config_modi_result = await Book.updateOne(
+            {_id : bookNindex_list[0].book_id}, update_object)
     } else {
-        user_modi_result = await User.updateOne(
-            {user_id : req.user}, update_object)
+        let user_config_modi_result = await User.updateOne(
+            // {user_id : req.session.passport.user}, update_object)
+            {user_id : 'taeho'}, update_object)
     };
 
+    // 리스트를 하나로 통합하고
+    let cardlist_total = []
+    for (i=0; i<bookNindex_list.length; i++){
+        cardlist_of_singlebook = await Card
+            .find({index_id : bookNindex_list[i].indexes},
+                {cardtype : 1, index_id :1, status :1, need_study_time :1})
+            .populate({path : 'index_id',select : 'name seq_in_category'})
+            .sort({seq_in_index : 1})
+        cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)
+        cardlist_total.push(cardlist_of_singlebook)
+    }
+
+    res.json({isloggedIn : true, update_object});
+}
+
+
+exports.temp = async (req, res) => {
+
     // 이제 전체 리스트를 만들어보자
-    // 일단 해당 조건의 카드를 받아와
+
+
+
+    // 이걸 속성으로 분리하고
+    let cardlist_yet = cardlist_total.filter((card) => card.status === 'yet')
+    let cardlist_re = cardlist_total.filter((card) => card.status === 're')
+    let cardlist_hold = cardlist_total.filter((card) => card.status === 'hold')
+    let cardlist_completed = cardlist_total.filter((card) => card.status === 'completed')
+
+    // 필요한 만큼만 가져오고
+    let num_used_cards = {
+        yet : 0,
+        re : 0,
+        hold : 0,
+        completed : 0,
+    }
+    let cardlist_ready = []
+    cardlist_ready.push(cardlist_yet.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
+    cardlist_ready.push(cardlist_re.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
+    cardlist_ready.push(cardlist_hold.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
+    cardlist_ready.push(cardlist_completed.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
+
+    let cardlist_studying = []
+    // 푸시하고 끝낸다.
+
     let total_cardlist = []
     for (i=0; i<req.session.book_ids.length; i++){
         let selected_index_of_the_book = await Selected_index.findOne({book_id : req.session.book_ids[i].book_id})
