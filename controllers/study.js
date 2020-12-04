@@ -16,6 +16,7 @@ const Session = require('../models/session');
 const Selected_bookNindex = require('../models/selected_bookNindex');
 const Studyingcard_total = require('../models/studyingcard_total');
 const Studyingcard_current = require('../models/studyingcard_current');
+const { session } = require("passport");
 // const { Session } = require("inspector");
 
 // 선택된 책 정보를 DB에 저장하면서 세션을 만듭니다.
@@ -24,8 +25,7 @@ exports.save_booklist= async (req, res) => {
     console.log(req.body);
 
     // 일단 세션을 생성합니다.
-    let session = await Session.create({user_id : req.session.passport.user})
-    // let session = await Session.create({user_id : 'taeho'})
+    let session = await Session.create({user_id : req.session.passport.user})    
 
     // 셀렉된 걸 구조화합니다.
     let bookNindex_list = []
@@ -65,8 +65,7 @@ exports.get_index = async (req, res) => {
     // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
     let selected_bookNindex = await Selected_bookNindex.find({session_id : session_id})
     if (selected_bookNindex.length >= 2){        
-        study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})        
-        // study_config = await User.findOne({user_id : 'taeho'}, {study_config : 1, _id : 0})        
+        study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
     } else {
         study_config = await Book.findOne({_id : selected_bookNindex[0].book_id}, {study_config : 1, _id : 0})
     }
@@ -83,7 +82,8 @@ exports.click_index = async (req, res) => {
     let num_total_cards = {}
 
     // 일단 selected를 불러옵시다.
-    let selected_bookNindex = await Selected_bookNindex.findOne({session_id : session_id})
+    let selected_bookNindex = await Selected_bookNindex.findOne(
+        {session_id : session_id, book_id : req.body.book_id})
 
     // 만약 true면 추가 index 정보를 push하고
     breakme : if (req.body.status ===true){
@@ -170,7 +170,7 @@ exports.click_up = async (req, res) => {
     }    
     
     // 책과 인덱스 리스트를 받아옵니다.
-    let bookNindex_list = await get_bookNindex_list(req, res)
+    let bookNindex_list = await get_bookNindex_list(req.body.session_id)
 
     res.json({isloggedIn : true, bookNindex_list,});    
 }
@@ -205,7 +205,7 @@ exports.click_down = async (req, res) => {
     }    
     
     // 책과 인덱스 리스트를 받아옵니다.
-    let bookNindex_list = await get_bookNindex_list(req, res)
+    let bookNindex_list = await get_bookNindex_list(req.body.session_id)
 
     res.json({isloggedIn : true, bookNindex_list,});  
 }
@@ -215,12 +215,17 @@ exports.start_study = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
     
+    let session = await Session.findOne({_id : req.body.session_id})
+    // console.log('session', session)
+
     let bookNindex_list = await Selected_bookNindex
-    .find({session_id : req.body.session_id})
-    .sort({seq : 1})
+        .find({session_id : req.body.session_id})
+        .sort({seq : 1})
 
     // 스터디 콘피그 수정해주고
     let update_object = {
+        'study_config.study_mode' : req.body.study_mode,
+        // read, flip, exam
         'study_config.card_order' : req.body.card_order,
         // sort_by_index, sort_by_restudytime, random
         'study_config.re_card_collect_criteria' : req.body.re_card_collect_criteria,
@@ -239,70 +244,71 @@ exports.start_study = async (req, res) => {
             {_id : bookNindex_list[0].book_id}, update_object)
     } else {
         let user_config_modi_result = await User.updateOne(
-            // {user_id : req.session.passport.user}, update_object)
-            {user_id : 'taeho'}, update_object)
+            {user_id : req.session.passport.user}, update_object)            
     };
 
     // 리스트를 하나로 통합하고
     let cardlist_total = []
     for (i=0; i<bookNindex_list.length; i++){
+        let index_ids = bookNindex_list[i].indexes.map((index) => index.index_id)
+        // console.log(i, 'book_id', bookNindex_list[i].book_id)
+        // console.log(i, 'index_ids', index_ids)
         cardlist_of_singlebook = await Card
-            .find({index_id : bookNindex_list[i].indexes},
-                {cardtype : 1, index_id :1, status :1, need_study_time :1})
-            .populate({path : 'index_id',select : 'name seq_in_category'})
+            .find({index_id : index_ids},
+                {cardtype : 1, index_id :1, status :1, seq_in_index :1, need_study_time :1})        
             .sort({seq_in_index : 1})
-        cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)
-        cardlist_total.push(cardlist_of_singlebook)
+            .populate({path : 'index_id',select : 'seq'})
+        cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)        
+        cardlist_total = cardlist_total.concat(cardlist_of_singlebook)        
+    }
+    // console.log(cardlist_total)
+
+    // 이걸 속성으로 분리하고    
+    session.cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')
+    // let tmptmp = cardlist_total.filter((card) => card.status === 'yet')
+    // console.log('tmptmp', tmptmp)
+    session.cardlist_sepa.re = cardlist_total.filter((card) => card.status === 're')
+    session.cardlist_sepa.hold = cardlist_total.filter((card) => card.status === 'hold')
+    session.cardlist_sepa.completed = cardlist_total.filter((card) => card.status === 'completed')
+
+    // 다시 하나로 묶어서 정리해주고 cardlist_working으로 만들어준다.
+    let cardlist_working_tmp = []
+    cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.yet.slice(0, req.body.num_cards.yet))
+    cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.re.slice(0, req.body.num_cards.re))
+    cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.hold.slice(0, req.body.num_cards.hold))
+    cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.completed.slice(0, req.body.num_cards.completed))
+
+    cardlist_working_tmp
+        .sort((a,b) => a.index_id.seq - b.index_id.seq)
+        .sort((a,b) => a.seq_in_index - b.seq_in_index)
+
+    session.num_used_cards = {
+        yet : req.body.num_cards.yet,
+        re : req.body.num_cards.re,
+        hold : req.body.num_cards.hold,
+        completed : req.body.num_cards.completed,
     }
 
-    res.json({isloggedIn : true, update_object});
+    session.cardlist_working = cardlist_working_tmp
+    
+    // 이제 보낼 것만 보내면 되는 거임
+
+    let card_ids_to_send = session.cardlist_working.slice(session.currnet_seq, session.currnet_seq+req.body.num_request_cards )
+    let cards_to_send = await Card.find({_id : card_ids_to_send})
+        .populate({path : 'index_id',select : 'seq'})
+    cards_to_send
+        .sort((a,b) => a.index_id.seq - b.index_id.seq)
+        .sort((a,b) => a.seq_in_index - b.seq_in_index)
+
+    session.currnet_seq += req.body.num_request_cards
+    session = await session.save()
+
+    res.json({isloggedIn : true, cards_to_send});
 }
 
 
 exports.temp = async (req, res) => {
 
-    // 이제 전체 리스트를 만들어보자
-
-
-
-    // 이걸 속성으로 분리하고
-    let cardlist_yet = cardlist_total.filter((card) => card.status === 'yet')
-    let cardlist_re = cardlist_total.filter((card) => card.status === 're')
-    let cardlist_hold = cardlist_total.filter((card) => card.status === 'hold')
-    let cardlist_completed = cardlist_total.filter((card) => card.status === 'completed')
-
-    // 필요한 만큼만 가져오고
-    let num_used_cards = {
-        yet : 0,
-        re : 0,
-        hold : 0,
-        completed : 0,
-    }
-    let cardlist_ready = []
-    cardlist_ready.push(cardlist_yet.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
-    cardlist_ready.push(cardlist_re.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
-    cardlist_ready.push(cardlist_hold.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
-    cardlist_ready.push(cardlist_completed.slice(num_used_card.yet, num_used_card.yet+req.body.num_cards.yet))
-
-    let cardlist_studying = []
-    // 푸시하고 끝낸다.
-
-    let total_cardlist = []
-    for (i=0; i<req.session.book_ids.length; i++){
-        let selected_index_of_the_book = await Selected_index.findOne({book_id : req.session.book_ids[i].book_id})
-        let tmp_cardlist = await Card
-            .find({
-                book_id : req.session.book_ids[i].book_id,
-                index_id : selected_index_of_the_book.selected_index},                
-                {cardtype_id : 1, index_id : 1, seq_in_index : 1, willstudy_time :1})
-            .populate({path : 'index_id', select : 'seq'})
-            .sort({'seq_in_index' : 1})
-            // .sort({'index_id.seq' : 1, seq_in_index : 1, })            
-            
-        // populate한 것으로는 sort는 안 되는구만 따로 정렬을 시켜야 함
-        tmp_cardlist.sort((a,b) => a.index_id.seq - b.index_id.seq )        
-        total_cardlist.push(tmp_cardlist)
-    }
 
     // 순서를 섞어야되믄 순서를 섞고
     if(req.body.card_order === 'shuffle'){

@@ -14,6 +14,7 @@ const userschema = new mongoose.Schema({
     hide_or_show : {type : Boolean, default : true}
   },
   study_config : {
+    study_mode : {type : String, default : 'read'},
     card_order : {type : String, default : 'sort_by_index'},
     re_card_collect_criteria : {type : String, default : 'all'},
     on_off : {

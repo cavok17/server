@@ -30,6 +30,7 @@ const book_schema = new mongoose.Schema({
         study_mode : {type : String, default : '0'},
     },
     study_config : {
+        study_mode : {type : String, default : 'read'},
         card_order : {type : String, default : 'sort_by_index'},
         re_card_collect_criteria : {type : String, default : 'all'},
         on_off : {
