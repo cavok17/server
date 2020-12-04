@@ -277,23 +277,22 @@ exports.start_study = async (req, res) => {
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.re.slice(0, req.body.num_cards.re))
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.hold.slice(0, req.body.num_cards.hold))
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.completed.slice(0, req.body.num_cards.completed))
-
+    
     cardlist_working_tmp
-        .sort((a,b) => a.index_id.seq - b.index_id.seq)
-        .sort((a,b) => a.seq_in_index - b.seq_in_index)
-
+    .sort((a,b) => a.index_id.seq - b.index_id.seq)
+    .sort((a,b) => a.seq_in_index - b.seq_in_index)
+    
     session.num_used_cards = {
         yet : req.body.num_cards.yet,
         re : req.body.num_cards.re,
         hold : req.body.num_cards.hold,
         completed : req.body.num_cards.completed,
     }
-
+    
     session.cardlist_working = cardlist_working_tmp
     
-    // 이제 보낼 것만 보내면 되는 거임
-
-    let card_ids_to_send = session.cardlist_working.slice(session.currnet_seq, session.currnet_seq+req.body.num_request_cards )
+    // 이제 보낼 것만 보내면 되는 거임    
+    let card_ids_to_send = session.cardlist_working.slice(session.current_seq, session.current_seq+req.body.num_request_cards )    
     let cards_to_send = await Card.find({_id : card_ids_to_send})
         .populate({path : 'index_id',select : 'seq'})
     cards_to_send
@@ -302,6 +301,8 @@ exports.start_study = async (req, res) => {
 
     session.currnet_seq += req.body.num_request_cards
     session = await session.save()
+
+    console.log(cards_to_send)
 
     res.json({isloggedIn : true, cards_to_send});
 }
