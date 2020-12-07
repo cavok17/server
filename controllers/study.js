@@ -299,13 +299,16 @@ exports.start_study = async (req, res) => {
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.completed.slice(0, req.body.num_cards.completed))
     
     cardlist_working_tmp
-    .sort((a,b) => a.index_id.seq - b.index_id.seq)
-    .sort((a,b) => a.seq_in_index - b.seq_in_index)
+        .sort((a,b) => a.index_id.seq - b.index_id.seq)
+        .sort((a,b) => a.seq_in_index - b.seq_in_index)
 
     // 워킹 카드리스트에 시퀀스 정보를 생성합니다.
     for (i=0; i<cardlist_working_tmp.length; i++) {
+        
         cardlist_working_tmp[i].seq_in_working = i
+        // console.log('cardlist_working_tmp', cardlist_working_tmp[i])
     }
+
     
     session.num_used_cards = {
         yet : req.body.num_cards.yet,
@@ -315,7 +318,7 @@ exports.start_study = async (req, res) => {
     }
     
     session.cardlist_working = cardlist_working_tmp
-    console.log('cardlist_working', session.cardlist_working)
+    // console.log('cardlist_working', session.cardlist_working)
     session = await session.save()
 }
 
@@ -337,6 +340,7 @@ exports.get_studying_cards = async (req, res) => {
         {path : 'cardlist_working._id', 
         select : 'cardtype_id cardtype status content_of_importance content_of_first_face content_of_second_face content_of_third_face content_of_annot exp level'})
 
+    console.log('cards_to_send', cards_to_send)
     res.json({isloggedIn : true, cards_to_send});
 }
 

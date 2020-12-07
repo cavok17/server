@@ -8,7 +8,7 @@ const cardlist_working_schema = new mongoose.Schema({
     index_id : {type:mongoose.ObjectId, ref:'Index'},
     seq_in_index : Number,
     seq_in_total : Number,
-    seq_in_woring : Number,
+    seq_in_working : Number,
 })
 
 const session_schema = new mongoose.Schema({
