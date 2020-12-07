@@ -139,6 +139,8 @@ exports.create_card_by_excel = async (req, res) => {
                 book_id: req.session.book_id,
                 index_id: req.body.index_id,        
                 seq_in_index: max_seq,
+                seq_in_total : null,
+                seq_in_working : null,
                 content_of_importance,
                 content_of_first_face,
                 content_of_second_face,

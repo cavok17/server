@@ -56,6 +56,9 @@ exports.get_index = async (req, res) => {
     console.log('body', req.body);    
 
     let session_id = req.body.session_id
+    let selected_bookNindex_clear = await Selected_bookNindex.updateMany(
+        {session_id : session_id},
+        {indexes : []})
 
     // 책과 인덱스 리스트를 받아옵니다.
     let bookNindex_list = await get_bookNindex_list(session_id)
@@ -63,14 +66,15 @@ exports.get_index = async (req, res) => {
     
     // 학습 설정 관련 값도 뿌려주려고 합니다.
     // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
-    let selected_bookNindex = await Selected_bookNindex.find({session_id : session_id})
+    let selected_bookNindex = await Selected_bookNindex
+        .find({session_id : session_id}, {book_id :1, indexes:1})
     if (selected_bookNindex.length >= 2){        
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
     } else {
         study_config = await Book.findOne({_id : selected_bookNindex[0].book_id}, {study_config : 1, _id : 0})
     }
     
-    res.json({isloggedIn : true, session_id, bookNindex_list, study_config});    
+    res.json({isloggedIn : true, session_id, bookNindex_list, study_config, selected_bookNindex});    
 }
 
 // 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
@@ -87,14 +91,19 @@ exports.click_index = async (req, res) => {
 
     // 만약 true면 추가 index 정보를 push하고
     breakme : if (req.body.status ===true){
-        // 중복 체크부터 허시죠
+        // 동일 인덱스가 있는지부터 확인허시죠
+        // findindex해서 -1이 나와야 없다는 것이거든요
         let position_of_target_index = selected_bookNindex.indexes.findIndex((single_index) => {
             return single_index.index_id === req.body.index_id
         })
-        if (position_of_target_index > 0){
+        console.log('position_of_target_index', position_of_target_index)
+        if (position_of_target_index >= 0){
             console.log('중복이네요')
             break breakme
+        } else {
+            console.log('중복이 아니네요')
         }
+
 
         // 일단 카드가 몇 개인지 세어보죠
         let cards = await Card.find(
@@ -215,6 +224,8 @@ exports.start_study = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
     
+
+
     let session = await Session.findOne({_id : req.body.session_id})
     // console.log('session', session)
 
@@ -259,9 +270,18 @@ exports.start_study = async (req, res) => {
             .sort({seq_in_index : 1})
             .populate({path : 'index_id',select : 'seq'})
         cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)        
-        cardlist_total = cardlist_total.concat(cardlist_of_singlebook)        
+        cardlist_total = cardlist_total.concat(cardlist_of_singlebook)                
     }
-    // console.log(cardlist_total)
+
+    // 토탈 카드리스트에 시퀀스 정보를 생성합니다.
+    for (i=0; i<cardlist_total.length; i++) {        
+        cardlist_total[i].seq_in_total = i
+        // console.log('cardlist_totalllllll', cardlist_total[i])
+    }
+
+    // 이걸 세션에 저장하고
+    session.cardlist_total = cardlist_total
+    // console.log(session.cardlist_total)
 
     // 이걸 속성으로 분리하고    
     session.cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')
@@ -281,6 +301,12 @@ exports.start_study = async (req, res) => {
     cardlist_working_tmp
     .sort((a,b) => a.index_id.seq - b.index_id.seq)
     .sort((a,b) => a.seq_in_index - b.seq_in_index)
+
+    // 워킹 카드리스트에 시퀀스 정보를 생성합니다.
+    for (i=0; i<cardlist_working_tmp.length; i++) {
+        cardlist_working_tmp[i].seq_in_working = i
+    }
+    
     
     session.num_used_cards = {
         yet : req.body.num_cards.yet,
@@ -290,19 +316,44 @@ exports.start_study = async (req, res) => {
     }
     
     session.cardlist_working = cardlist_working_tmp
-    
-    // 이제 보낼 것만 보내면 되는 거임    
-    let card_ids_to_send = session.cardlist_working.slice(session.current_seq, session.current_seq+req.body.num_request_cards )    
-    let cards_to_send = await Card.find({_id : card_ids_to_send})
-        .populate({path : 'index_id',select : 'seq'})
-    cards_to_send
-        .sort((a,b) => a.index_id.seq - b.index_id.seq)
-        .sort((a,b) => a.seq_in_index - b.seq_in_index)
-
-    session.currnet_seq += req.body.num_request_cards
+    console.log('cardlist_working', session.cardlist_working)
     session = await session.save()
+}
 
-    console.log(cards_to_send)
+exports.get_studying_cards = async (req, res) => {
+    console.log("공부를 시작합시다.");
+    console.log(req.body);
+
+
+    req.body.current_seq = 0
+    req.body.num_request_cards = 2
+
+    // 여기서 current_seq와 num_request_cards를 받아야 해
+    let session = await Session.findOne({_id : req.body.session_id}, {seq_in_working : 1, cardlist_working : 1})
+        // .populate({path : 'cardlist_working._id'})
+    session.cardlist_working.splice(req.body.num_request_cards,1000000)
+    if (req.body.current_seq >0){
+        session.cardlist_working.splice(0,req.body.current_seq)
+    }
+    // session = session.populate({path : 'cardlist_working._id',select : 'content_of_first_face'})
+    let cards_to_send = await Session.populate(session, 
+        {path : 'cardlist_working._id', 
+        select : 'cardtype_id cardtype status content_of_importance content_of_first_face content_of_second_face content_of_third_face content_of_annot exp level'})
+    
+
+    // // 이제 보낼 것만 보내면 되는 거임
+    // // session.
+    // let card_ids_to_send = session.cardlist_working.slice(session.current_seq, session.current_seq+req.body.num_request_cards )    
+    // let cards_to_send = await Card.find({_id : card_ids_to_send})
+    //     .populate({path : 'index_id',select : 'seq'})
+    // cards_to_send
+    //     .sort((a,b) => a.index_id.seq - b.index_id.seq)
+    //     .sort((a,b) => a.seq_in_index - b.seq_in_index)
+
+    // session.currnet_seq += req.body.num_request_cards
+    // session = await session.save()
+
+    // console.log(cards_to_send)
 
     res.json({isloggedIn : true, cards_to_send});
 }

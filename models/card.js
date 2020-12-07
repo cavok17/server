@@ -7,6 +7,8 @@ const cardschema = new mongoose.Schema({
   book_id: {type:mongoose.ObjectId, ref:'Book'},
   index_id: {type:mongoose.ObjectId, ref:'Index'},
   seq_in_index: Number,
+  seq_in_total: Number,
+  seq_in_working: Number,
   source_of_content : {type : String, default : 'internal'},
   status : {type : String, default : 'yet'},
   // 반댓말은 external
