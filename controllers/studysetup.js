@@ -323,7 +323,7 @@ exports.start_study = async (req, res) => {
 }
 
 exports.get_studying_cards = async (req, res) => {
-    console.log("공부를 시작합시다.");
+    console.log("카드 받으셔요~");
     console.log(req.body);
 
     // req.body.current_seq =2
@@ -344,6 +344,21 @@ exports.get_studying_cards = async (req, res) => {
     res.json({isloggedIn : true, cards_to_send});
 }
 
+
+exports.set_study_configuration = async (req, res) => {
+    console.log("학습 설정을 바꾸셨군요.");
+    console.log(req.body);
+
+    let study_configuration = await study_configuration.findOne({book_id : req.body.book_id})
+
+    study_configuration.difficulty_setting = req.body.difficulty_setting
+    study_configuration.exp_setting = req.body.exp_setting
+    study_configuration.lev_setting = req.body.lev_setting
+
+    study_configuration = await study_configuration.save()
+
+    res.json({isloggedIn : true, msg : "수정 완료"})    
+}
 
 exports.temp = async (req, res) => {
 
