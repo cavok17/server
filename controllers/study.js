@@ -307,7 +307,6 @@ exports.start_study = async (req, res) => {
         cardlist_working_tmp[i].seq_in_working = i
     }
     
-    
     session.num_used_cards = {
         yet : req.body.num_cards.yet,
         re : req.body.num_cards.re,
@@ -324,36 +323,19 @@ exports.get_studying_cards = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
 
-
-    req.body.current_seq = 0
-    req.body.num_request_cards = 2
+    // req.body.current_seq =2
+    // req.body.num_request_cards = 3
 
     // 여기서 current_seq와 num_request_cards를 받아야 해
-    let session = await Session.findOne({_id : req.body.session_id}, {seq_in_working : 1, cardlist_working : 1})
-        // .populate({path : 'cardlist_working._id'})
-    session.cardlist_working.splice(req.body.num_request_cards,1000000)
+    let session = await Session.findOne({_id : req.body.session_id}, {seq_in_working : 1, cardlist_working : 1})        
+    session.cardlist_working.splice(req.body.current_seq+req.body.num_request_cards,1000000)
+    console.log('session', session.cardlist_working)
     if (req.body.current_seq >0){
         session.cardlist_working.splice(0,req.body.current_seq)
-    }
-    // session = session.populate({path : 'cardlist_working._id',select : 'content_of_first_face'})
+    }    
     let cards_to_send = await Session.populate(session, 
         {path : 'cardlist_working._id', 
         select : 'cardtype_id cardtype status content_of_importance content_of_first_face content_of_second_face content_of_third_face content_of_annot exp level'})
-    
-
-    // // 이제 보낼 것만 보내면 되는 거임
-    // // session.
-    // let card_ids_to_send = session.cardlist_working.slice(session.current_seq, session.current_seq+req.body.num_request_cards )    
-    // let cards_to_send = await Card.find({_id : card_ids_to_send})
-    //     .populate({path : 'index_id',select : 'seq'})
-    // cards_to_send
-    //     .sort((a,b) => a.index_id.seq - b.index_id.seq)
-    //     .sort((a,b) => a.seq_in_index - b.seq_in_index)
-
-    // session.currnet_seq += req.body.num_request_cards
-    // session = await session.save()
-
-    // console.log(cards_to_send)
 
     res.json({isloggedIn : true, cards_to_send});
 }
