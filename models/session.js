@@ -4,8 +4,9 @@ const mongoose = require("mongoose");
 const cardlist_working_schema = new mongoose.Schema({
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
+    status : {type : String, default : 'yet'}, //done
     need_study_time : Date,
-    study_hour : Date,
+    total_study_hour : Date,
     // status : String,
     // index_id : {type:mongoose.ObjectId, ref:'Index'},
     // seq_in_index : Number,
@@ -15,8 +16,8 @@ const cardlist_working_schema = new mongoose.Schema({
 
 const session_schema = new mongoose.Schema({
     user_id : String,
-    current_seq : {type : Number, default : 0},
-    time_create : {type : Date, default : Date.now},
+    // current_seq : {type : Number, default : 0},
+    time_created : {type : Date, default : Date.now},
     num_cards : {
         yet : {type : Number, default : 0},
         re : {type : Number, default : 0},

@@ -390,7 +390,7 @@ exports.get_study_configuration = async (req, res) => {
     console.log("학습 설정을 보내드립니다.");
     console.log(req.body);
 
-    let study_configuration = await study_configuration.findOne({book_id : req.body.book_id})
+    let study_configuration = await Study_configuration.findOne({book_id : req.body.book_id})
 
     res.json({isloggedIn : true, study_configuration})  
 }
