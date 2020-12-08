@@ -8,35 +8,45 @@ const study_configuration_schema = new mongoose.Schema({
       name : {type : String, default : '모르겠음'},
       nick : {type : String, default : '모르겠음'},
       on_off : {type : String, default : 'on'},
-      term : {type : String, default : 5},
+      interval : {type : Number, default : 5},
+      min_or_hour : {type : String, default : 'min'},
+      hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
     lev_2 : {
       name : {type : String, default : '잘모르겠음'},
       nick : {type : String, default : '잘모르겠음'},
       on_off : {type : String, default : 'on'},
-      term : {type : String, default : 5},
+      interval : {type : Number, default : 5},
+      min_or_hour : {type : String, default : 'min'},
+      hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
     lev_3 : {
       name : {type : String, default : '애매함'},
       nick : {type : String, default : '애매함'},
       on_off : {type : String, default : 'on'},
-      term : {type : String, default : 5},
+      interval : {type : Number, default : 5},
+      min_or_hour : {type : String, default : 'min'},
+      hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
     lev_4 : {
       name : {type : String, default : '거의알겠음'},
       nick : {type : String, default : '거의알겠음'},
       on_off : {type : String, default : 'on'},
-      term : {type : String, default : 5},
+      interval : {type : Number, default : 5},
+      min_or_hour : {type : String, default : 'min'},
+      hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
     lev_5 : {
       name : {type : String, default : '알겠음'},
       nick : {type : String, default : '알겠음'},
       on_off : {type : String, default : 'on'},
-      term : {type : String, default : 5},
+      interval : {type : Number, default : 5},
+      min_or_hour : {type : String, default : 'min'},
+      hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
   },
@@ -48,55 +58,61 @@ const study_configuration_schema = new mongoose.Schema({
     five_times : {type : Number, default : -500},
   },
   lev_setting : {
-    lev_0 : {
-      need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
-    },
     lev_1 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 0.5},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_2 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 1},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_3 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 1.5},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_4 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 2},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_5 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 2.5},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_6 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 3},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_7 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 3.5},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_8 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 4},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_9 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
+      interval : {type : Number, default : 4.5},
+      hour_or_day : {type : String, default : 'day'},
     },
     lev_10 : {
       need_exp : {type : Number, default : 1000},
-      study_term : {type : Number, default : 1},
-    },
+      interval : {type : Number, default : 5},
+      hour_or_day : {type : String, default : 'day'},
+    },    
   }
 });
 
 
-// users라는 모델을 생성하고 이걸 export하는 겅가? 뒤에 커렉션도 정의할 수 있는 듯
+
 module.exports = mongoose.model("Study_configuration", study_configuration_schema)
 
 

@@ -8,7 +8,7 @@ const cardschema = new mongoose.Schema({
   index_id: {type:mongoose.ObjectId, ref:'Index'},
   seq_in_index: Number,
   seq_in_total: Number,
-  seq_in_working: Number,
+  // seq_in_working: Number,
   source_of_content : {type : String, default : 'internal'},
   status : {type : String, default : 'yet'},
   // 반댓말은 external
@@ -20,10 +20,17 @@ const cardschema = new mongoose.Schema({
   external_card_id : {type:mongoose.ObjectId, ref:'Card_external', default : null},
   flag : {type : Number, default : null},
   time_created : {type : Date, default : null},
-  recent_study_time : {type : Date, default : null},
-  need_study_time: {type : Date, default : null},
-  exp : {type : Number, default : 0},
-  level : {type : Number, default : 0},
+  study_result : {
+    recent_study_time : {type : Date, default : null},
+    need_study_time: {type : Date, default : null},
+    recent_difficulty : {type : String, default : null},
+    total_study_times : {type : Number, default : 0},
+    current_lev_study_times : {type : Number, default : 0},
+    total_study_hour : {type : Date, default : 0},
+    recent_study_hour : {type : Date, default : 0},
+    exp : {type : Number, default : 0},
+    level : {type : Number, default : 0},
+  },
 });
 
 

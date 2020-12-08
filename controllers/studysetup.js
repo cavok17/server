@@ -302,12 +302,12 @@ exports.start_study = async (req, res) => {
         .sort((a,b) => a.index_id.seq - b.index_id.seq)
         .sort((a,b) => a.seq_in_index - b.seq_in_index)
 
-    // 워킹 카드리스트에 시퀀스 정보를 생성합니다.
-    for (i=0; i<cardlist_working_tmp.length; i++) {
+    // // 워킹 카드리스트에 시퀀스 정보를 생성합니다.
+    // for (i=0; i<cardlist_working_tmp.length; i++) {
         
-        cardlist_working_tmp[i].seq_in_working = i
-        // console.log('cardlist_working_tmp', cardlist_working_tmp[i])
-    }
+    //     cardlist_working_tmp[i].seq_in_working = i
+    //     // console.log('cardlist_working_tmp', cardlist_working_tmp[i])
+    // }
 
     
     session.num_used_cards = {
@@ -331,11 +331,20 @@ exports.get_studying_cards = async (req, res) => {
 
     // 여기서 current_seq와 num_request_cards를 받아야 해
     let session = await Session.findOne({_id : req.body.session_id}, {seq_in_working : 1, cardlist_working : 1})        
-    session.cardlist_working.splice(req.body.current_seq+req.body.num_request_cards,1000000)
     console.log('session', session.cardlist_working)
+    
+    // 필요 없는 영역은 잘라내고
+    session.cardlist_working.splice(req.body.current_seq+req.body.num_request_cards,1000000)
     if (req.body.current_seq >0){
         session.cardlist_working.splice(0,req.body.current_seq)
-    }    
+    }
+
+    // seq_in_working 만들어주고
+    for (i=0; i<session.cardlist_working.length; i++){
+        session.cardlist_working[i].seq_in_working = req.body.current_seq+i
+    }
+
+    // 컨텐츠 붙여주고
     let cards_to_send = await Session.populate(session, 
         {path : 'cardlist_working._id', 
         select : 'cardtype_id cardtype status content_of_importance content_of_first_face content_of_second_face content_of_third_face content_of_annot exp level'})
