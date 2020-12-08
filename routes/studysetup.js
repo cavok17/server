@@ -27,10 +27,13 @@ router.post('/start-study', isLoggedIn, Studysetup_controller.start_study);
 // 카드를 보내줍니다.
 router.post('/get-studying-cards',Studysetup_controller.get_studying_cards);
 
+// 카드를 보내줍니다.
+router.post('/get-study-configuration',Studysetup_controller.get_study_configuration);
+
 // 학습 설정을 수정합니다.
 router.post('/set-study-configuration',Studysetup_controller.set_study_configuration);
 
 // 카드를 보내줍니다.
-router.post('/get-study-configuration',Studysetup_controller.get_study_configuration);
+router.post('/get-all-study-configurations',Studysetup_controller.get_all_study_configurations);
 
 module.exports = router;

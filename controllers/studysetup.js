@@ -13,9 +13,10 @@ const Index = require('../models/index');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const Session = require('../models/session');
+const Study_configuration = require('../models/study_configuration');
 const Selected_bookNindex = require('../models/selected_bookNindex');
 const { session } = require("passport");
-// const { Session } = require("inspector");
+
 
 // 선택된 책 정보를 DB에 저장하면서 세션을 만듭니다.
 exports.save_booklist= async (req, res) => {
@@ -47,6 +48,31 @@ exports.save_booklist= async (req, res) => {
 
     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 }
+
+exports.save_booklist2= async (req, res) => {
+    console.log("선택된 책 정보를 DB에 저장합니다.");
+    console.log(req.body);
+
+    let booksNindexes = []
+    for (i=0; i<req.body.book_ids.length; i++){
+        let book = await Book.findOne({_id : req.body.book_ids[i]})        
+        let single_book = {            
+            book_id : req.body.book_ids[i],
+            title : book.title,            
+            index_ids : []
+        }
+        booksNindexes.push(single_book)
+    }
+    console.log('bookNindex_list', booksNindexes)
+
+    // 세션을 생성합니다.
+        
+    // 셀렉된 걸 저장합니다.
+    let selected_bookNindex = await Session.insertMany(booksNindexes_list)
+
+    res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
+}
+
 
 // 선택된 책의 인덱스를 보내줍니다..
 exports.get_index = async (req, res) => {
@@ -374,7 +400,7 @@ exports.set_study_configuration = async (req, res) => {
     console.log("학습 설정을 바꾸셨군요.");
     console.log(req.body);
 
-    let study_configuration = await study_configuration.findOne({book_id : req.body.book_id})
+    let study_configuration = await Study_configuration.findOne({book_id : req.body.book_id})
 
     study_configuration.difficulty_setting = req.body.difficulty_setting
     study_configuration.exp_setting = req.body.exp_setting
@@ -383,6 +409,24 @@ exports.set_study_configuration = async (req, res) => {
     study_configuration = await study_configuration.save()
 
     res.json({isloggedIn : true, msg : "수정 완료"})  
+}
+
+exports.get_all_study_configurations = async (req, res) => {
+    console.log("학습 설정을 다 보내드립죠.");
+    console.log(req.body);
+
+    let selected_bookNindex_list = await Selected_bookNindex
+        .find({session_id : req.body.session_id})
+        .sort({seq : 1})
+
+    let book_ids = []
+    for (i=0; i<selected_bookNindex_list.length; i++){
+        book_ids.push(selected_bookNindex_list[i].book_id)
+    }
+
+    let study_configurations = await Study_configuration.find({book_id : book_ids})
+
+    res.json({isloggedIn : true, study_configurations})  
 }
 
 exports.temp = async (req, res) => {
