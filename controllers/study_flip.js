@@ -14,8 +14,8 @@ const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const Session = require('../models/session');
 const Selected_bookNindex = require('../models/selected_bookNindex');
-const Studyingcard_total = require('../models/studyingcard_total');
-const Studyingcard_current = require('../models/studyingcard_current');
+// const Studyingcard_total = require('../models/studyingcard_total');
+// const Studyingcard_current = require('../models/studyingcard_current');
 const { session } = require("passport");
 const Study_configuration = require("../models/study_configuration");
 // const { Session } = require("inspector");
@@ -24,6 +24,7 @@ const Study_configuration = require("../models/study_configuration");
 exports.click_difficulty= async (req, res) => {
     console.log("선택된 책 정보를 DB에 저장합니다.");
     console.log(req.body);
+
 
     req.body.difficulty = 'lev_1'
     req.body.session_id = ''
@@ -45,13 +46,15 @@ exports.click_difficulty= async (req, res) => {
     // 최근 난이도도 수정해주고
     card.study_result.recent_difficulty = req.body.difficulty    
     // 경험치를 더해주고
+    
     if(req.body.difficulty === 'lev_5') {
+        let exp
         switch(card.study_result.current_lev_study_times){
-            case 0 : let exp = study_configuration.exp_setting.one_time; break;
-            case 1 : let exp = study_configuration.exp_setting.two_times; break;
-            case 2 : let exp = study_configuration.exp_setting.three_times; break;
-            case 3 : let exp = study_configuration.exp_setting.four_times; break;
-            default : let exp = study_configuration.exp_setting.five_times; break;
+            case 0 : exp = study_configuration.exp_setting.one_time; break;
+            case 1 : exp = study_configuration.exp_setting.two_times; break;
+            case 2 : exp = study_configuration.exp_setting.three_times; break;
+            case 3 : exp = study_configuration.exp_setting.four_times; break;
+            default : exp = study_configuration.exp_setting.five_times; break;
         }
         card.study_result.exp += exp
     }
@@ -102,26 +105,16 @@ exports.click_difficulty= async (req, res) => {
     // ------------------------------------------------------------------------------------
     // ------------------------------------------------------------------------------------
     // 세션 아이디로 세션을 찾는다.
-    let session = await Session.findOne({_id : req.body.session_id}, {cardlist_working : 1})
-
-    // need_study_time이 oo보다 큰 첫번째 녀석을 찾아야 하는데
-    let current_card = session.cardlist_working[req.body.current_seq]
+    let session = await Session.findOne({_id : req.body.session_id}, {cardlist_working : 1})  
     
-    current_card.need_study_time = card.study_result.need_study_time
-    dy_time
-    // seq_in_working을 관리하는 것은 무지 귀찮을 것 같으엄.
-    // 음 그르므로 날려줄 때 스윽 집어넣는 것은 어떨까함
-    target_position = session.cardlist_working.findIndex((single_card) => {
-        single_card.need_study_time > card.study_result.need_study_time
-    })
-
-    
-    
-
-
-
-
-
-
-
+    if(req.body.difficulty != 'lev_5') {
+        // 다시 들어갈 자리를 확인하고
+        let new_card = session.cardlist_working[req.body.current_seq]
+        target_position = session.cardlist_working.findIndex((single_card) => {
+            single_card.need_study_time > card.study_result.need_study_time
+        })
+        session.cardlist_working.splice(target_position, 0 , new_card)
+        // seq_in_working을 관리하는 것은 무지 귀찮을 것 같으엄.
+        // 음 그르므로 날려줄 때 스윽 집어넣는 것은 어떨까함
+    }
 }

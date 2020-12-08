@@ -2,9 +2,11 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const cardlist_working_schema = new mongoose.Schema({
-    // status : String,
-    need_study_time : Date,
+    book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
+    need_study_time : Date,
+    study_hour : Date,
+    // status : String,
     // index_id : {type:mongoose.ObjectId, ref:'Index'},
     // seq_in_index : Number,
     // seq_in_total : Number,
