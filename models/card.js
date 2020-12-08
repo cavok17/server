@@ -20,9 +20,9 @@ const cardschema = new mongoose.Schema({
   external_card_id : {type:mongoose.ObjectId, ref:'Card_external', default : null},
   flag : {type : Number, default : null},
   time_created : {type : Date, default : null},
+  need_study_time: {type : Date, default : null},
   study_result : {
     recent_study_time : {type : Date, default : null},
-    need_study_time: {type : Date, default : null},
     recent_difficulty : {type : String, default : null},
     total_study_times : {type : Number, default : 0},
     current_lev_study_times : {type : Number, default : 0},

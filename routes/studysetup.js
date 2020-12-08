@@ -30,4 +30,7 @@ router.post('/get-studying-cards',Studysetup_controller.get_studying_cards);
 // 학습 설정을 수정합니다.
 router.post('/set-study-configuration',Studysetup_controller.set_study_configuration);
 
+// 카드를 보내줍니다.
+router.post('/get-study-configuration',Studysetup_controller.get_study_configuration);
+
 module.exports = router;

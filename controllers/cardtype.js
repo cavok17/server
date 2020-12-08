@@ -5,7 +5,6 @@ const User = require('../models/user');
 const Book = require('../models/book'); 
 const Card = require('../models/card');
 const Index = require('../models/index');
-const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const book = require('../models/book');

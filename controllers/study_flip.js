@@ -45,7 +45,7 @@ exports.click_difficulty= async (req, res) => {
     // 최근 난이도도 수정해주고
     card.study_result.recent_difficulty = req.body.difficulty    
     // 경험치를 더해주고
-    if(req.body.difficulty === 5) {
+    if(req.body.difficulty === 'lev_5') {
         switch(card.study_result.current_lev_study_times){
             case 0 : let exp = study_configuration.exp_setting.one_time; break;
             case 1 : let exp = study_configuration.exp_setting.two_times; break;
@@ -59,18 +59,36 @@ exports.click_difficulty= async (req, res) => {
     card.study_result.level = Math.floor(card.study_result.exp/1000) + 1
     // 복습 필요 시점도 다시 잡아주고
     // 알겠음을 선택했을 때랑, 아닐 때랑 복습 주기를 다르게 적용해줌
-    if (req.body.difficulty === 5){
-        let restudy_term = study_configuration.lev_setting['lev_'+card.study_result.level]['restudy_term']
+    if (req.body.difficulty === 'lev_5'){
+        let interval = study_configuration.lev_setting['lev_'+card.study_result.level]['interval']
+        let time_unit = study_configuration.lev_setting['lev_'+card.study_result.level]['time_unit']
+        if (time_unit === 'min'){
+            let restudy_term = interval*60*1000
+        } else if (time_unit === 'hour') {
+            let restudy_term = interval*60*60*1000
+        } else if (time_unit === 'day') {
+            let restudy_term = interval*24*60*60*1000
+        }
+        card.need_study_time = Date.now() + restudy_term    
     } else {
-        let restudy_term = study_configuration.difficulty_setting[req.body.difficulty]['term']
+        let interval = study_configuration.difficulty_setting[req.body.difficulty]['interval']
+        let time_unit = study_configuration.difficulty_setting[req.body.difficulty]['time_unit']
+        if (time_unit === 'min'){
+            let restudy_term = interval*60*1000
+        } else if (time_unit === 'hour') {
+            let restudy_term = interval*60*60*1000
+        } else if (time_unit === 'day') {
+            let restudy_term = interval*24*60*60*1000
+        }
+        card.need_study_time = Date.now() + restudy_term
     }
-    card.study_result.need_study_time = Date.now() + restudy_term
+    
 
     // 총 학습 횟수도 수정해주고
     card.study_result.total_study_times +=1
     // 선택 난이도가 알겠음이면 현레벨 학습횟수를 0으로 바꿔주고
     // 아니면 1 더해주고
-    if(req.body.difficulty === 5) {
+    if(req.body.difficulty === 'lev_5') {
         card.study_result.current_lev_study_times = 0
     } else {
         card.study_result.current_lev_study_times += 1
@@ -80,19 +98,16 @@ exports.click_difficulty= async (req, res) => {
     card.study_result.total_study_hour += req.body.study_hour
     // 최근 학습 시간도 바꿔주고
     card.study_result.recent_study_hour = req.body.study_hour
-
-
-
     
-
+    // ------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------
     // 세션 아이디로 세션을 찾는다.
     let session = await Session.findOne({_id : req.body.session_id}, {cardlist_working : 1})
 
     // need_study_time이 oo보다 큰 첫번째 녀석을 찾아야 하는데
     let current_card = session.cardlist_working[req.body.current_seq]
-
-    current_card.status = card.status    
-    current_card.need_study_time = card.study_result.need_stu 
+    
+    current_card.need_study_time = card.study_result.need_study_time
     dy_time
     // seq_in_working을 관리하는 것은 무지 귀찮을 것 같으엄.
     // 음 그르므로 날려줄 때 스윽 집어넣는 것은 어떨까함

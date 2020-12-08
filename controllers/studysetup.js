@@ -14,8 +14,6 @@ const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const Session = require('../models/session');
 const Selected_bookNindex = require('../models/selected_bookNindex');
-const Studyingcard_total = require('../models/studyingcard_total');
-const Studyingcard_current = require('../models/studyingcard_current');
 const { session } = require("passport");
 // const { Session } = require("inspector");
 
@@ -283,7 +281,7 @@ exports.start_study = async (req, res) => {
     session.cardlist_total = cardlist_total
     // console.log(session.cardlist_total)
 
-    // 이걸 속성으로 분리하고    
+    // 이걸 속성으로 분리하고
     session.cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')
     // let tmptmp = cardlist_total.filter((card) => card.status === 'yet')
     // console.log('tmptmp', tmptmp)
@@ -301,14 +299,21 @@ exports.start_study = async (req, res) => {
     cardlist_working_tmp
         .sort((a,b) => a.index_id.seq - b.index_id.seq)
         .sort((a,b) => a.seq_in_index - b.seq_in_index)
+    
+    // 불필요한 거 지워주자
+    delete cardlist_working_tmp.status
+    delete cardlist_working_tmp.index_id
+    delete cardlist_working_tmp.seq_in_index
+    delete cardlist_working_tmp.seq_in_total
 
-    // // 워킹 카드리스트에 시퀀스 정보를 생성합니다.
-    // for (i=0; i<cardlist_working_tmp.length; i++) {
-        
-    //     cardlist_working_tmp[i].seq_in_working = i
-    //     // console.log('cardlist_working_tmp', cardlist_working_tmp[i])
-    // }
-
+    // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
+    // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
+    let now = Date.now()        
+    for (i=0; i<cardlist_working_tmp.length; i++){        
+        if (cardlist_working_tmp[i].need_study_time === null || cardlist_working_tmp[i].need_study_time > now){
+            cardlist_working_tmp[i].need_study_time = now
+        }
+    }
     
     session.num_used_cards = {
         yet : req.body.num_cards.yet,
@@ -339,7 +344,9 @@ exports.get_studying_cards = async (req, res) => {
         session.cardlist_working.splice(0,req.body.current_seq)
     }
 
-    // seq_in_working 만들어주고
+    // seq_in_working 만들어주고,
+    // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
+    // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
     for (i=0; i<session.cardlist_working.length; i++){
         session.cardlist_working[i].seq_in_working = req.body.current_seq+i
     }
@@ -349,8 +356,17 @@ exports.get_studying_cards = async (req, res) => {
         {path : 'cardlist_working._id', 
         select : 'cardtype_id cardtype status content_of_importance content_of_first_face content_of_second_face content_of_third_face content_of_annot exp level'})
 
-    console.log('cards_to_send', cards_to_send)
+    // console.log('cards_to_send', cards_to_send)
     res.json({isloggedIn : true, cards_to_send});
+}
+
+exports.get_study_configuration = async (req, res) => {
+    console.log("학습 설정을 보내드립니다.");
+    console.log(req.body);
+
+    let study_configuration = await study_configuration.findOne({book_id : req.body.book_id})
+
+    res.json({isloggedIn : true, study_configuration})  
 }
 
 
@@ -366,7 +382,7 @@ exports.set_study_configuration = async (req, res) => {
 
     study_configuration = await study_configuration.save()
 
-    res.json({isloggedIn : true, msg : "수정 완료"})    
+    res.json({isloggedIn : true, msg : "수정 완료"})  
 }
 
 exports.temp = async (req, res) => {

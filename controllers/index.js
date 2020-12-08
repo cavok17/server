@@ -5,10 +5,9 @@ const User = require('../models/user');
 const Book = require('../models/book'); 
 const Card = require('../models/card');
 const Index = require('../models/index');
-const Card_spec = require('../models/card_spec');
 const Category = require('../models/category');
 const book = require('../models/book');
-const { updateMany } = require("../models/user");
+
 
 // 인덱스 정보를 가져옵니다.
 const get_indexList = async (req, res) => {  
