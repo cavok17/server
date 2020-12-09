@@ -51,6 +51,7 @@ exports.click_difficulty= async (req, res) => {
             default : exp_acquisition = study_configuration.exp_setting.five_times; break;
         }
         card.study_result.exp += exp_acquisition
+
         // 단 경험치가 마이너스면 0으로 잡아준다.
         if (card.study_result.exp < 0){
             card.study_result.exp = 0
@@ -58,6 +59,7 @@ exports.click_difficulty= async (req, res) => {
     }
     // 레벨도 다시 설정해주고
     card.study_result.level = Math.floor(card.study_result.exp/1000) + 1
+
     // 복습 필요 시점도 다시 잡아주고
     // 알겠음을 선택했을 때랑, 아닐 때랑 복습 주기를 다르게 적용해줌
     if (req.body.difficulty === 'lev_5'){
@@ -117,11 +119,16 @@ exports.click_difficulty= async (req, res) => {
 
     // 레벨5가 아니면 뒷쪽에 신규로 카드를 만들어줘야 함
     if(req.body.difficulty != 'lev_5') {                
+        // 복사는 아니고 참조가 되는건가? 이건 모르겠다야
         let new_card = session.cardlist_working[current_seq]
-
         
         new_card.need_study_time = card.need_study_time
+        console.log('복사가 어떻게 되었으려나~~~~~~~~~~~~~~~~~')
+        console.log(new_card.need_study_time)
+        console.log(session.cardlist_working[current_seq].need_study_time)
 
+        // 새 카드가 들어갈 위치를 잡는데요.
+        // 뉴카드의 복습 필요 시점보다 더 뒤에 복습하는 카드가 없는 경우, 마지막에 넣어줘야죠
         target_position = session.cardlist_working.findIndex((single_card) => {
             single_card.need_study_time > card.study_result.need_study_time
         })
