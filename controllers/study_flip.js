@@ -26,13 +26,6 @@ exports.click_difficulty= async (req, res) => {
     console.log(req.body);
 
 
-    // req.body.session_id = ''
-    // req.body.difficulty = 'lev_1'
-    // req.body.book_id = ''
-    // req.body.card_id = ''
-    // req.body.study_hour = ''
-
-
     // 일단 북 아이디로 학습 설정을 찾고, 
     let study_configuration = await Study_configuration.findOne({book_id : req.body.book_id})
     console.log(study_configuration)
@@ -48,16 +41,16 @@ exports.click_difficulty= async (req, res) => {
     card.study_result.recent_difficulty = req.body.difficulty    
     // 경험치를 더해주고
     
+    let exp_acquisition
     if(req.body.difficulty === 'lev_5') {
-        let exp
         switch(card.study_result.current_lev_study_times){
-            case 0 : exp = study_configuration.exp_setting.one_time; break;
-            case 1 : exp = study_configuration.exp_setting.two_times; break;
-            case 2 : exp = study_configuration.exp_setting.three_times; break;
-            case 3 : exp = study_configuration.exp_setting.four_times; break;
-            default : exp = study_configuration.exp_setting.five_times; break;
+            case 0 : exp_acquisition = study_configuration.exp_setting.one_time; break;
+            case 1 : exp_acquisition = study_configuration.exp_setting.two_times; break;
+            case 2 : exp_acquisition = study_configuration.exp_setting.three_times; break;
+            case 3 : exp_acquisition = study_configuration.exp_setting.four_times; break;
+            default : exp_acquisition = study_configuration.exp_setting.five_times; break;
         }
-        card.study_result.exp += exp
+        card.study_result.exp += exp_acquisition
         // 단 경험치가 마이너스면 0으로 잡아준다.
         if (card.study_result.exp < 0){
             card.study_result.exp = 0
@@ -109,25 +102,24 @@ exports.click_difficulty= async (req, res) => {
     card = await card.save()
     
     // ------------------------------------------------------------------------------------
-    //                  
+    //       세션의 cardlist_working 정보를 수정해주자           
     // ------------------------------------------------------------------------------------
     // 세션 아이디로 세션을 찾는다.
-    let session = await Session.findOne({_id : req.body.session_id}, {cardlist_working : 1})  
+    let session = await Session.findOne({_id : req.body.session_id}, {cardlist_working : 1})      
+    let current_seq = req.body.current_seq    
     
-
-    let current_seq = session.cardlist_working.findIndex((sangil) => {
-        return sangil._id == req.body.card_id
-    })
     // 기존 카드에 했다는 표시만 좀 할까?
     session.cardlist_working[current_seq].status = 'done'
+    session.cardlist_working[current_seq].difficulty = req.body.difficulty    
+    session.cardlist_working[current_seq].study_hour = req.body.study_hour    
+    session.cardlist_working[current_seq].exp = exp_acquisition
 
 
     // 레벨5가 아니면 뒷쪽에 신규로 카드를 만들어줘야 함
-    if(req.body.difficulty != 'lev_5') {        
-        let new_card = session.cardlist_working[current_seq]        
-        // 나중에 아래 한 줄로 바꾸자고
-        // let new_card = session.cardlist_working[req.body.current_seq]
+    if(req.body.difficulty != 'lev_5') {                
+        let new_card = session.cardlist_working[current_seq]
 
+        
         new_card.need_study_time = card.need_study_time
 
         target_position = session.cardlist_working.findIndex((single_card) => {
@@ -143,4 +135,38 @@ exports.click_difficulty= async (req, res) => {
     }
 
     res.json({isloggedIn : true, session});
+}
+
+// 난이도 평가를 반영합니다.
+exports.get_study_result= async (req, res) => {
+    console.log("선택된 책 정보를 DB에 저장합니다.");
+    console.log(req.body);
+
+    let session = await Session.findOne(
+        {_id : req.body.session_id},
+        {cardlist_working : 1, study_result : 1})
+
+    if (session.study_result.run === 'yet'){
+        study_hour_total = session.cardlist_working.reduce((prev,curr) => prev + curr.study_hour,0)
+        study_hour_history = session.cardlist_working.map((card) => card.study_hour)
+        exp_total = session.cardlist_working.reduce((prev,curr) => prev + curr.exp,0)
+        // num_study_cards = {
+        //     yet : session.cardlist_total.reduce((prev,curr) => prev + (curr.status==='yet'),0),
+        //     re : session.cardlist_working.reduce((prev,curr) => prev + (curr.status==='re'),0),
+        //     hold : session.cardlist_working.reduce((prev,curr) => prev + (curr.status==='hold'),0),
+        //     completed : session.cardlist_working.reduce((prev,curr) => prev + (curr.status==='completed'),0),
+        // }
+        num_click = {
+            lev_1 : session.cardlist_working.reduce((prev,curr) => prev + (curr.difficulty==='lev_1'),0),
+            lev_2 : session.cardlist_working.reduce((prev,curr) => prev + (curr.difficulty==='lev_2'),0),
+            lev_3 : session.cardlist_working.reduce((prev,curr) => prev + (curr.difficulty==='lev_3'),0),
+            lev_4 : session.cardlist_working.reduce((prev,curr) => prev + (curr.difficulty==='lev_4'),0),
+            lev_5 : session.cardlist_working.reduce((prev,curr) => prev + (curr.difficulty==='lev_5'),0),
+        }
+
+        session.study_result.run = 'done'
+    }
+
+    res.json({isloggedIn : true, study_result});
+
 }

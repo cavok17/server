@@ -4,14 +4,36 @@ const mongoose = require("mongoose");
 const cardlist_working_schema = new mongoose.Schema({
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
+    need_study_time : {type : Date, default : null},
     status : {type : String, default : 'yet'}, //done
-    need_study_time : Date,
-    total_study_hour : Date,
+    difficulty : {type : String, default : null}, 
+    study_hour : {type : Date, default : null},
+    exp :  {type : Number, default : null},
     // status : String,
     // index_id : {type:mongoose.ObjectId, ref:'Index'},
     // seq_in_index : Number,
     // seq_in_total : Number,
     // seq_in_working : Number,
+})
+
+const study_result_schema = new mongoose.Schema({
+    run : {type : String, default : 'yet'}, // done
+    study_hour_total : {type : Date, default : null}, 
+    study_hour_history : {type : Array, default : []},
+    exp_total : {type : Number, default : 0},
+    num_study_cards : {
+        yet : {type : Number, default : 0},
+        re : {type : Number, default : 0},
+        hold : {type : Number, default : 0},
+        completed : {type : Number, default : 0},
+    },
+    num_click : {
+        lev_1 : {type : Number, default : 0},
+        lev_2 : {type : Number, default : 0},
+        lev_3 : {type : Number, default : 0},
+        lev_4 : {type : Number, default : 0},
+        lev_5 : {type : Number, default : 0},
+    }
 })
 
 const session_schema = new mongoose.Schema({
@@ -57,7 +79,8 @@ const session_schema = new mongoose.Schema({
         re : Array,
         hold : Array,
         complited : Array
-    }
+    },
+    study_result : [study_result_schema],
 });
 
 module.exports = mongoose.model("Session", session_schema)

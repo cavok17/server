@@ -290,7 +290,7 @@ exports.start_study = async (req, res) => {
         // console.log(i, 'index_ids', index_ids)
         cardlist_of_singlebook = await Card
             .find({index_id : index_ids},
-                {cardtype : 1, index_id :1, status :1, seq_in_index :1, need_study_time :1})        
+                {cardtype : 1, book_id :1, index_id :1, status :1, seq_in_index :1, need_study_time :1})        
             .sort({seq_in_index : 1})
             .populate({path : 'index_id',select : 'seq'})
         cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)        
