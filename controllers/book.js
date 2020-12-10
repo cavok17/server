@@ -247,7 +247,8 @@ const create_book =  async (req, res) => {
 const delete_book =  async (req, res) => {
     console.log('책 삭제하러 왔냐');
     console.log(req.body);
-
+    
+    let book = await Book.findOne({_id : req.body.book_id})
     // 카드를 삭제 하고
     
     // 책을 삭제 하고    
@@ -271,7 +272,7 @@ const delete_book =  async (req, res) => {
     );
         
     // 즐겨찾기 시퀀스도 수정해주고
-    if (book.like != null){
+    if (book.like === true){
         let like_changed_books = Book.updateMany(
             {user_id : req.session.passport.user,
             seq_in_like : {$gte : book.seq_in_like}},
