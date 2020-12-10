@@ -9,11 +9,6 @@ const cardlist_working_schema = new mongoose.Schema({
     difficulty : {type : String, default : null}, 
     study_hour : {type : Date, default : null},
     exp :  {type : Number, default : null},
-    // status : String,
-    // index_id : {type:mongoose.ObjectId, ref:'Index'},
-    // seq_in_index : Number,
-    // seq_in_total : Number,
-    // seq_in_working : Number,
 })
 
 const study_result_schema = new mongoose.Schema({
@@ -40,6 +35,13 @@ const session_schema = new mongoose.Schema({
     user_id : String,
     // current_seq : {type : Number, default : 0},
     time_created : {type : Date, default : Date.now},
+    // booksnindexes : [booksnindexes_schema],
+    booksnindexes : [{    
+        book_id: {type:mongoose.ObjectId, ref:'Book'},
+        title : String,
+        seq : Number,   
+        indexes : Array,
+    }],
     num_cards : {
         yet : {type : Number, default : 0},
         re : {type : Number, default : 0},

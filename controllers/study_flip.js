@@ -25,7 +25,6 @@ exports.click_difficulty= async (req, res) => {
     console.log("선택된 책 정보를 DB에 저장합니다.");
     console.log(req.body);
 
-
     // 일단 북 아이디로 학습 설정을 찾고, 
     let study_configuration = await Study_configuration.findOne({book_id : req.body.book_id})
     console.log(study_configuration)
@@ -120,12 +119,15 @@ exports.click_difficulty= async (req, res) => {
     // 레벨5가 아니면 뒷쪽에 신규로 카드를 만들어줘야 함
     if(req.body.difficulty != 'lev_5') {                
         // 복사는 아니고 참조가 되는건가? 이건 모르겠다야
-        let new_card = session.cardlist_working[current_seq]
-        
-        new_card.need_study_time = card.need_study_time
-        console.log('복사가 어떻게 되었으려나~~~~~~~~~~~~~~~~~')
-        console.log(new_card.need_study_time)
-        console.log(session.cardlist_working[current_seq].need_study_time)
+        let new_card = {
+            book_id : session.cardlist_working[current_seq].book_id,
+            _id : session.cardlist_working[current_seq]._id,
+            need_study_time : card.need_study_time,
+            status : 'yet',
+            difficulty : null,
+            study_hour : null,
+            exp : 0,
+        }       
 
         // 새 카드가 들어갈 위치를 잡는데요.
         // 뉴카드의 복습 필요 시점보다 더 뒤에 복습하는 카드가 없는 경우, 마지막에 넣어줘야죠

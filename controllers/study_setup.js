@@ -23,82 +23,44 @@ exports.save_booklist= async (req, res) => {
     console.log("선택된 책 정보를 DB에 저장합니다.");
     console.log(req.body);
 
-    // 일단 세션을 생성합니다.
-    let session = await Session.create({user_id : req.session.passport.user})    
-
-    // 셀렉된 걸 구조화합니다.
-    let bookNindex_list = []
+    let booksnindexes = []
     for (i=0; i<req.body.book_ids.length; i++){
         let book = await Book.findOne({_id : req.body.book_ids[i]})
-        // console.log('book',book)
-        let single_book = {
-            session_id : session._id,
-            book_id : req.body.book_ids[i],
-            title : book.title,
-            seq : i,
-            index_ids : []
-        }
-        bookNindex_list.push(single_book)
-    }
-    // console.log(bookNindex_list)
-
-    console.log('bookNindex_list', bookNindex_list)
-    // 셀렉된 걸 저장합니다.
-    let selected_bookNindex = await Selected_bookNindex.insertMany(bookNindex_list)
-
-    res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
-}
-
-exports.save_booklist2= async (req, res) => {
-    console.log("선택된 책 정보를 DB에 저장합니다.");
-    console.log(req.body);
-
-    let booksNindexes = []
-    for (i=0; i<req.body.book_ids.length; i++){
-        let book = await Book.findOne({_id : req.body.book_ids[i]})        
         let single_book = {            
-            book_id : req.body.book_ids[i],
+            book_id : book._id,
             title : book.title,            
             index_ids : []
-        }
-        booksNindexes.push(single_book)
-    }
-    console.log('bookNindex_list', booksNindexes)
-
-    // 세션을 생성합니다.
+        }            
+        booksnindexes.push(single_book)
+    }    
+    console.log('booksnindexes', booksnindexes)
         
     // 셀렉된 걸 저장합니다.
-    let selected_bookNindex = await Session.insertMany(booksNindexes_list)
+    let session = await Session.create({booksnindexes})    
 
     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 }
-
 
 // 선택된 책의 인덱스를 보내줍니다..
 exports.get_index = async (req, res) => {
     console.log("선택된 책의 인덱스를 보내줍니다.");
     console.log('body', req.body);    
-
-    let session_id = req.body.session_id
-    let selected_bookNindex_clear = await Selected_bookNindex.updateMany(
-        {session_id : session_id},
-        {indexes : []})
-
+    
     // 책과 인덱스 리스트를 받아옵니다.
-    let bookNindex_list = await get_bookNindex_list(session_id)
-    // console.log(bookNindex_list)
+    let session_id = req.body.session_id
+    let session = await Session.findOne({_id : session_id},{booksnindexes : 1})    
+    let booksnindexes = await get_booksnindexes(session)    
     
     // 학습 설정 관련 값도 뿌려주려고 합니다.
-    // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.
-    let selected_bookNindex = await Selected_bookNindex
-        .find({session_id : session_id}, {book_id :1, indexes:1})
-    if (selected_bookNindex.length >= 2){        
+    // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.    
+    let study_config
+    if (session.booksnindexes.length >= 2){        
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
-    } else {
-        study_config = await Book.findOne({_id : selected_bookNindex[0].book_id}, {study_config : 1, _id : 0})
+    } else if (session.booksnindexes.length === 1) {
+        study_config = await Book.findOne({_id : session.booksnindexes[0].book_id}, {study_config : 1, _id : 0})
     }
     
-    res.json({isloggedIn : true, session_id, bookNindex_list, study_config, selected_bookNindex});    
+    res.json({isloggedIn : true, session_id, booksnindexes, study_config});    
 }
 
 // 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
@@ -107,27 +69,23 @@ exports.click_index = async (req, res) => {
     console.log(req.body);
 
     let session_id = req.body.session_id
-    let num_total_cards = {}
+    let session = await Session.findOne({_id:session_id},{booksnindexes:1})
+    console.log(session)
+    // 불안헝께 book seq도 그냥 찾어불자.
+    // let seq_of_book = session.booksnindexes.findIndex((booknindex) => booknindex.book_id === req.body.book_id)
+    let seq_of_book = session.booksnindexes.findIndex((booknindex) => booknindex.book_id == req.body.book_id)
+    console.log(seq_of_book)
 
-    // 일단 selected를 불러옵시다.
-    let selected_bookNindex = await Selected_bookNindex.findOne(
-        {session_id : session_id, book_id : req.body.book_id})
-
-    // 만약 true면 추가 index 정보를 push하고
-    breakme : if (req.body.status ===true){
-        // 동일 인덱스가 있는지부터 확인허시죠
-        // findindex해서 -1이 나와야 없다는 것이거든요
-        let position_of_target_index = selected_bookNindex.indexes.findIndex((single_index) => {
-            return single_index.index_id === req.body.index_id
-        })
-        console.log('position_of_target_index', position_of_target_index)
-        if (position_of_target_index >= 0){
+    breakme : if (req.body.status ===true) {
+        // 인덱스 정보가 동일하게 들어가는 것인지 확인을 해야해요.
+        let position_of_the_index = session.booksnindexes[seq_of_book].indexes.findIndex((single_index) => {
+            return single_index.index_id === req.body.index_id })
+        if (position_of_the_index >= 0){
             console.log('중복이네요')
             break breakme
         } else {
             console.log('중복이 아니네요')
         }
-
 
         // 일단 카드가 몇 개인지 세어보죠
         let cards = await Card.find(
@@ -149,31 +107,54 @@ exports.click_index = async (req, res) => {
         let re_until_today = cards
             .filter((card) => card.status === 're')
             .filter((card) => card.need_study_time < tomorrow.getTime()).length
-        
+
         // 데이터 구조화해서 추가해야제
         let new_index_info = {
             index_id : req.body.index_id,
             yet, re, hold, completed, total, re_until_now, re_until_today}
         
-        selected_bookNindex.indexes.push(new_index_info)
-        selected_bookNindex = await selected_bookNindex.save()
-                
+        session.booksnindexes[seq_of_book].indexes.push(new_index_info)
+        session = await session.save()            
     } else if (req.body.status === false) {
         // 일단 index_id가 어디있는지 찾아보자고
-        let position_of_target_index = selected_bookNindex.indexes.findIndex((single_index) => {
-            return single_index.index_id === req.body.index_id
-        })
-        console.log('position_of_target_index', position_of_target_index)
-        if(position_of_target_index === -1){
+        let position_of_the_index = session.booksnindexes[seq_of_book].indexes.findIndex((single_index) => {
+            return single_index.index_id === req.body.index_id })
+        if (position_of_the_index === -1){
             console.log('그런 애 없다는디')
-        }
+            break breakme
+        } else {
+            console.log('좋아요 지워드릴게요')
+        }        
         
         // 찾았으니까 지워야지
-        selected_bookNindex.indexes.splice(position_of_target_index, 1)
-        selected_bookNindex = await selected_bookNindex.save()
+        session.booksnindexes[seq_of_book].indexes.splice(position_of_the_index, 1)
+        session = await session.save()
+    }
+    
+    // 이제 카드 갯수를 세어보자고
+    let num_total_cards = {
+        yet : 0, 
+        re :0, 
+        hold : 0, 
+        completed :0, 
+        total :0, 
+        re_until_now : 0, 
+        re_until_today : 0,
     }
 
-    num_total_cards = await get_num_cards (session_id)
+    for (i=0; i<session.booksnindexes.length; i++){
+        for(j=0; j<session.booksnindexes[i].indexes.length; j++){
+            num_total_cards.yet += session.booksnindexes[i].indexes[j].yet
+            num_total_cards.re += session.booksnindexes[i].indexes[j].re
+            num_total_cards.hold += session.booksnindexes[i].indexes[j].hold
+            num_total_cards.completed += session.booksnindexes[i].indexes[j].completed
+            num_total_cards.total += session.booksnindexes[i].indexes[j].total
+            num_total_cards.re_until_now += session.booksnindexes[i].indexes[j].re_until_now
+            num_total_cards.re_until_today += session.booksnindexes[i].indexes[j].re_until_today            
+        }    
+    }
+
+    // 일단 num total cards는 저장 안 하고 넘어가도록 함
 
     res.json({isloggedIn : true, session_id, num_total_cards});    
 }
@@ -185,27 +166,24 @@ exports.click_up = async (req, res) => {
     console.log(req.body);
 
     // 기본 정보를 만들고
-    let selected_book = await Selected_bookNindex.findOne(
-        {session_id : req.body.session_id,
-        book_id : req.body.book_id})
-    let current_seq = selected_book.seq
+    let session = await Session.findOne({_id : req.body.session_id},{booksnindexes : 1})
+    // 대상 책의 시퀀스를 찾아보자.
+    let seq_of_the_book = session.booksnindexes.findIndex((booknindex) => booknindex.book_id == req.body.book_id)
 
     // 순서를 조정하자
-    if(current_seq-1 <0) {
+    if(seq_of_the_book === 0) {
+        console.log('오를 데가 없어요')
         return
-    } else {
-        let upper_book_modi = await Selected_bookNindex.updateOne(
-            {session_id : req.body.session_id,
-            seq : current_seq-1},
-            {$inc : {seq : 1}})
-        selected_book.seq -= 1
-        selected_book = await selected_book.save()        
+    } else {        
+        [session.booksnindexes[seq_of_the_book-1], session.booksnindexes[seq_of_the_book]] = [session.booksnindexes[seq_of_the_book], session.booksnindexes[seq_of_the_book-1]]        
+        session = await session.save()
     }    
     
+    
     // 책과 인덱스 리스트를 받아옵니다.
-    let bookNindex_list = await get_bookNindex_list(req.body.session_id)
+    let booksnindexes = await get_booksnindexes(session)
 
-    res.json({isloggedIn : true, bookNindex_list,});    
+    res.json({isloggedIn : true, booksnindexes,});    
 }
 
 // 책의 순서를 내립니다.
@@ -214,33 +192,22 @@ exports.click_down = async (req, res) => {
     console.log(req.body);
 
     // 기본 정보를 만들고
-    let selected_book = await Selected_bookNindex.findOne(
-        {session_id : req.body.session_id,
-        book_id : req.body.book_id})
-    let current_seq = selected_book.seq
-    let max_seq_book = await Selected_bookNindex
-        .find({session_id : req.body.session_id})
-        .sort({seq : -1})
-        .limit(1)
-    let max_seq = max_seq_book[0].seq
-
+    let session = await Session.findOne({_id : req.body.session_id},{booksnindexes : 1})    
+    // 대상 책의 시퀀스를 찾아보자.
+    let seq_of_the_book = session.booksnindexes.findIndex((booknindex) => booknindex.book_id == req.body.book_id)    
 
     // 순서를 조정하자
-    if(current_seq === max_seq) {
-        return
-    } else {
-        let upper_book_modi = await Selected_bookNindex.updateOne(
-            {session_id : req.body.session_id,
-            seq : current_seq+1},
-            {$inc : {seq : -1}})
-        selected_book.seq += 1
-        selected_book = await selected_book.save()        
+    if(seq_of_the_book === (session.booksnindexes.length-1)) {
+        console.log('내릴 데가 없어요')        
+    } else {        
+        [session.booksnindexes[seq_of_the_book], session.booksnindexes[seq_of_the_book+1]] = [session.booksnindexes[seq_of_the_book+1], session.booksnindexes[seq_of_the_book]]        
+        session = await session.save()        
     }    
     
     // 책과 인덱스 리스트를 받아옵니다.
-    let bookNindex_list = await get_bookNindex_list(req.body.session_id)
+    let booksnindexes = await get_booksnindexes(session)
 
-    res.json({isloggedIn : true, bookNindex_list,});  
+    res.json({isloggedIn : true, booksnindexes,});  
 }
 
 // 해당 목차의 카드를 전달합니다.
@@ -248,17 +215,15 @@ exports.start_study = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
     
-
-
     let session = await Session.findOne({_id : req.body.session_id})
     // console.log('session', session)
-
-    let bookNindex_list = await Selected_bookNindex
-        .find({session_id : req.body.session_id})
-        .sort({seq : 1})
+    
+    // let bookNindex_list = await Selected_bookNindex
+    //     .find({session_id : req.body.session_id})
+    //     .sort({seq : 1})
 
     // 스터디 콘피그 수정해주고
-    let update_object = {
+    let study_config_update_object = {
         'study_config.study_mode' : req.body.study_mode,
         // read, flip, exam
         'study_config.card_order' : req.body.card_order,
@@ -274,20 +239,20 @@ exports.start_study = async (req, res) => {
         'study_config.num_cards.hold' : req.body.num_cards.hold,
         'study_config.num_cards.completed' : req.body.num_cards.completed,
     }
-    if(bookNindex_list ===1){
+    if(session.booksnindexes.length ===1){
         let book_config_modi_result = await Book.updateOne(
-            {_id : bookNindex_list[0].book_id}, update_object)
-    } else {
+            {_id : session.booksnindexes[0].book_id}, study_config_update_object)
+    } else if(session.booksnindexes.length > 2){
         let user_config_modi_result = await User.updateOne(
-            {user_id : req.session.passport.user}, update_object)            
+            {user_id : req.session.passport.user}, study_config_update_object)            
     };
 
+    // -------------------------------------- 토 탈 -----------------------------------------------------
     // 리스트를 하나로 통합하고
     let cardlist_total = []
-    for (i=0; i<bookNindex_list.length; i++){
-        let index_ids = bookNindex_list[i].indexes.map((index) => index.index_id)
-        // console.log(i, 'book_id', bookNindex_list[i].book_id)
-        // console.log(i, 'index_ids', index_ids)
+    // 책 단위로 카드를 받아서 통합하자
+    for (i=0; i<session.booksnindexes.length; i++){
+        let index_ids = session.booksnindexes[i].indexes.map((index_array) => index_array.index_id)
         cardlist_of_singlebook = await Card
             .find({index_id : index_ids},
                 {cardtype : 1, book_id :1, index_id :1, status :1, seq_in_index :1, need_study_time :1})        
@@ -299,22 +264,20 @@ exports.start_study = async (req, res) => {
 
     // 토탈 카드리스트에 시퀀스 정보를 생성합니다.
     for (i=0; i<cardlist_total.length; i++) {        
-        cardlist_total[i].seq_in_total = i
-        // console.log('cardlist_totalllllll', cardlist_total[i])
+        cardlist_total[i].seq_in_total = i        
     }
 
     // 이걸 세션에 저장하고
     session.cardlist_total = cardlist_total
-    // console.log(session.cardlist_total)
-
+    
+    // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
-    session.cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')
-    // let tmptmp = cardlist_total.filter((card) => card.status === 'yet')
-    // console.log('tmptmp', tmptmp)
+    session.cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')    
     session.cardlist_sepa.re = cardlist_total.filter((card) => card.status === 're')
     session.cardlist_sepa.hold = cardlist_total.filter((card) => card.status === 'hold')
     session.cardlist_sepa.completed = cardlist_total.filter((card) => card.status === 'completed')
 
+// -------------------------------------- 워 킹 템 프 -----------------------------------------------------
     // 다시 하나로 묶어서 정리해주고 cardlist_working으로 만들어준다.
     let cardlist_working_tmp = []
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.yet.slice(0, req.body.num_cards.yet))
@@ -322,7 +285,7 @@ exports.start_study = async (req, res) => {
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.hold.slice(0, req.body.num_cards.hold))
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.completed.slice(0, req.body.num_cards.completed))
     
-    cardlist_working_tmp
+    cardlist_working_tmp3
         .sort((a,b) => a.index_id.seq - b.index_id.seq)
         .sort((a,b) => a.seq_in_index - b.seq_in_index)
     
@@ -348,6 +311,7 @@ exports.start_study = async (req, res) => {
         completed : req.body.num_cards.completed,
     }
     
+    // -------------------------------------- 워 킹 -----------------------------------------------------
     session.cardlist_working = cardlist_working_tmp
     // console.log('cardlist_working', session.cardlist_working)
     session = await session.save()
@@ -357,12 +321,9 @@ exports.get_studying_cards = async (req, res) => {
     console.log("카드 받으셔요~");
     console.log(req.body);
 
-    // req.body.current_seq =2
-    // req.body.num_request_cards = 3
-
     // 여기서 current_seq와 num_request_cards를 받아야 해
     let session = await Session.findOne({_id : req.body.session_id}, {seq_in_working : 1, cardlist_working : 1})        
-    console.log('session', session.cardlist_working)
+    // console.log('session', session.cardlist_working)
     
     // 필요 없는 영역은 잘라내고
     session.cardlist_working.splice(req.body.current_seq+req.body.num_request_cards,1000000)
@@ -430,8 +391,6 @@ exports.get_all_study_configurations = async (req, res) => {
 }
 
 exports.temp = async (req, res) => {
-
-
     // 순서를 섞어야되믄 순서를 섞고
     if(req.body.card_order === 'shuffle'){
         for (let i = total_cardlist.length - 1; i > 0; i--) {
@@ -459,77 +418,9 @@ exports.temp = async (req, res) => {
         {user_id : req.user},
         {cardlist : current_cardlist}
     )
-    
-
-
-    // // 공부 대상 전체 리스트를 일단 저장하고
-    // let studyingcard_first = await Studyingcard_first.updateOne(
-    //     {user_id : req.user},
-    //     {cardlist : cardlist});
-    
-    // // 갯수를 제한해서 실제로 공부할 녀석만 발라내고
-    // let studyingcard_second = cardlist.slice()
-
-    // 세컨드에 저장한다.
-
-    // 그리고 거기서 열 장만 뽑아서 뿌려준다.
-
 
     res.json({isloggedIn : true, cardlist});
-
 };
-
-// const get_book_and_index_list = async function(req, res) {
-//     // 책과 인덱스 정보를 요청합니다.
-    
-//     let session = await Session.findOne({
-//         _id : req.body.session_id
-//     })
-    
-//     let book_and_index_list = []
-//     for (i=0; i<req.session.book_ids.length; i++){
-//         let book = await Book.findOne({_id : req.session.book_ids[i]},
-//             {title : 1})        
-//         // 파퓰된 녀석들 기준으로 sort가 안 되는 것 같아서 따로 find를 함
-//         let index = await Index.find({book_id : req.session.book_ids[i]})
-//             .sort({seq : 1})
-//         let book_and_index = {book, index}        
-//         book_and_index_list.push(book_and_index)
-//     }
-//     return book_and_index_list
-// }
-
-const get_bookNindex_list = async function(session_id) {
-    // 책과 인덱스 정보를 요청합니다.
-    
-    let selected_books = await Selected_bookNindex
-        .find({session_id : session_id})
-        .sort({seq : 1})
-    
-    let bookNindex_list = []
-    for (i=0; i<selected_books.length; i++){
-        let indexes_of_one_book = await Index
-            .find({book_id : selected_books[i].book_id})
-            .sort({seq : 1})
-        
-        let single_bookNindex = {
-            book_id : selected_books[i].book_id,
-            title : selected_books[i].title,
-            index_ids : indexes_of_one_book,
-        }
-
-        bookNindex_list.push(single_bookNindex)
-        
-        // let book = await Book.findOne({_id : req.session.book_ids[i]},
-        //     {title : 1})        
-        // // 파퓰된 녀석들 기준으로 sort가 안 되는 것 같아서 따로 find를 함
-        // let index = await Index.find({book_id : req.session.book_ids[i]})
-        //     .sort({seq : 1})
-        // let book_and_index = {book, index}        
-        // book_and_index_list.push(book_and_index)
-    }
-    return bookNindex_list
-}
 
 
 // 순서 섞는 함수
@@ -542,53 +433,20 @@ const shuffle = function(array) {
     }
 }
 
-// 복습 필요 순으로 정렬
-const sort_by_time = function(array) {        
-    array.sort((a,b) => a.recent_study_time - b.recent_study_time)
-}
-
-// 새 카드들은 복습 필요 시점을 만들어 줘야 할 듯... 이건 아니군
-
-// 필요 개수만큼 짜르고
-// splice로
-
-// 거기에 card_id만 발라서 그때그때 find를 한다.
-
-// 현재까지 본 카드 넘버를 어딘가에서 관리해주고. 프론트에서 하라고 하자. 아님 세션
-
-// 난이도 평가를 하면....원본에 업데이트하고
-// phase 2에는 복습 필요시점만 업데이트하고
-
-const get_num_cards = async function(session_id) {
-    // 이제 다 합쳐서 순서를 뽑아야제       
-    let selected_bookNindexes = await Selected_bookNindex.find(
-        {session_id : session_id},
-        {indexes : 1})
-    
-    let num_total_cards = {
-        yet : 0, 
-        re :0, 
-        hold : 0, 
-        completed :0, 
-        total :0, 
-        re_until_now : 0, 
-        re_until_today : 0,
-    }
-
-    for (i=0; i<selected_bookNindexes.length; i++){
-        for(j=0; j<selected_bookNindexes[i].indexes.length; j++){
-            num_total_cards.yet += selected_bookNindexes[i].indexes[j].yet
-            num_total_cards.re += selected_bookNindexes[i].indexes[j].re
-            num_total_cards.hold += selected_bookNindexes[i].indexes[j].hold
-            num_total_cards.completed += selected_bookNindexes[i].indexes[j].completed
-            num_total_cards.total += selected_bookNindexes[i].indexes[j].total
-            num_total_cards.re_until_now += selected_bookNindexes[i].indexes[j].re_until_now
-            num_total_cards.re_until_today += selected_bookNindexes[i].indexes[j].re_until_today            
+const get_booksnindexes = async function(session){
+    // let session = await Session.findOne({_id : session_id},{booksnindexes : 1})    
+    let booksnindexes = []
+    for (i=0; i<session.booksnindexes.length; i++){
+        let indexes_of_the_book = await Index
+            .find({book_id : session.booksnindexes[i].book_id})
+            .sort({seq : 1})        
+        let single_bookNindex = {
+            book_id : session.booksnindexes[i].book_id,
+            title : session.booksnindexes[i].title,
+            index_ids : indexes_of_the_book,
         }
+        booksnindexes.push(single_bookNindex)
     }
-    
-    return num_total_cards
+    return booksnindexes
 }
-
-
 
