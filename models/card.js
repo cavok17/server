@@ -19,7 +19,7 @@ const cardschema = new mongoose.Schema({
   content_of_annot : Array,  
   external_card_id : {type:mongoose.ObjectId, ref:'Card_external', default : null},
   flag : {type : Number, default : null},
-  time_created : {type : Date, default : null},
+  time_created : {type : Date, default : Date.now},
   need_study_time: {type : Date, default : null},
   study_result : {
     recent_study_time : {type : Date, default : null},

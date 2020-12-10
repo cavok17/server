@@ -54,6 +54,7 @@ const cardtypeRouter = require('./routes/cardtype');
 const cardRouter = require('./routes/card');
 const study_setupRouter = require('./routes/study_setup');
 const study_flipRouter = require('./routes/study_flip');
+const mentoringRouter = require('./routes/mentoring');
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -65,6 +66,7 @@ app.use('/api/card', cardRouter)
 app.use('/api/studysetup',study_setupRouter);
 app.use('/api/study-flip',study_flipRouter);
 app.use('/api/user', userRouter);
+app.use('/api/mentoring', mentoringRouter);
 
 const connect = mongoose.connect(process.env.mongoURI,{
     useNewUrlParser: true, 

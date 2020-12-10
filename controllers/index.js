@@ -1,12 +1,8 @@
 const mongoose = require("mongoose");
 
 // 모델 경로
-const User = require('../models/user');
-const Book = require('../models/book'); 
-const Card = require('../models/card');
 const Index = require('../models/index');
-const Category = require('../models/category');
-const book = require('../models/book');
+
 
 
 // 인덱스 정보를 가져옵니다.

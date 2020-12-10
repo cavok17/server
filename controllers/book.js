@@ -7,7 +7,6 @@ const Card = require('../models/card');
 const Index = require('../models/index');
 const Category = require('../models/category');
 const Study_configuration = require('../models/study_configuration');
-// const { countDocuments } = require("../models/user");
 
 // 시퀀스 정보를 전달하는 공용함수입니다.
 const get_seq_info = async (category_id) => {        

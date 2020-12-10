@@ -1,13 +1,9 @@
 const mongoose = require("mongoose");
 
 // 모델 경로
-const User = require('../models/user');
-const Book = require('../models/book'); 
-const Card = require('../models/card');
-const Index = require('../models/index');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
-const book = require('../models/book');
+
 
 // 카드타입 리스트를 보여줍니다.
 const get_cardtypeList = async(req, res) => {

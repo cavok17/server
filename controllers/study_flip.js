@@ -4,21 +4,10 @@ const multer = require('multer');
 const readXlsxFile = require('read-excel-file/node');
 
 // 모델 경로
-const User = require('../models/user');
-const Book = require('../models/book'); 
 const Card = require('../models/card');
-const Card_external = require('../models/card_external');
-const Content = require('../models/content');
-const Index = require('../models/index');
-const Category = require('../models/category');
-const Cardtype = require('../models/cardtype');
 const Session = require('../models/session');
-const Selected_bookNindex = require('../models/selected_bookNindex');
-// const Studyingcard_total = require('../models/studyingcard_total');
-// const Studyingcard_current = require('../models/studyingcard_current');
-const { session } = require("passport");
+// const { session } = require("passport");
 const Study_configuration = require("../models/study_configuration");
-// const { Session } = require("inspector");
 
 // 난이도 평가를 반영합니다.
 exports.click_difficulty= async (req, res) => {

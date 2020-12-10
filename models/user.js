@@ -9,6 +9,21 @@ const userschema = new mongoose.Schema({
   nickname: String,
   email: String,
   phone: String,
+  from: String,
+  mentor : [{
+    book_id : String,
+    mentor_id : String,    
+  }],
+  mentee : [{
+    book_id : String,    
+    mentee_id : String,
+    // status : String,
+    group : String,
+  }],
+  menteegroup: [{
+    name : String,
+    seq : Number
+  }],
   write_config : {
     likebook : {type : Boolean, default : true},
     hide_or_show : {type : Boolean, default : true}

@@ -1,21 +1,13 @@
 const mongoose = require("mongoose");
-const fs = require("fs").promises;
-const multer = require('multer');
-const readXlsxFile = require('read-excel-file/node');
 
 // 모델 경로
 const User = require('../models/user');
 const Book = require('../models/book'); 
 const Card = require('../models/card');
-const Card_external = require('../models/card_external');
-const Content = require('../models/content');
 const Index = require('../models/index');
-const Category = require('../models/category');
-const Cardtype = require('../models/cardtype');
 const Session = require('../models/session');
 const Study_configuration = require('../models/study_configuration');
-const Selected_bookNindex = require('../models/selected_bookNindex');
-const { session } = require("passport");
+// const { session } = require("passport");
 
 
 // 선택된 책 정보를 DB에 저장하면서 세션을 만듭니다.
@@ -285,7 +277,7 @@ exports.start_study = async (req, res) => {
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.hold.slice(0, req.body.num_cards.hold))
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.completed.slice(0, req.body.num_cards.completed))
     
-    cardlist_working_tmp3
+    cardlist_working_tmp
         .sort((a,b) => a.index_id.seq - b.index_id.seq)
         .sort((a,b) => a.seq_in_index - b.seq_in_index)
     
