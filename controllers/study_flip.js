@@ -100,6 +100,7 @@ exports.click_difficulty= async (req, res) => {
     
     // 기존 카드에 했다는 표시만 좀 할까?
     session.cardlist_working[current_seq].status = 'done'
+    session.cardlist_working[current_seq].study_time = card.study_result.recent_study_time
     session.cardlist_working[current_seq].difficulty = req.body.difficulty    
     session.cardlist_working[current_seq].study_hour = req.body.study_hour    
     session.cardlist_working[current_seq].exp = exp_acquisition
@@ -135,9 +136,9 @@ exports.click_difficulty= async (req, res) => {
     res.json({isloggedIn : true, session});
 }
 
-// 난이도 평가를 반영합니다.
+// 현재 세션의 학습 결과를 보여줍니다.
 exports.get_study_result= async (req, res) => {
-    console.log("선택된 책 정보를 DB에 저장합니다.");
+    console.log("현재 세션의 학습 결과를 보여줍니다.");
     console.log(req.body);
 
     let session = await Session.findOne(

@@ -10,19 +10,19 @@ const userschema = new mongoose.Schema({
   email: String,
   phone: String,
   from: String,
-  mentor : [{
+  mentors : [{
     book_id : String,
-    mentor_id : String,    
+    mentor_id : String,
+    group : String,    
   }],
-  mentee : [{
+  mentees : [{
     book_id : String,    
     mentee_id : String,
     // status : String,
     group : String,
   }],
   menteegroup: [{
-    name : String,
-    seq : Number
+    name : String,    
   }],
   write_config : {
     likebook : {type : Boolean, default : true},

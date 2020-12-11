@@ -264,8 +264,10 @@ exports.start_study = async (req, res) => {
     
     // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
-    session.cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')    
+    session.cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')
+    // console.log(session.cardlist_sepa.yet)
     session.cardlist_sepa.re = cardlist_total.filter((card) => card.status === 're')
+    // console.log(session.cardlist_sepa.re)
     session.cardlist_sepa.hold = cardlist_total.filter((card) => card.status === 'hold')
     session.cardlist_sepa.completed = cardlist_total.filter((card) => card.status === 'completed')
 
@@ -277,9 +279,9 @@ exports.start_study = async (req, res) => {
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.hold.slice(0, req.body.num_cards.hold))
     cardlist_working_tmp = cardlist_working_tmp.concat(session.cardlist_sepa.completed.slice(0, req.body.num_cards.completed))
     
-    cardlist_working_tmp
-        .sort((a,b) => a.index_id.seq - b.index_id.seq)
-        .sort((a,b) => a.seq_in_index - b.seq_in_index)
+    // cardlist_working_tmp
+    //     .sort((a,b) => a.index_id.seq - b.index_id.seq)
+    //     .sort((a,b) => a.seq_in_index - b.seq_in_index)
     
     // 불필요한 거 지워주자
     delete cardlist_working_tmp.status

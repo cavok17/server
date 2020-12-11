@@ -4,8 +4,9 @@ const mongoose = require("mongoose");
 const cardlist_working_schema = new mongoose.Schema({
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
-    need_study_time : {type : Date, default : null},
     status : {type : String, default : 'yet'}, //done
+    study_time : {type : Date, default : null},
+    need_study_time : {type : Date, default : null},
     difficulty : {type : String, default : null}, 
     study_hour : {type : Date, default : null},
     exp :  {type : Number, default : null},
