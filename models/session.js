@@ -36,6 +36,7 @@ const session_schema = new mongoose.Schema({
     user_id : String,
     // current_seq : {type : Number, default : 0},
     time_created : {type : Date, default : Date.now},
+    time_recent_access : {type : Date, default : null},
     // booksnindexes : [booksnindexes_schema],
     booksnindexes : [{    
         book_id: {type:mongoose.ObjectId, ref:'Book'},

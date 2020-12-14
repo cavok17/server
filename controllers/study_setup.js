@@ -18,7 +18,7 @@ exports.save_booklist= async (req, res) => {
     let booksnindexes = []
     for (i=0; i<req.body.book_ids.length; i++){
         let book = await Book.findOne({_id : req.body.book_ids[i]})
-        let single_book = {            
+        let single_book = {                        
             book_id : book._id,
             title : book.title,            
             index_ids : []
@@ -28,7 +28,9 @@ exports.save_booklist= async (req, res) => {
     console.log('booksnindexes', booksnindexes)
         
     // 셀렉된 걸 저장합니다.
-    let session = await Session.create({booksnindexes})    
+    let session = await Session.create(
+        {user_id : req.session.passport.user,
+        booksnindexes})    
 
     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 }

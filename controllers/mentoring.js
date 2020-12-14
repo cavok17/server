@@ -6,6 +6,7 @@ const Book = require('../models/book');
 const Card = require('../models/card');
 const Index = require('../models/index');
 const Category = require('../models/category');
+const Session = require('../models/session');
 const Mentoring_req = require('../models/mentoring_req');
 
 // 멘토링 관련 정보를 보여줍니다.
@@ -14,11 +15,13 @@ exports.get_mentoringlist = async (req, res) => {
     console.log(req.body);
 
     let user = await User.findOne({user_id : req.session.passport.user})
-        .select('mentors mentees')
-    let my_study_result = get_my_study_result(user.mentors)
-    let mentee_result = get_mentee_study_result(user.mentees)
+        .select('mentors mentees')    
+    // 멘토스에서 책 이름만 쫌 빼올까?
     
-    res.json({isloggedIn : true, mentoring, my_study_result, mentee_study_result });
+    let my_study_result = await get_my_study_result(req, res, user)
+    let mentee_study_result = await get_mentee_study_result(req, res, user)
+    
+    res.json({isloggedIn : true, my_study_result, mentee_study_result });
 }
 
 // 멘토링 요청 화면을 띄웁니다.
@@ -27,7 +30,7 @@ exports.enter_mentoring_req = async (req, res) => {
     console.log(req.body);
 
     // 현재 요청중인 멘토링 요청 건을 가져오고요.
-    let mentoring_req = await Mentoring_req.find({user_id : req.session.passport.user})
+    let mentoring_req = await Mentoring_req.find({mentee_id : req.session.passport.user})
     
     // 전체 책 정보를 가져옵니다.
     let category = await Category.find({user_id : req.session.passport.user})        
@@ -84,7 +87,7 @@ exports.request_mentoring = async (req, res) => {
         msg : req.body.msg
     })
 
-    let mentoring_req = await Mentoring_req.find({user_id : req.session.passport.user})        
+    let mentoring_req = await Mentoring_req.find({mentee_id : req.session.passport.user})        
     let category = await Category.find({user_id : req.session.passport.user})        
         .sort({seq : 1})
         .select('book_ids name seq')
@@ -127,29 +130,28 @@ exports.accept_mentoring_req = async (req, res) => {
     console.log("멘토링을 수락합니다.");
     console.log(req.body);
     
-    let mentoring = await Mentoring_req.findOne({_id : req.body.mentoring_id})
-    console.log(mentoring)
+    let mentoring_req = await Mentoring_req.findOne({_id : req.body.mentoring_id})    
     let mentee_info = {
-        book_id : mentoring.book_id,
-        mentee_id : mentoring.mentee_id,
+        book_id : mentoring_req.book_id,
+        mentee_id : mentoring_req.mentee_id,
         group : '(미지정)',
         start_date : Date.now()
     }
     console.log(mentee_info)
     let mentor_info = {
-        book_id : mentoring.book_id,
-        mentor_id : mentoring.mentor_id,
+        book_id : mentoring_req.book_id,
+        mentor_id : mentoring_req.mentor_id,
         start_date : Date.now()   
     }
 
     let mentee = await User.updateOne(
         {user_id : mentee_info.mentee_id},
-        {$push : {mentor : mentor_info}})
+        {$push : {mentors : mentor_info}})
     console.log(mentee)
     
     let mentor = await User.updateOne(
         {user_id : mentor_info.mentor_id},
-        {$push : {mentee : mentee_info}})
+        {$push : {mentees : mentee_info}})
         
     let mentoring_info_delete = await Mentoring_req.deleteOne({_id : req.body.mentoring_id})
 
@@ -288,7 +290,10 @@ exports.show_menteelist_by_group = async (req, res) => {
 
 
 // 세션을 다 모아보자.
-const get_my_study_result = async (mentors) => {        
+const get_my_study_result = async (req, res, user) => {
+
+    // 7일 전이라는 날짜를 만들어서 그 때 이후로 종료된 애들만 가져오자
+
     let sessions = await Session.find({user_id : req.session.passport.user})
         .select('cardlist_working')
     
@@ -296,48 +301,57 @@ const get_my_study_result = async (mentors) => {
     for (i=0; i<sessions.length; i++){
         cardlist_working = cardlist_working.concat(sessions[i].cardlist_working)
     }
-
+        
     let all_book_result = []
-    for (j=0; j<mentors.length; j++){
+    for (i=0; i<user.mentors.length; i++){
         let single_book_result = {}
-        single_book_result.book_id = mentors.book_id
-        single_book_result.mentor_id = mentors.mentor_id
-        for (i=0; i<cardlist_working.length; i++){
-            if (cardlist_working[i].book_id === mentors.book_id[j]){                
-                if (cardlist_working[i].study_time >0){
+        single_book_result.book_id = user.mentors[i].book_id
+        let current_book = await Book.findOne({_id : user.mentors[i].book_id})
+        single_book_result.title = current_book.title
+        single_book_result.mentor_id = user.mentors[i].mentor_id
+        single_book_result.study_times = 0
+        single_book_result.study_hour = 0
+        for (j=0; j<cardlist_working.length; j++){            
+            if (cardlist_working[j].book_id == user.mentors[i].book_id){                
+                if (cardlist_working[j].study_time != null){
                     single_book_result.study_times +=1
-                    single_book_result.study_hour += cardlist_working[i].study_hour
+                    single_book_result.study_hour += (cardlist_working[j].study_hour)*1
                 }
             }
         }
         all_book_result.push(single_book_result)
-    }
+    }    
     return all_book_result    
 }
 
-const get_mentee_study_result = async (mentees) => {        
+const get_mentee_study_result = async (req, res, user) => {        
     
     let all_book_result = []
-    for (i=0; i<mentees.length; i++){
-        let sessions = await Session.find({user_id : meentees.mentee_id})
+    for (i=0; i<user.mentees.length; i++){
+        let sessions = await Session.find({user_id : user.mentees[i].mentee_id})
             .select('cardlist_working')
         let cardlist_working = []
-        for (i=0; i<sessions.length; i++){
-            cardlist_working = cardlist_working.concat(sessions[i].cardlist_working)
-        }
+        for (k=0; k<sessions.length; k++){
+            cardlist_working = cardlist_working.concat(sessions[k].cardlist_working)
+        }       
 
-        let single_book_result = {}
-        single_book_result.book_id = mentees.book_id
-        single_book_result.mentee_id = mentees.mentee_id
+        let single_book_result = {}        
+        single_book_result.book_id = user.mentees[i].book_id
+        let current_book = await Book.findOne({_id : user.mentees[i].book_id})
+        single_book_result.title = current_book.title
+        single_book_result.mentee_id = user.mentees[i].mentee_id
+        single_book_result.study_times = 0
+        single_book_result.study_hour = 0
+
         for (j=0; j<cardlist_working.length; j++){
-            if (cardlist_working[i].book_id === mentees[i].book_id){                
-                if (cardlist_working[i].study_time >0){
+            if (cardlist_working[j].book_id == user.mentees[i].book_id){                
+                if (cardlist_working[j].study_time != null){
                     single_book_result.study_times +=1
-                    single_book_result.study_hour += cardlist_working[i].study_hour
+                    single_book_result.study_hour += (cardlist_working[j].study_hour)*1
                 }
             }
         }
         all_book_result.push(single_book_result)
-    }
+    }    
     return all_book_result    
 }

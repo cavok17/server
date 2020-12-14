@@ -99,6 +99,7 @@ exports.click_difficulty= async (req, res) => {
     let current_seq = req.body.current_seq    
     
     // 기존 카드에 했다는 표시만 좀 할까?
+    session.time_recent_access = card.study_result.recent_study_time
     session.cardlist_working[current_seq].status = 'done'
     session.cardlist_working[current_seq].study_time = card.study_result.recent_study_time
     session.cardlist_working[current_seq].difficulty = req.body.difficulty    
