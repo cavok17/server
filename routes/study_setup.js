@@ -6,20 +6,20 @@ const Study_setup_controller = require('../controllers/study_setup');
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const router = express.Router();
 
-// 선택한 책 정보를 저장합니다.
-router.post('/save-booklist', isLoggedIn, Study_setup_controller.save_booklist);
+// // 선택한 책 정보를 저장합니다.
+// router.post('/save-booklist', isLoggedIn, Study_setup_controller.save_booklist);
 
 // 인덱스를 보내줍니다.
 router.post('/get-index', isLoggedIn, Study_setup_controller.get_index);
 
-// 목차를 선택합니다.
-router.post('/click-index', isLoggedIn, Study_setup_controller.click_index);
+// // 목차를 선택합니다.
+// router.post('/click-index', isLoggedIn, Study_setup_controller.click_index);
 
-// 책을 위로 올립니다.
-router.post('/click-up', isLoggedIn, Study_setup_controller.click_up);
+// // 책을 위로 올립니다.
+// router.post('/click-up', isLoggedIn, Study_setup_controller.click_up);
 
-// 책을 아래로 내립니다.
-router.post('/click-down', isLoggedIn, Study_setup_controller.click_down);
+// // 책을 아래로 내립니다.
+// router.post('/click-down', isLoggedIn, Study_setup_controller.click_down);
 
 // 학습을 시작합니다.
 router.post('/start-study', isLoggedIn, Study_setup_controller.start_study);
