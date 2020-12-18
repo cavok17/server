@@ -5,122 +5,91 @@ const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 
 
+const get_cardtypelist_func = async(req, res) => {
+    const cardtypes = await Cardtype.find({book_id : req.body.book_id})
+        .sort ({seq : 1})
+    
+    return cardtypes
+}
+
 // 카드타입 리스트를 보여줍니다.
-const get_cardtypeList = async(req, res) => {
+exports.get_cardtypelist = async(req, res) => {
     console.log('카드타입 리스트를 보여줍니다.');
     console.log(req.body);
 
-    const cardtypes = await Cardtype.find({book_id : req.session.book_id})
-        .sort ({seq : 1})
-    
+    let cardtypes = get_cardtypelist_func(req, res);
 
     res.json({isloggedIn : true, cardtypes});
 };
 
 // 카드타입을 생성합니다.
-const create_cardtype = async(req, res) => {
+exports.create_cardtype = async(req, res) => {
     console.log('카드타입을 생성합니다.');
     console.log(req.body);
 
     // 신규카드의 시퀀스를 생성합니다.
-    let max_seq_cardtype = await Cardtype.find({book_id : req.session.book_id}, {seq : 1, _id : 0})
+    let max_seq_cardtype = await Cardtype
+        .find({book_id : req.session.book_id}, {seq : 1, _id : 0})
         .sort ({seq : -1})
         .limit(1);
     let max_seq;
-    
     if(max_seq_cardtype.length ===0){
         max_seq = -1
     } else {
         max_seq = max_seq_cardtype[0].seq
     }
     
-    // direction하고 ratio를 정의합니다.
-    let direction;
-    let ratio = {};
-    switch (req.body.type) {
-        case 'face1' : 
-            direction = null;
-            if(req.body.annotation = true){
-                ratio.face1 = 80;
-                ratio.face2 = 0;
-                ratio.face3 = 0;
-                ratio.annot = 20;
-            } else {
-                ratio.face1 = 100;
-                ratio.face2 = 0;
-                ratio.face3 = 0;
-                ratio.annot = 20;
-            };
-        case 'face2' :
-            direction = 'up_down';
-            if(req.body.annotation = true){
-                ratio.face1 = 80;
-                ratio.face2 = 80;
-                ratio.face3 = 0;
-                ratio.annot = 20;
-            } else {
-                ratio.face1 = 100;
-                ratio.face2 = 100;
-                ratio.face3 = 0;
-                ratio.annot = 0;
-            };
-        case 'face3' :
-            direction = 'up_down';
-            if(req.body.annotation = true){
-                ratio.face1 = 80;
-                ratio.face2 = 80;
-                ratio.face3 = 80;
-                ratio.annot = 20;
-            } else {
-                ratio.face1 = 100;
-                ratio.face2 = 100;
-                ratio.face3 = 100;
-                ratio.annot = 0;
-            };
+    
+    let cardtype = {}
+    cardtype.book_id = req.session.book_id
+    cardtype.type = req.body.type
+    cardtype.name = req.body.name
+    cardtype.seq = max_seq + 1
+
+    if (cardtype.type ==='none' || cardtype.type ==='share' ){
+        cardtype.num_row.maker_flag = 0
+    } else {
+        cardtype.num_row.maker_flag = 1
+    }
+    cardtype.num_of_row.share = req.body.share
+    cardtype.num_of_row.face1 = req.body.face1
+    cardtype.num_of_row.selection = req.body.selection
+    cardtype.num_of_row.face2 = req.body.face2     
+    cardtype.num_of_row.annotation = 1    
+    
+    let cur_alphabet = 'B'
+    for (let name of ['share', 'face1', 'selection', 'face2']) {
+        for (i=0; i<req.body[name]; i++) {
+            cardtype.nick_of_row[name]=[]
+            cardtype.nick_of_row[name].push(String.fromCharCode(cur_alphabet.charCodeAt() + 1))
+        }
     }
 
     //생성합니다.
-    let cardtype = await Cardtype.create({
-        book_id : req.session.book_id,
-        seq : max_seq + 1,
-        type : req.body.type,
-        nick : req.body.nick,
-        importance : req.body.importance,
-        annotation : req.body.annotation,
-        num_column : {
-            face1 : req.body.face1,
-            face2 : req.body.face2,
-            face3 : req.body.face3,
-            annot : req.body.annot,
-        },
-        direction : direction,
-        ratio: {
-            face1 : ratio.face1,
-            face2 : ratio.face2,
-            face3 : ratio.face3,
-            annot : ratio.annot,
-        },
-    });
+    let new_cardtype = await Cardtype.create(cardtype);
     
-    get_cardtypeList(req, res);
+    let cardtypes = get_cardtypelist_func(req, res);
+
+    res.json({isloggedIn : true, cardtypes});
 };
 
 // 카드타입의 nick을 변경합니다.
-const change_cardtype_nick = async(req, res) => {
-    console.log('카드타입 nick을 변경합니다.');
+exports.change_cardtype_name = async(req, res) => {
+    console.log('카드타입 name을 변경합니다.');
     console.log(req.body);
 
     let cardtype = await Cardtype.updateOne(
         {_id : req.body.cardtype_id},
-        {nick : req.body.nick}
+        {name : req.body.name}
     );
     
+    let cardtypes = get_cardtypelist_func(req, res);
 
-    get_cardtypeList(req, res);
+    res.json({isloggedIn : true, cardtypes});
 };
 
 // 카드타입의 순서를 조정합니다.
-const change_cardtype_order = async (req, res) => {    
+exports.change_cardtype_order = async (req, res) => {    
     console.log('카드타입 순서 좀 조정할게');
     
     // 목적지 카테고리를 정의합니다.
@@ -151,13 +120,8 @@ const change_cardtype_order = async (req, res) => {
         {seq : req.body.seq}        
     );
 
-    get_cardtypeList(req, res);
+    let cardtypes = get_cardtypelist_func(req, res);
+
+    res.json({isloggedIn : true, cardtypes});
 };
 
-
-module.exports ={
-    get_cardtypeList,
-    create_cardtype,
-    change_cardtype_nick,
-    change_cardtype_order,
-};

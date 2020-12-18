@@ -29,37 +29,46 @@ exports.get_cardlist = async (req, res) => {
 exports.create_card = async (req, res) => {
     console.log("카드를 만들어봅시다");
     console.log(req.body);
-
-    let new_seq_in_index
-    if (req.body.seq_in_index){
-        new_seq_in_index = req.body.seq_in_index + 1
-        let seq_modi_result = await Card.updateMany(
-            {index_id : req.body.index_id,
-            seq_in_index : {$gte : new_seq_in_index}},
-            {$inc : {seq_in_index : 1}}
-        )
-    } else {
-        let max_seq = await get_max_seq(req.body.index_id)
-        new_seq_in_index = max_seq + 1
-    }
     
-    console.log('new_seq_in_index', new_seq_in_index)
-
+    // 카드가 들어가는 위치보다 뒷쪽에 있는 카드는 시퀀스를 증가시켜주고요
+    let seq_modi_result = await Card.updateMany(
+        {index_id : req.body.index_id,
+        seq_in_index : {$gt : req.body.seq_in_index}},
+        {$inc : {seq_in_index : 1}}
+    )       
+    
+    // 카드를 생성합니다.
     let card = await Card.create({
-        cardtype_id: req.body.cardtype_id,
-        book_id: req.session.book_id,
+        cardtype_id: req.body.cardtype_id,        
+        book_id: req.body.book_id,
         index_id: req.body.index_id,        
-        seq_in_index: new_seq_in_index,
-        content_of_importance : req.body.importance,
-        content_of_first_face : req.body.first_face,
-        content_of_second_face : req.body.second_face,
-        content_of_third_face : req.body.third_face,
-        content_of_annot : req.body.annotation,
+        parent_card_id : req.body.parent_card_id,
+        seq_in_index: req.body.seq_in_index*1 + 1,
+        contents : {
+            maker_flag : req.body.flag_of_maker,
+            share : req.body.share,
+            face1 : req.body.face1,
+            selection : req.body.selection,
+            face2 : req.body.face2,
+            annotation : req.body.annotation
+        }
     })    
     
+    // 쓸 일이 있을지는 모르겠으나, 자식 카드 정보를 기록해보자고
+    // 자식 카드의 시퀀스는 일단 관리하지 않는 것으로
+    if (req.body.parent_card_id != null){
+        let parent_card = await Card.updateOne(
+            {_id : req.body.parent_card_id},
+            {$push : {child_card_ids : card._id}})
+    }
+
     let cardlist = await get_cardlist_func(req.body.index_id)
     res.json({isloggedIn : true, cardlist});
+
+
 };
+
+
 
 // 엑셀 파일로 카드를 생성합니다.
 exports.create_card_by_excel = async (req, res) => {
@@ -70,8 +79,8 @@ exports.create_card_by_excel = async (req, res) => {
     let max_seq = await get_max_seq(req.body.index_id)
 
     // 일단 해당책의 카드타입을 다 가져오시오.
-    let cardtypes = await Cardtype.find({book_id : req.session.book_id},
-        {nick:1, importance:1, num_column:1});
+    let cardtypes = await Cardtype.find({book_id : req.body.book_id},
+        {name:1, num_of_row:1});
     console.log(cardtypes)
 
     let new_cards = []
@@ -85,13 +94,14 @@ exports.create_card_by_excel = async (req, res) => {
         // console.table(table)
 
         for (i=0; i<table.length; i++){            
-            let content_of_importance = []
-            let content_of_first_face = [] 
-            let content_of_second_face = []
-            let content_of_third_face = []
-            let content_of_annot = []            
-            let new_card = []  
-            
+            let contents = {
+                maker_flag : [],
+                share : [],
+                face1 : [],
+                selectionface2 : [],
+                annotation : [],
+            }
+                        
             current_row = 1            
             max_seq += 1
             

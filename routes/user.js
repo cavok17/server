@@ -37,16 +37,6 @@ router.post('/register', isNotLoggedIn, async (req, res, next) => {
       books : [], 
   })
 
-    const phase1studyingcard = await Studyingcard.create({
-      user_id : user_id,
-      phase : '1',
-      studyingcardlist : [],
-    });
-    const phase2studyingcard = await Studyingcard.create({
-      user_id : user_id,
-      phase : '2',
-      studyingcardlist : [],
-    });
   } catch (error) {
       console.error(error);
       return next(error);

@@ -2,24 +2,31 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const cardtypeschema = new mongoose.Schema({  
-    book_id: {type:mongoose.Schema.Types.ObjectId, ref:'Book'},
-    // seq : Number,
-    cardtype: String,
+    book_id: {type:mongoose.Schema.Types.ObjectId, ref:'Book'},    
+    type: String,
     // read, flip-normal, flip-select, none, share
     name : String,
-    // importance: {type : String, default : 'off'},
-    num_row: {
-        flag_of_maker : {type : Number, default : 0},
-        common : {type : Number, default : 0},        
+    seq : Number,    
+    num_of_row: {        
+        maker_flag : {type : Number, default : 0},        
+        share : {type : Number, default : 0},        
         face1 : {type : Number, default : 0},
-        face2 : {type : Number, default : 0},        
-        // annot : {type : Number, default : 1},
+        selection : {type : Number, default : 0},        
+        face2 : {type : Number, default : 0},
+        annotation : {type : Number, default : 1},        
     },
-    nick_of_row : [String],
-    direction : {type : String, default : 'top-bottom'},
-    ratio: {
-        face1 : {type : Number, default : 0.8},
-        face2 : {type : Number, default : 0.2}
+    nick_of_row : {
+        maker_flag : {type : Array, default : ['제작자플래그']},
+        share : {type : Array, default : []},
+        face1 : {type : Array, default : []},
+        selection : {type : Array, default : []},
+        face2 : {type : Array, default : []},
+        annotation : {type : Array, default : ['주석']},
+    },  
+    card_direction : {type : String, default : 'top-bottom'},
+    left_right_ratio: {
+        face1 : {type : Number, default : 0.5},
+        face2 : {type : Number, default : 0.5}
     },
     background_color : {type : String, default : null},
     outer_margin : {
@@ -64,6 +71,5 @@ const cardtypeschema = new mongoose.Schema({
     },
 });
 
-// users라는 모델을 생성하고 이걸 export하는 겅가? 뒤에 커렉션도 정의할 수 있는 듯
 module.exports = mongoose.model("Cardtype", cardtypeschema)
 

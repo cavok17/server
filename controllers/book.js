@@ -225,22 +225,31 @@ const create_book =  async (req, res) => {
     let new_cardtype = [
         {
             book_id : book._id,
-            cardtype : 'read',
+            type : 'read',
             name : '읽기-기본',
-            num_column : {
-                face1 : 1
+            num_of_row : {
+                maker_flag : 1,                
+                face1 : 1,                
             },
-            nick_of_row : ['내용']
+            nick_of_row : {                
+                face1 : ['본문'],                
+            },
+            seq : 0,
         },
         {
             book_id : book._id,
-            cardtype : 'flip-normal',
+            type : 'flip-normal',
             name : '뒤집기-기본',
-            num_column : {
+            num_of_row : {
+                maker_flag : 1,
                 face1 : 1,
-                face2 : 2,
+                face2 : 2,                
             },
-            nick_of_row : ['문제', '정답', '부가설명']
+            nick_of_row : {                
+                face1 : ['본문'],
+                face2 : ['정답', '부가설명'],                
+            },
+            seq : 1,
         },
     ]
     let cardtype = await Cardtype.insertMany(new_cardtype)
