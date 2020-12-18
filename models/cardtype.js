@@ -4,22 +4,22 @@ const mongoose = require("mongoose");
 const cardtypeschema = new mongoose.Schema({  
     book_id: {type:mongoose.Schema.Types.ObjectId, ref:'Book'},
     // seq : Number,
-    type: String,
-    nick : String,
-    importance: Boolean,
-    annotation : Boolean,
-    num_column: {
+    cardtype: String,
+    // read, flip-normal, flip-select, none, share
+    name : String,
+    // importance: {type : String, default : 'off'},
+    num_row: {
+        flag_of_maker : {type : Number, default : 0},
+        common : {type : Number, default : 0},        
         face1 : {type : Number, default : 0},
         face2 : {type : Number, default : 0},        
-        face3 : {type : Number, default : 0},        
-        annot : {type : Number, default : 0},
+        // annot : {type : Number, default : 1},
     },
-    direction : {type : String, default : 0},
+    nick_of_row : [String],
+    direction : {type : String, default : 'top-bottom'},
     ratio: {
-        face1 : Number,
-        face2 : Number,
-        face3 : Number,
-        annot : Number,
+        face1 : {type : Number, default : 0.8},
+        face2 : {type : Number, default : 0.2}
     },
     background_color : {type : String, default : null},
     outer_margin : {

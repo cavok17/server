@@ -27,6 +27,7 @@ const create_cardtype = async(req, res) => {
         .sort ({seq : -1})
         .limit(1);
     let max_seq;
+    
     if(max_seq_cardtype.length ===0){
         max_seq = -1
     } else {

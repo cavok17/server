@@ -42,7 +42,7 @@ const session_schema = new mongoose.Schema({
         book_id: {type:mongoose.ObjectId, ref:'Book'},
         title : String,
         seq : Number,   
-        indexes : Array,
+        index_ids : [{type:mongoose.ObjectId, ref:'Index'}],
     }],
     num_cards : {
         yet : {type : Number, default : 0},

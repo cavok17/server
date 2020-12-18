@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const {ObjectId} = require('mongodb');
 
 // 모델 경로
 const User = require('../models/user');
@@ -35,18 +36,21 @@ const Study_configuration = require('../models/study_configuration');
 //     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 // }
 
-// 선택된 책의 인덱스를 보내줍니다..
-exports.get_index = async (req, res) => {
-    console.log("선택된 책의 인덱스를 보내줍니다.");
+// 스터디 콘피그를 보내줍니다.
+exports.get_session_config = async (req, res) => {
+    console.log("스터디 콘피그를 보내줍니다..");
     console.log('body', req.body);    
     
-    // 책과 인덱스 리스트를 받아옵니다.
-    let session_id = req.body.session_id
-    let session = await Session.findOne({_id : session_id},{booksnindexes : 1})    
-    let booksnindexes = await get_booksnindexes(session)    
+    // // 책과 인덱스 리스트를 받아옵니다.
+    // let session_id = req.body.session_id
+    // let session = await Session.findOne({_id : session_id},{booksnindexes : 1})    
+    // let booksnindexes = await get_booksnindexes(session)    
     
     // 학습 설정 관련 값도 뿌려주려고 합니다.
     // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.    
+
+
+    // 전체 Booklist를 보내주는 게 낫지 않을까 싶음
     let study_config
     if (session.booksnindexes.length >= 2){        
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
@@ -152,8 +156,7 @@ exports.get_index = async (req, res) => {
 
 //     res.json({isloggedIn : true, session_id, num_total_cards});    
 // }
-const {ObjectId} = require('mongodb');
-const card = require("../models/card");
+
 
 // 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
 exports.get_index = async (req, res) => {
@@ -304,6 +307,31 @@ exports.get_index = async (req, res) => {
     }
 
      res.json({isloggedIn : true,  single_book_info});    
+}
+
+// 선택된 책과 인덱스로 세션을 만듭니다.
+exports.create_session= async (req, res) => {
+    console.log("선택된 책 정보를 DB에 저장합니다.");
+    console.log(req.body);
+
+    let booksnindexes = []
+    for (i=0; i<req.body.book_ids.length; i++){
+        let book = await Book.findOne({_id : req.body.book_ids[i]})
+        let single_book = {                        
+            book_id : book._id,
+            title : book.title,            
+            index_ids : []
+        }            
+        booksnindexes.push(single_book)
+    }    
+    console.log('booksnindexes', booksnindexes)
+        
+    // 셀렉된 걸 저장합니다.
+    let session = await Session.create(
+        {user_id : req.session.passport.user,
+        booksnindexes})    
+
+    res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 }
 
 // // 책의 순서를 올립니다.

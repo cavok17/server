@@ -2,10 +2,15 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const cardschema = new mongoose.Schema({
-  cardtype_id: {type:mongoose.ObjectId, ref:'Cardtype'},
   cardtype : String,
+  // read, flip-general, flip-select, non, common
+  cardtype_id: {type:mongoose.ObjectId, ref:'Cardtype'},
+  common_face_use_yeobu : {type : String, default : 'not_use'},
+  // use, not_use
   book_id: {type:mongoose.ObjectId, ref:'Book'},
   index_id: {type:mongoose.ObjectId, ref:'Index'},
+  child_card_ids : [{type:mongoose.ObjectId, ref:'Card'}],
+  // common 카드인 경우만
   seq_in_index: Number,
   seq_in_total_list: Number,
   // seq_in_studying_list: Number,
@@ -17,6 +22,8 @@ const cardschema = new mongoose.Schema({
     flag : Array,
     importance : Array,
     common_face : Array,
+    // 여기에 카드 아이디를 뿌려주라고
+    // 그래가지고 first_face를 populate 시켜서 보내주는 것이지
     first_face : Array,
     selection : Array,
     second_face : Array,

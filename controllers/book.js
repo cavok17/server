@@ -6,6 +6,7 @@ const Book = require('../models/book');
 const Card = require('../models/card');
 const Index = require('../models/index');
 const Category = require('../models/category');
+const Cardtype = require('../models/cardtype');
 const Study_configuration = require('../models/study_configuration');
 
 // 시퀀스 정보를 전달하는 공용함수입니다.
@@ -220,6 +221,29 @@ const create_book =  async (req, res) => {
         category_id : req.body.category_id,
         seq_in_category : seq_info.max_seq_of_showbook + 1,
     });
+
+    let new_cardtype = [
+        {
+            book_id : book._id,
+            cardtype : 'read',
+            name : '읽기-기본',
+            num_column : {
+                face1 : 1
+            },
+            nick_of_row : ['내용']
+        },
+        {
+            book_id : book._id,
+            cardtype : 'flip-normal',
+            name : '뒤집기-기본',
+            num_column : {
+                face1 : 1,
+                face2 : 2,
+            },
+            nick_of_row : ['문제', '정답', '부가설명']
+        },
+    ]
+    let cardtype = await Cardtype.insertMany(new_cardtype)
     
     // 기본 목차도 생성하고
     let index = await Index.create({
