@@ -5,7 +5,7 @@ const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 
 const get_cardtypelist_func = async(req, res) => {
-    const cardtypes = await Cardtype.find({book_id : req.session.book_id})
+    const cardtypes = await Cardtype.find({book_id : req.body.book_id})
         .sort ({seq : 1})
     
     return cardtypes
@@ -29,7 +29,7 @@ exports.create_cardtype = async(req, res) => {
 
     // 신규카드의 시퀀스를 생성합니다.
     let max_seq_cardtype = await Cardtype
-        .find({book_id : req.session.book_id}, {seq : 1, _id : 0})
+        .find({book_id : req.body.book_id}, {seq : 1, _id : 0})
         .sort ({seq : -1})
         .limit(1);
     let max_seq;
@@ -41,7 +41,7 @@ exports.create_cardtype = async(req, res) => {
     
     
     let cardtype = {}
-    cardtype.book_id = req.session.book_id
+    cardtype.book_id = req.body.book_id
     cardtype.type = req.body.type
     cardtype.name = req.body.name
     cardtype.seq = max_seq + 1
@@ -71,7 +71,7 @@ exports.create_cardtype = async(req, res) => {
     //생성합니다.
     let new_cardtype = await Cardtype.create(cardtype);
     
-    let cardtypes = get_cardtypelist_func(req, res);
+    let cardtypes = await get_cardtypelist_func(req, res);
 
     res.json({isloggedIn : true, cardtypes});
 };
@@ -100,14 +100,14 @@ exports.change_cardtype_order = async (req, res) => {
     if (req.body.action === 'up'){
         destination_cardtype = await Category
             .find({
-                book_id : req.session.book_id,
+                book_id : req.body.book_id,
                 seq : {$lt : req.body.seq}})
             .sort({seq : -1})
             .limit(1);            
     } else {
         destination_cardtype = await Category
             .find({
-                book_id : req.session.book_id,
+                book_id : req.body.book_id,
                 seq : {$gt : req.body.seq}})
             .sort({seq : 1})
             .limit(1);
