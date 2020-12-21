@@ -4,9 +4,8 @@ const mongoose = require("mongoose");
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 
-
 const get_cardtypelist_func = async(req, res) => {
-    const cardtypes = await Cardtype.find({book_id : req.body.book_id})
+    const cardtypes = await Cardtype.find({book_id : req.session.book_id})
         .sort ({seq : 1})
     
     return cardtypes
@@ -17,7 +16,8 @@ exports.get_cardtypelist = async(req, res) => {
     console.log('카드타입 리스트를 보여줍니다.');
     console.log(req.body);
 
-    let cardtypes = get_cardtypelist_func(req, res);
+    let cardtypes = await get_cardtypelist_func(req, res);
+    console.log(cardtypes)
 
     res.json({isloggedIn : true, cardtypes});
 };
@@ -45,11 +45,13 @@ exports.create_cardtype = async(req, res) => {
     cardtype.type = req.body.type
     cardtype.name = req.body.name
     cardtype.seq = max_seq + 1
+    cardtype.num_of_row = {}
+    cardtype.nick_of_row = {}
 
     if (cardtype.type ==='none' || cardtype.type ==='share' ){
-        cardtype.num_row.maker_flag = 0
+        cardtype.num_of_row.maker_flag = 0
     } else {
-        cardtype.num_row.maker_flag = 1
+        cardtype.num_of_row.maker_flag = 1
     }
     cardtype.num_of_row.share = req.body.share
     cardtype.num_of_row.face1 = req.body.face1
@@ -59,9 +61,10 @@ exports.create_cardtype = async(req, res) => {
     
     let cur_alphabet = 'B'
     for (let name of ['share', 'face1', 'selection', 'face2']) {
+        cardtype.nick_of_row[name]=[]
         for (i=0; i<req.body[name]; i++) {
-            cardtype.nick_of_row[name]=[]
             cardtype.nick_of_row[name].push(String.fromCharCode(cur_alphabet.charCodeAt() + 1))
+            cur_alphabet = String.fromCharCode(cur_alphabet.charCodeAt() + 1)
         }
     }
 
