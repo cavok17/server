@@ -7,12 +7,11 @@ const Index = require('../models/index');
 
 // 인덱스 정보를 가져옵니다.
 const get_indexList = async (req, res) => {  
-    console.log('인덱스 리스트 가지러 왔느냐.');
-    console.log('이제 req.session.book_id', req.session.book_id);
+    console.log('인덱스 리스트 가지러 왔느냐.');    
     console.log(req.body);
 
     const indexList = await Index
-        .find({book_id : req.session.book_id})
+        .find({book_id : req.body.book_id})
         .sort({seq : 1});
     // console.log(indexList);
 
@@ -26,21 +25,21 @@ const create_index = async (req, res) => {
 
     // 다음으로 나오는 동일(또는 더 높은) 레벨 인덱스 위치를 확인하고
     let next_same_level_index = await Index
-        .find({book_id : req.session.book_id,
+        .find({book_id : req.body.book_id,
                 seq : {$gt : req.body.seq},
                 level : {$lte : req.body.level}})
         .sort({seq : 1})
         .limit(1)
     // 마지막 인덱스의 위치도 확인하고
     let max_seq_index = await Index
-        .find({book_id : req.session.book_id})
+        .find({book_id : req.body.book_id})
         .sort({seq : -1})
         .limit(1)
 
     // 동일 레벨 이상의 인덱스가 뒤에 없으면 맨 뒤에 박고    
     if (next_same_level_index.length ===0){
         let new_index = await Index.create({
-            book_id : req.session.book_id,
+            book_id : req.body.book_id,
             name : req.body.name,
             seq : max_seq_index[0].seq + 1,
             level : req.body.level,
@@ -48,12 +47,12 @@ const create_index = async (req, res) => {
     } else {
         // 동일 레벨 이상의 인덱스가 뒤에 있으면 그 앞에 박고, 나머지를 뒤로 민다.        
         let seq_modi = await Index.updateMany(
-            {book_id : req.session.book_id,
+            {book_id : req.body.book_id,
             seq : {$gte : next_same_level_index[0].seq}},
             {$inc : {seq : 1}}
         );
         let new_index = await Index.create({
-            book_id : req.session.book_id,
+            book_id : req.body.book_id,
             name : req.body.name,
             seq : next_same_level_index[0].seq,
             level : req.body.level,
@@ -85,7 +84,7 @@ const change_index_level = async(req, res) => {
     // 앞에 시퀀스의 인덱스를 확인하고
     // 앞 시퀀스 레벨 -1보다는 더 내려가면 안 됨
     let upper_index = await Index
-        .find({book_id : req.session.book_id,
+        .find({book_id : req.body.book_id,
                 seq : {$lt : req.body.seq}})                
         .sort({seq : -1})
         .limit(1)
@@ -96,7 +95,7 @@ const change_index_level = async(req, res) => {
     
     // 다음으로 나오는 동일(또는 더 높은) 레벨 인덱스 위치를 확인하고
     let next_same_level_index = await Index
-        .find({book_id : req.session.book_id,
+        .find({book_id : req.body.book_id,
                 seq : {$gt : req.body.seq},
                 level : {$lte : req.body.level}})
         .sort({seq : 1})
@@ -119,14 +118,14 @@ const change_index_level = async(req, res) => {
             res.json({isloggedIn : true, msg : '이동불가' });
         } else {
             let level_modi_result = await Index.updateMany(
-                {book_id : req.session.book_id,
+                {book_id : req.body.book_id,
                 seq : {$gte : req.body.seq, $lt : next_same_level_index_seq}},
                 {$inc : {level : 1}});
             get_indexList(req, res); 
         }
     } else if(req.body.action == 'left'){
         let level_modi_result = await Index.updateMany(
-            {book_id : req.session.book_id,
+            {book_id : req.body.book_id,
             seq : {$gte : req.body.seq, $lt : next_same_level_index_seq}},
             {$inc : {level : -1}});
         get_indexList(req, res); 
@@ -140,7 +139,7 @@ const change_index_level = async(req, res) => {
 
 //     // 다음으로 나오는 동일(또는 더 높은) 레벨 인덱스 위치를 확인하고
 //     let next_same_level_index = await Index
-//         .find({book_id : req.session.book_id,
+//         .find({book_id : req.body.book_id,
 //                 seq : {$gt : req.body.seq},
 //                 level : {$lte : req.body.level}})
 //         .sort({seq : 1})
@@ -148,7 +147,7 @@ const change_index_level = async(req, res) => {
 
 //     // 앞쪽에 나오는 동일(또는 더 높은) 레벨 인덱스 위치를 확인하고
 //     let prev_same_level_index = await Index
-//         .find({book_id : req.session.book_id,
+//         .find({book_id : req.body.book_id,
 //                 seq : {$lt : req.body.seq},
 //                 level : {$lte : req.body.level}})
 //         .sort({seq : 1})
@@ -156,7 +155,7 @@ const change_index_level = async(req, res) => {
 
 //     // 마지막 인덱스의 위치도 확인하고
 //     let max_seq_index = await Index
-//         .find({book_id : req.session.book_id})
+//         .find({book_id : req.body.book_id})
 //         .sort({seq : -1})
 //         .limit(1)
     
@@ -174,7 +173,7 @@ const change_index_level = async(req, res) => {
 //     if (req.body.action === 'up'){
 //         destination_index = await Index
 //             .find({                
-//                 book_id : req.session.book_id,
+//                 book_id : req.body.book_id,
 //                 seq : {$lt : req.body.seq, }
 //             })
 //             .sort({seq : -1})
@@ -182,7 +181,7 @@ const change_index_level = async(req, res) => {
 //     } else if (req.body.action === 'down') {
 //         destination_index = await Index
 //             .find({
-//                 book_id : req.session.book_id,
+//                 book_id : req.body.book_id,
 //                 seq : {$gt : req.body.seq}
 //             })
 //             .sort({seq : 1})
@@ -210,7 +209,7 @@ const delete_index = async(req, res) => {
     //  그냥 삭제하면 레벨이 쩜쁘할 수 있단말야. 가령 1레벨 밑에 바로 3레벨
     // 일단 레벨을 수정해줘야 될 수도 있는 범위를 잡아보자
     let next_same_level_index = await Index
-        .find({book_id : req.session.book_id,
+        .find({book_id : req.body.book_id,
                 seq : {$gt : req.body.seq},
                 level : {$lte : req.body.level}})
         .sort({seq : 1})
@@ -221,20 +220,20 @@ const delete_index = async(req, res) => {
     // 그니깐 아래 녀석들 다 레벨을 하나씩 올려주고
     if (next_same_level_index.length === 0){
         let level_modi_result = await Index.updateMany(
-            {book_id : req.session.book_id,
+            {book_id : req.body.book_id,
             seq : {$gt : req.body.seq}},
             {$inc : {level : -1}})
     } else {
     // 있으면 앞에서 찾은 레벨 앞까지만 레벨을 올려준다.
         let level_modi_result = await Index.updateMany(
-            {book_id : req.session.book_id,
+            {book_id : req.body.book_id,
             seq : {$gt : req.body.seq, $lt : next_same_level_index[0].seq}},
             {$inc : {level : -1}})
     };
 
     // 마지막으로 아래녀석들의 시퀀스를 다 하나씩 올려준다.    
     let seq_modi_result = await Index.updateMany(
-        {book_id : req.session.book_id,
+        {book_id : req.body.book_id,
         seq : {$gt : req.body.seq}},
         {$inc : {seq : -1}});
 

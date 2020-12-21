@@ -58,7 +58,7 @@ router.post('/change-like-config', isLoggedIn, Book_controller.change_like_confi
 // 카테고리 이름 변경하기
 router.post('/change-hide-config', isLoggedIn, Book_controller.change_hide_config);
 
-// 책 선택하여 시작하기
-router.post('/start-write', isLoggedIn, Book_controller.start_write);
+// // 책 선택하여 시작하기
+// router.post('/start-write', isLoggedIn, Book_controller.start_write);
 
 module.exports = router;

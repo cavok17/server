@@ -101,7 +101,7 @@ exports.create_card_by_excel = async (req, res) => {
                 selectionface2 : [],
                 annotation : [],
             }
-                        
+
             current_row = 1            
             max_seq += 1
             
@@ -144,7 +144,7 @@ exports.create_card_by_excel = async (req, res) => {
             // new_card 객체를 만들고
             new_card = {
                 cardtype_id: cardtype._id,
-                book_id: req.session.book_id,
+                book_id: req.body.book_id,
                 index_id: req.body.index_id,        
                 seq_in_index: max_seq,
                 seq_in_total : null,

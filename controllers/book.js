@@ -568,17 +568,17 @@ const change_hide_config = async(req, res) => {
     get_booklist(req, res); 
 };
 
-// write를 시작합니다.
-const start_write = async(req, res) => {
-    console.log('write를 시작합니다.');
-    console.log(req.body);
+// // write를 시작합니다.
+// const start_write = async(req, res) => {
+//     console.log('write를 시작합니다.');
+//     console.log(req.body);
 
-    console.log('원래 req.session.book_id', req.session.book_id);
-    req.session.book_id = req.body.book_id;
-    console.log('이제 req.session.book_id', req.session.book_id);
+//     console.log('원래 req.session.book_id', req.session.book_id);
+//     req.session.book_id = req.body.book_id;
+//     console.log('이제 req.session.book_id', req.session.book_id);
 
-    res.json({isloggedIn : true, msg : "세션 저장 완료"});      
-};
+//     res.json({isloggedIn : true, msg : "세션 저장 완료"});      
+// };
 
 
 module.exports ={
@@ -597,6 +597,5 @@ module.exports ={
     change_book_title,
     change_category_name,
     change_like_config,
-    change_hide_config,
-    start_write,
+    change_hide_config,    
 };
