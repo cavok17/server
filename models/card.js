@@ -16,6 +16,7 @@ const cardschema = new mongoose.Schema({
   contents : {
     user_flag : {type : Array, default : []},
     maker_flag : {type : Array, default : []},
+    none : {type : Array, default : []},
     share : {type : Array, default : []},
     face1 : {type : Array, default : []},
     selection : {type : Array, default : []},

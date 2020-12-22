@@ -53,6 +53,7 @@ exports.create_cardtype = async(req, res) => {
     } else {
         cardtype.num_of_row.maker_flag = 1
     }
+    cardtype.num_of_row.none = req.body.none
     cardtype.num_of_row.share = req.body.share
     cardtype.num_of_row.face1 = req.body.face1
     cardtype.num_of_row.selection = req.body.selection
@@ -60,7 +61,7 @@ exports.create_cardtype = async(req, res) => {
     cardtype.num_of_row.annotation = 1    
     
     let cur_alphabet = 'B'
-    for (let name of ['share', 'face1', 'selection', 'face2']) {
+    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {
         cardtype.nick_of_row[name]=[]
         for (i=0; i<req.body[name]; i++) {
             cardtype.nick_of_row[name].push(String.fromCharCode(cur_alphabet.charCodeAt() + 1))

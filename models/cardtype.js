@@ -9,6 +9,7 @@ const cardtypeschema = new mongoose.Schema({
     seq : Number,    
     num_of_row: {        
         maker_flag : {type : Number, default : 0},        
+        none : {type : Number, default : 0},        
         share : {type : Number, default : 0},        
         face1 : {type : Number, default : 0},
         selection : {type : Number, default : 0},        
@@ -17,6 +18,7 @@ const cardtypeschema = new mongoose.Schema({
     },
     nick_of_row : {
         maker_flag : {type : Array, default : ['제작자플래그']},
+        none : {type : Array, default : []},
         share : {type : Array, default : []},
         face1 : {type : Array, default : []},
         selection : {type : Array, default : []},

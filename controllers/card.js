@@ -46,6 +46,7 @@ exports.create_card = async (req, res) => {
         seq_in_index: req.body.seq_in_index*1 + 1,
         contents : {
             maker_flag : req.body.flag_of_maker,
+            none : req.body.none,
             share : req.body.share,
             face1 : req.body.face1,
             selection : req.body.selection,
@@ -110,6 +111,7 @@ exports.create_card_by_excel = async (req, res) => {
                 seq_in_index: new_seq,
                 contents : {
                     maker_flag : [],
+                    none : [],
                     share : [],
                     face1 : [],
                     selection : [],
@@ -124,7 +126,7 @@ exports.create_card_by_excel = async (req, res) => {
 
             let current_col = 2            
             // 나머지들은 for문으로 정리허시고
-            for (let face of ['share', 'face1', 'selection', 'face2', 'annotation']){
+            for (let face of ['none', 'share', 'face1', 'selection', 'face2', 'annotation']){
                 for(j=0; j<cardtype.num_of_row[face]; j++){
                     new_card.contents[face].push(table[i][current_col])
                     current_col += 1
