@@ -230,7 +230,7 @@ exports.delete_card = async (req, res) => {
         seq_in_index : {$gt : req.body.seq_in_index}},
         {$inc : {seq_in_index : -1}})    
 
-    let cardlist = get_cardlist_func(req.body.index_id)
+    let cardlist = await get_cardlist_func(req.body.index_id)
     res.json({isloggedIn : true, cardlist});
 };
 
