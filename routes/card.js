@@ -20,7 +20,7 @@ router.post('/create-card', isLoggedIn, Card_controller.create_card);
 router.post('/create-card-by-excel', isLoggedIn, upload.single('file'), Card_controller.create_card_by_excel);
 
 // 카드 내용 변경하기
-router.post('/change-card', isLoggedIn, Card_controller.change_card);
+router.post('/update-card', isLoggedIn, Card_controller.update_card);
 
 // 카드 순서 변경하기
 router.post('/change-card-order', isLoggedIn, Card_controller.change_card_order);

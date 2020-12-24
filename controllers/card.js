@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const fs = require("fs").promises;
 const multer = require('multer');
 const readXlsxFile = require('read-excel-file/node');
+// 입력 시 스크립트 같은 게 딸려오는 거 방지
+const sanitizeHtml = require('sanitize-html')
 
 // 모델 경로
 const User = require('../models/user');
@@ -38,6 +40,7 @@ exports.create_card = async (req, res) => {
     )       
     
     // 카드를 생성합니다.
+    // sanitize 쓰는 거 연구 필요
     let card = await Card.create({
         cardtype_id: req.body.cardtype_id,        
         book_id: req.body.book_id,
@@ -186,7 +189,7 @@ exports.change_card_order = async (req, res) => {
 };
 
 // 카드 내용을 변경합니다.
-exports.change_card = async (req, res) => {
+exports.update_card = async (req, res) => {
     console.log("카드 내용을 변경합니다.");
     console.log(req.body);
 
@@ -267,9 +270,6 @@ exports.move_many_card = async (req, res) => {
     res.json({isloggedIn : true, cardlist});
 
 }
-
-
-
 
 
 // max 시퀀스를 찾아드립니다.

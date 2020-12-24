@@ -2,10 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require("cookie-parser");
 const dotenv = require('dotenv');
+const helmet = require('helmet');
+const hpp = require('hpp');
 const mongoose = require("mongoose");
 const morgan = require('morgan');
 const passport = require('passport');
 const session = require('express-session');
+const csrf = require('csurf')
+const csrfProtection = csrf({cookie : true})
+
 const FileStore = require('session-file-store')(session);
 const path = require("path");
 
@@ -24,28 +29,38 @@ passportConfig();
 
 
 
-
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'production'){
+  app.enable('trust proxy')
+  app.use(morgan('combined'));
+  app.use(helmet({contentSecurityPolicy : false}))
+  app.use(hpp())
+} else {
+  app.use(morgan('dev'));
+}
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
-// const fileStoreOptions = {
-//     path : './sessions',
-// };
-app.use(session({
-  secret: process.env.COOKIE_SECRET,  
-  cookie: {
-      httponly: true,
-      maxAge: 7200000
-  },
-//   원래 false였음
-  resave: false,
-//   원래 false였음
-  saveUninitialized: true,
-//   store : new FileStore(fileStoreOptions),
-  store : new FileStore({logFn : function(){}}),
-}));
 
+
+// 프록시 서버를 쓴다면 아래 내용을 적어주는 게 좋다고 함
+
+const sessionOption = {
+  resave : false,
+  saveUninitialized : false,
+  secret : process.env.COOKIE_SECRET,
+  cookie : {
+    httpOnly : true,
+    secure : false,
+  },
+  //   store : new FileStore(fileStoreOptions),
+  store : new FileStore({logFn : function(){}}),
+}
+if (process.env.NODE_ENV === 'production'){
+  sessionOption.proxy = true
+  // https를 적용하면 secure를 true로 바꿔줘야함
+  // sessionOption.cookie.secure = true
+}
+app.use(session(sessionOption))
 
 const userRouter = require('./routes/user');
 const bookRouter = require('./routes/book');
