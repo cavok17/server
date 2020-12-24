@@ -194,18 +194,16 @@ exports.update_card = async (req, res) => {
     console.log(req.body);
 
     let card = await Card.findOne({_id : req.body.card_id})
-    card = {
-        cardtype_id: req.body.cardtype_id,        
-        parent_card_id : req.body.parent_card_id,
-        contents : {
-            maker_flag : req.body.flag_of_maker,
-            share : req.body.share,
-            face1 : req.body.face1,
-            selection : req.body.selection,
-            face2 : req.body.face2,
-            annotation : req.body.annotation
-        }
-    }
+
+    card.cardtype_id = req.body.cardtype_id
+    card.parent_card_id = req.body.parent_card_id
+    card.contents.maker_flag = req.body.flag_of_maker
+    card.contents.share = req.body.share
+    card.contents.face1 = req.body.face1
+    card.contents.selection = req.body.selection
+    card.contents.face2 = req.body.face2
+    card.contents.annotation = req.body.annotation
+        
     card = await card.save()
 
     // 쓸 일이 있을지는 모르겠으나, 자식 카드 정보를 기록해보자고
