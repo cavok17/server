@@ -3,16 +3,21 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const cardschema = new mongoose.Schema({  
   cardtype_id: {type:mongoose.ObjectId, ref:'Cardtype'},
+  cardtype_name : {type : String, default : null},
   book_id: {type:mongoose.ObjectId, ref:'Book'},
   index_id: {type:mongoose.ObjectId, ref:'Index'},  
   common_face_use_yeobu : {type : String, default : 'not_use'}, // use, not_use
   seq_in_index: {type : Number, default : null},
   seq_in_total_list: {type : Number, default : null},
   // seq_in_studying_list: Number,
+  
   position_of_content : {type : String, default : 'internal'},
   external_card_id : {type:mongoose.ObjectId, ref:'Card_external', default : null}, // 반댓말은 external
-  parent_card_id : {type:mongoose.ObjectId, ref:'Card', default : null},
+
   child_card_ids : [{type:mongoose.ObjectId, ref:'Card'}],
+  // child_yeobu : {type : String, default : null}, //child
+  parent_card_id : {type:mongoose.ObjectId, ref:'Card', default : null},
+  
   contents : {
     user_flag : {type : Array, default : []},
     maker_flag : {type : Array, default : []},
@@ -25,7 +30,7 @@ const cardschema = new mongoose.Schema({
   },
   status : {type : String, default : 'yet'}, // yet, ing, hold, completed
   time_created : {type : Date, default : Date.now},
-  study_result : {
+  detail_status : {
     recent_study_time : {type : Date, default : null},
     need_study_time: {type : Date, default : null},
     recent_difficulty : {type : String, default : null},

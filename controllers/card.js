@@ -39,10 +39,14 @@ exports.create_card = async (req, res) => {
         {$inc : {seq_in_index : 1}}
     )       
     
+    // 카드 정보에 카드타입 아이디 외 카드타입 이름까지 넣어줌
+    let cardtype = await Cardtype.findOne({cardtype_id: req.body.cardtype_id})
+
     // 카드를 생성합니다.
     // sanitize 쓰는 거 연구 필요
     let card = await Card.create({
-        cardtype_id: req.body.cardtype_id,        
+        cardtype_id: req.body.cardtype_id,
+        cardtype_name : cardtype.type,
         book_id: req.body.book_id,
         index_id: req.body.index_id,        
         parent_card_id : req.body.parent_card_id,

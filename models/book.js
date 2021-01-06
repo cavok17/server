@@ -29,23 +29,162 @@ const book_schema = new mongoose.Schema({
         time_modify: {type : Date, default : null},
         study_mode : {type : String, default : '0'},
     },
-    study_config : {
-        study_mode : {type : String, default : 'read'},
-        card_order : {type : String, default : 'sort_by_index'},
-        re_card_collect_criteria : {type : String, default : 'all'},
-        on_off : {
-            yet : {type : String, default : 'on'},
-            re : {type : String, default : 'on'},
-            hold : {type : String, default : 'off'},
-            completed : {type : String, default : 'off'},
+    recent_study_config : {
+        read_mode : {            
+            sort_option : {type : String, default : 'standard'},        
+            read_card : {
+                on_off : {type : String, default : 'on'},
+                yet : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                ing : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                    collect_criteria : {type : String, default : 'all'},
+                },
+                hold : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                completed : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+            },
+            flip_card : {
+                on_off : {type : String, default : 'on'},
+                yet : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                ing : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                    collect_criteria : {type : String, default : 'all'},
+                },
+                hold : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                completed : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+            },
         },
-        num_cards : {
-            yet : {type : Number, default : 50},
-            re : {type : Number, default : 50},
-            hold : {type : Number, default : 0},
-            completed : {type : Number, default : 0},
-        }              
-    }
+        flip_mode : {            
+            sort_option : {type : String, default : 'standard'},        
+            read_card : {
+                on_off : {type : String, default : 'on'},
+                yet : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                ing : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                    collect_criteria : {type : String, default : 'all'},
+                },
+                hold : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                completed : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+            },
+            flip_card : {
+                on_off : {type : String, default : 'on'},
+                yet : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                ing : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                    collect_criteria : {type : String, default : 'all'},
+                },
+                hold : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                completed : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+            },
+        },
+        test_mode : {            
+            sort_option : {type : String, default : 'standard'},        
+            read_card : {
+                on_off : {type : String, default : 'on'},
+                yet : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                ing : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                    collect_criteria : {type : String, default : 'all'},
+                },
+                hold : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                completed : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+            },
+            flip_card : {
+                on_off : {type : String, default : 'on'},
+                yet : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                ing : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                    collect_criteria : {type : String, default : 'all'},
+                },
+                hold : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+                completed : {
+                    on_off : {type : String, default : 'on'},
+                    num_cards : {type : Number, default : 50},
+                    select_all_yeobu : {type : String, default : 'on'},
+                },
+            },
+        },
+
+    },
 });
 
 module.exports = mongoose.model("Book", book_schema)

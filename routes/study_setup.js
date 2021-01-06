@@ -12,8 +12,8 @@ const router = express.Router();
 // 인덱스를 보내줍니다.
 router.post('/get-index', isLoggedIn, Study_setup_controller.get_index);
 
-// 학습 콘피그값을 보내줍니다.
-router.post('/get-session-config', isLoggedIn, Study_setup_controller.get_session_config);
+// // 학습 콘피그값을 보내줍니다.
+// router.post('/get-session-config', isLoggedIn, Study_setup_controller.get_session_config);
 
 // 세션을 생성합니다.
 router.post('/create-session', isLoggedIn, Study_setup_controller.create_session);
