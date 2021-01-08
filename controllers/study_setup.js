@@ -160,7 +160,7 @@ exports.get_study_config = async (req, res) => {
 
 // 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
 exports.get_index = async (req, res) => {
-    console.log(req.body);
+    console.log('body', req.body);
     
     // aggregation을 통해 total_index_info를 만들고
     let total_index_info = []
@@ -400,7 +400,7 @@ exports.create_session= async (req, res) => {
 //     res.json({isloggedIn : true, booksnindexes,});  
 // }
 
-// 해당 목차의 카드를 전달합니다.
+// 해당 목차의 카드 리스트를 전달합니다.
 exports.start_study = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
@@ -429,7 +429,7 @@ exports.start_study = async (req, res) => {
     if (session.study_config.card_on_off.flip_card === 'on' ){
         cardtype_filter = cardtype_filter.concat(['flip-normal', 'flip-select'])
     }
-    filters.cardtype_name = cardtype_filter
+    filters.type = cardtype_filter
     
     // 3번
     let cardstatus_filter = []
@@ -461,8 +461,9 @@ exports.start_study = async (req, res) => {
                 needstudytime_low_filter = new Date('2000/1/1/00:00:00')
                 break
             case 'custom' :
-                needstudytime_low_filter = '날짜'
-                needstudytime_high_filter = '날짜'
+                // 필터 날짜 변환하는 거 확인 필요함
+                needstudytime_low_filter = session.study_config.needstudytime_filter.low
+                needstudytime_high_filter = session.study_config.needstudytime_filter.low
         }
         
         filters.$or= {$and : {'study_result.need_study_time' : {$gt : needstudytime_low_filter,}, 'study_result.need_study_time' : {$lt : needstudytime_high_filter}}, 'study_result.need_study_time' : null}

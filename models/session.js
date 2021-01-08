@@ -74,6 +74,10 @@ const session_schema = new mongoose.Schema({
             completed : {type : String, default : null},
         },
         collect_criteria : {type : String, default : null}, //all, by_now, by_today
+        needstudytime_filter : {
+            low : {type : String, default : null},
+            high : {type : String, default : null}
+        },
         num_cards : {            
             on_off : {type : String, default : null},
             yet : {type : Number, default : null},
