@@ -465,7 +465,7 @@ exports.start_study = async (req, res) => {
                 needstudytime_high_filter = '날짜'
         }
         
-        filters.$or= {$and : {'study_result.need_study_time' : {$gt : needstudytime_low_filter,}, 'study_result.need_study_time' : {$lt : needstudytime_high_filter}}, 'study_result.need_study_time' : null}}
+        filters.$or= {$and : {'study_result.need_study_time' : {$gt : needstudytime_low_filter,}, 'study_result.need_study_time' : {$lt : needstudytime_high_filter}}, 'study_result.need_study_time' : null}
         // 이게 되는지 모르겠다야!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // filters.study_result.need_study_time = {
         //     $gt : needstudytime_low_filter,
