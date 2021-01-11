@@ -27,11 +27,17 @@ router.post('/create-session', isLoggedIn, Study_setup_controller.create_session
 // // 책을 아래로 내립니다.
 // router.post('/click-down', isLoggedIn, Study_setup_controller.click_down);
 
-// 학습을 시작합니다.
-router.post('/start-study', isLoggedIn, Study_setup_controller.start_study);
+// 카드리스트만 받아옵니다..
+router.post('/get-cardlist', isLoggedIn, Study_setup_controller.get_cardlist);
+
+// 고급 필터를 적용하여 카드 갯수를 다시 산출합니다.
+router.post('/apply-advanced-filter', isLoggedIn, Study_setup_controller.apply_advanced_filter);
 
 // 카드를 보내줍니다.
 router.post('/get-studying-cards',Study_setup_controller.get_studying_cards);
+
+// 표준 읽기 모드에서 카드를 보내드립니다.
+router.post('/get-studying-cards-in-read-mode',Study_setup_controller.get_studying_cards_in_read_mode);
 
 // 카드를 보내줍니다.
 router.post('/get-study-configuration',Study_setup_controller.get_study_configuration);

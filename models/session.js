@@ -60,8 +60,8 @@ const session_schema = new mongoose.Schema({
         completed : {type : Number, default : 0},
     },
     
+    study_mode : {type : String, default : null},
     study_config : {            
-        study_mode : {type : String, default : null},
         sort_option : {type : String, default : null},   //standard, time, random     
         card_on_off : {
             read_card : {type : String, default : null},
@@ -75,8 +75,8 @@ const session_schema = new mongoose.Schema({
         },
         collect_criteria : {type : String, default : null}, //all, by_now, by_today
         needstudytime_filter : {
-            low : {type : String, default : null},
-            high : {type : String, default : null}
+            low : {type : Number, default : null},
+            high : {type : Number, default : null}
         },
         num_cards : {            
             on_off : {type : String, default : null},
@@ -86,6 +86,7 @@ const session_schema = new mongoose.Schema({
             completed : {type : Number, default : null},
         },
     },
+    advanced_filter_mode : {type : String, default : null}, //on, off
     advanced_filter : {
         user_flag : {
             on_off : {type : String, default : null},
