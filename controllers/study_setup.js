@@ -563,7 +563,7 @@ exports.get_cardlist = async (req, res) => {
 
 
     // console.log('cardlist_studying', cardlist_studying)
-    res.json({isloggedIn : true, cardlist_studying, });
+    res.json({isloggedIn : true, cardlist_studying, study_configuration});
 }
 
 exports.apply_advanced_filter = async (req, res) => {
