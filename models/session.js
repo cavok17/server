@@ -150,7 +150,7 @@ const session_schema = new mongoose.Schema({
         yet : Array,
         ing : Array,
         hold : Array,
-        complited : Array
+        completed : Array
     },
     study_result : [study_result_schema],
 });

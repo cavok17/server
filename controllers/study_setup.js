@@ -318,38 +318,51 @@ exports.create_session= async (req, res) => {
         user_id : req.session.passport.user,
         booksnindexes :  req.body.booksnindexes,        
         study_mode : req.body.study_mode,
-        study_config : req.body.study_config
+        study_config : req.body.study_config,
+        advanced_filter_mode : req.body.advanced_filter_mode,
+        advanced_filter : req.body.advanced_filter,
     })
 
-    switch (req.body.study_mode){
-        case 'read' :
-            if(session.booksnindexes.length ===1){        
+    // 저장도 하고
+    if(session.booksnindexes.length ===1){        
+        let book_config_modi_result = await Book.updateOne(
+            {_id : session.booksnindexes[0].book_id}, {'study_config.read_mode' : req.body.study_config})
+        
+        // // 이렇게 해도 되는지 확인해봅시다.
+        // let book_config_modi_result = await Book.updateOne(
+        //     {_id : session.booksnindexes[0].book_id}, {['study_config.'+session.study_mode+'_mode'] : req.body.study_config})
+        switch (req.body.study_mode){
+            case 'read' :            
                 let book_config_modi_result = await Book.updateOne(
                     {_id : session.booksnindexes[0].book_id}, {'study_config.read_mode' : req.body.study_config})
-            } else if(session.booksnindexes.length >= 2){
-                let user_config_modi_result = await User.updateOne(
-                    {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})            
-            };
-            break
-        case 'flip' :
-            if(session.booksnindexes.length ===1){        
-                let book_config_modi_result = await Book.updateOne(
+                break
+            case 'flip' :                
+                book_config_modi_result = await Book.updateOne(
                     {_id : session.booksnindexes[0].book_id}, {'study_config.flip_mode' : req.body.study_config})
-            } else if(session.booksnindexes.length >= 2){
-                let user_config_modi_result = await User.updateOne(
-                    {user_id : req.session.passport.user}, {'study_config.flip_mode' : req.body.study_config})            
-            };
-            break
-        case 'exam' :
-            if(session.booksnindexes.length ===1){        
-                let book_config_modi_result = await Book.updateOne(
-                    {_id : session.booksnindexes[0].book_id}, {'study_config.exam_mode' : req.body.study_config})
-            } else if(session.booksnindexes.length >= 2){
-                let user_config_modi_result = await User.updateOne(
-                    {user_id : req.session.passport.user}, {'study_config.exam_mode' : req.body.study_config})            
-            };
-            break
-    }
+                break
+            case 'exam' :            
+                book_config_modi_result = await Book.updateOne(
+                    {_id : session.booksnindexes[0].book_id}, {'study_config.exam_mode' : req.body.study_config})                    
+                break
+        }
+    } else if(session.booksnindexes.length >= 2){
+        let user_config_modi_result = await User.updateOne(
+            {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})            
+        switch (req.body.study_mode){
+            case 'read' :            
+                let book_config_modi_result = await User.updateOne(
+                    {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})
+                break
+            case 'flip' :                
+                book_config_modi_result = await User.updateOne(
+                    {user_id : req.session.passport.user}, {'study_config.flip_mode' : req.body.study_config})
+                break
+            case 'exam' :            
+                book_config_modi_result = await User.updateOne(
+                    {user_id : req.session.passport.user}, {'study_config.exam_mode' : req.body.study_config})
+                break
+        }
+    };
 
     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 }
@@ -359,7 +372,7 @@ exports.get_cardlist = async (req, res) => {
     console.log("공부를 시작합시다.");
     console.log(req.body);
     
-    let session = await Session.findOne({_id : req.body.session_id})
+    let session = await Session.findOne({_id : req.body.session_id})    
     
     // read에 standard이면 그냥 통과시켜야 함
     if (session.study_config.study_mode === 'read' && session.study_config.sort_option ==='standard'){
@@ -371,7 +384,7 @@ exports.get_cardlist = async (req, res) => {
     let filters = {}
 
     // 1번
-    filters.index_id = index_ids
+    // filters.index_id = session.booksnindexes.index_ids
 
     // 2번
     let cardtype_filter = []    
@@ -387,42 +400,41 @@ exports.get_cardlist = async (req, res) => {
     
     // 3번
     let cardstatus_filter = []
-    for (let card_status in ['yet', 'ing', 'hold', 'completed']) {
-        if (session.study_config.status_on_off[card_status] === 'on')
-        cardstatus_filter.push(card_status)
+    for (let card_status of ['yet', 'ing', 'hold', 'completed']) {        
+        if (session.study_config.status_on_off[card_status] === 'on'){
+            cardstatus_filter.push(card_status)
+        }
     }
     filters.status = cardstatus_filter
     
     // 4,5번
-    let needstudytime_high_filter
-    let needstudytime_low_filter
+    let needstudytime_high
+    let needstudytime_low
     if(session.study_config.status_on_off.ing === 'on'){
         switch (session.study_config.collect_criteria){
             case 'all' :
-                needstudytime_low_filter = new Date('2000/1/1/00:00:00')
-                needstudytime_high_filter = new Date('2050/1/1/00:00:00')
+                needstudytime_low = new Date('2000/1/1/00:00:00')
+                needstudytime_high = new Date('2050/1/1/00:00:00')
                 break
             case 'by_now' : 
-                needstudytime_low_filter = new Date('2000/1/1/00:00:00')
-                needstudytime_high_filter = Date.now()
+                needstudytime_low = new Date('2000/1/1/00:00:00')
+                needstudytime_high = Date.now()
                 break
             case 'by_today' :
                 let tomorrow = new Date()
                 tomorrow.setDate(tomorrow.getDate()+1)
                 tomorrow.setHours(0,0,0,0)
                 console.log(tomorrow.getTime())         
-                needstudytime_high_filter = tomorrow.getTime()
-                needstudytime_low_filter = new Date('2000/1/1/00:00:00')
+                needstudytime_high = tomorrow.getTime()
+                needstudytime_low = new Date('2000/1/1/00:00:00')
                 break
             case 'custom' :
                 // 필터 날짜 변환하는 거 확인 필요함
-                needstudytime_low_filter = session.study_config.needstudytime_filter.low
-                needstudytime_high_filter = session.study_config.needstudytime_filter.low
+                needstudytime_low = session.study_config.needstudytime_filter.low
+                needstudytime_high = session.study_config.needstudytime_filter.high
         }
         
-        filters.$or= {$and : {'study_result.need_study_time' : {$gt : needstudytime_low_filter,}, 'study_result.need_study_time' : {$lt : needstudytime_high_filter}}, 'study_result.need_study_time' : null}
-        // 이게 되는지 모르겠다야!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+        filters.$or= [{$and : [{'study_result.need_study_time' : {$gt : needstudytime_low,}}, {'study_result.need_study_time' : {$lt : needstudytime_high}}]}, {'study_result.need_study_time' : null}]
     }
 
     // -------------------------------------- 토 탈 -----------------------------------------------------
@@ -432,7 +444,9 @@ exports.get_cardlist = async (req, res) => {
 
     // 책 단위로 카드를 받아서 통합하자
     for (i=0; i<session.booksnindexes.length; i++){
-        let index_ids = session.booksnindexes[i].indexes.map((index_array) => index_array.index_id)
+        filters.index_id = session.booksnindexes[i].index_ids
+        console.log('filters', filters)
+        // let index_ids = session.booksnindexes[i].index_ids.map((index_array) => index_array.index_id)
         cardlist_of_singlebook = await Card
             // .find({index_id : index_ids, cardtype_name : cardtype_filter, status : cardstatus_filter, 'study_result.need_study_time' : {$gt : needstudytime_low_filter}, 'study_result.need_study_time' : {$gt : needstudytime_high_filter} })
             .find(filters)
@@ -445,7 +459,7 @@ exports.get_cardlist = async (req, res) => {
         cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)        
         cardlist_total = cardlist_total.concat(cardlist_of_singlebook)                
     }
-        
+            
     // -------------------------------------- 소트를 적용합시다. -----------------------------------------------------
     // 원본 그대로, 복습시점 빠른 순, 랜덤
     switch (req.body.card_order) {
@@ -468,23 +482,20 @@ exports.get_cardlist = async (req, res) => {
     for (i=0; i<cardlist_total.length; i++) {        
         cardlist_total[i].seq_in_total_list = i        
     }
-    
-// -------------------------------------- 콤팩트 -----------------------------------------------------
-    let cardlist_compact = {
-        book_id : cardlist_studying_total.book_id,
-        _id : cardlist_studying_total._id,
-        seq_in_total_list : cardlist_studying_total._seq_in_total_list,
-        status : cardlist_studying_total.status,
-        detail_status : cardlist_studying_total.detail_status
+
+    for (i=0; i<cardlist_total.length; i++){
+        delete cardlist_total[i].seq_in_index        
+        delete cardlist_total[i].index_id
     }
+    console.log('cardlist_total', cardlist_total)
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
     let cardlist_sepa = {}
-    cardlist_sepa.yet = cardlist_compact.filter((card) => card.status === 'yet')    
-    cardlist_sepa.ing = cardlist_compact.filter((card) => card.status === 'ing')    
-    cardlist_sepa.hold = cardlist_compact.filter((card) => card.status === 'hold')    
-    cardlist_sepa.completed = cardlist_compact.filter((card) => card.status === 'completed')    
+    cardlist_sepa.yet = cardlist_total.filter((card) => card.status === 'yet')        
+    cardlist_sepa.ing = cardlist_total.filter((card) => card.status === 'ing')    
+    cardlist_sepa.hold = cardlist_total.filter((card) => card.status === 'hold')    
+    cardlist_sepa.completed = cardlist_total.filter((card) => card.status === 'completed')    
 
     // 이걸 세션에 저장하고
     session.cardlist_sepa = {
@@ -495,28 +506,37 @@ exports.get_cardlist = async (req, res) => {
     }        
 
 // -------------------------------------- 스터딩 -----------------------------------------------------
-    // 사용한 카드가 몇 장인지 업데이트 해주자
-    session.num_used_cards = {
-        yet : session.study_config.num_cards.yet,
-        ing : session.study_config.num_cards.ing,
-        hold : session.study_config.num_cards.hold,
-        completed : session.study_config.num_cards.completed,
-    }
+
+
 
     // 다시 하나로 묶어서 정리해주고 cardlist_studying으로 만들어준다.
     let cardlist_studying = []
+    let cardlist_studying_yet = []
+    let cardlist_studying_ing = []
+    let cardlist_studying_hold = []
+    let cardlist_studying_completed = []
+
     if (session.study_config.num_cards.on_off === 'on'){
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.yet.slice(0, session.study_config.num_cards.yet))
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.ing.slice(0, session.study_config.num_cards.ing))
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.hold.slice(0, session.study_config.num_cards.hold))
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.completed.slice(0, session.study_config.num_cards.completed))
+        cardlist_studying_yet = cardlist_sepa.yet.slice(0, session.study_config.num_cards.yet)
+        cardlist_studying_ing = cardlist_sepa.ing.slice(0, session.study_config.num_cards.ing)
+        cardlist_studying_hold = cardlist_sepa.hold.slice(0, session.study_config.num_cards.hold)
+        cardlist_studying_completed = cardlist_sepa.completed.slice(0, session.study_config.num_cards.completed)
     } else {
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.yet)
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.ing)
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.hold)
-        cardlist_studying = cardlist_studying.concat(cardlist_sepa.completed)
+        cardlist_studying_yet = cardlist_sepa.yet
+        cardlist_studying_ing = cardlist_sepa.ing
+        cardlist_studying_hold = cardlist_sepa.hold
+        cardlist_studying_completed = cardlist_sepa.completed
     }
 
+    cardlist_studying = cardlist_studying.concat(cardlist_studying_yet, cardlist_studying_ing, cardlist_studying_hold, cardlist_studying_completed)
+
+    // 사용한 카드가 몇 장인지 업데이트 해주자
+    session.num_used_cards = {
+        yet : cardlist_sepa.yet.length,
+        ing : cardlist_sepa.ing.length,
+        hold : cardlist_sepa.hold.length,
+        completed : cardlist_sepa.completed.length,
+    }
 
     // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
     // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
@@ -533,23 +553,13 @@ exports.get_cardlist = async (req, res) => {
     
     session = await session.save()
 
+    console.log('cardlist_studying', cardlist_studying)
     res.json({isloggedIn : true, cardlist_studying, });
 }
 
 exports.apply_advanced_filter = async (req, res) => {
     console.log("고급 필터 좀 사용할게요~");
     console.log(req.body);
-
-    let session
-
-    // 일단 저장합시다.
-    if(session.booksnindexes.length ===1){        
-        let book_config_modi_result = await Book.updateOne(
-            {_id : session.booksnindexes[0].book_id}, {'study_config.read_mode' : req.body.study_config})
-    } else if(session.booksnindexes.length >= 2){
-        let user_config_modi_result = await User.updateOne(
-            {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})            
-    };
 
     let filters = {}
     let and_filter = {}
@@ -583,16 +593,14 @@ exports.apply_advanced_filter = async (req, res) => {
         }
     }
 
-    let recent_study_time_low_filter
-    let recent_study_time_high_filter
-    if (advanced_filter.user_falg.on_off === 'on'){
-        recent_study_time_low_filter = advanced_filter.recent_study_time.low
-        recent_study_time_high_filter = advanced_filter.recent_study_time.high
+    let recent_study_time_filter = {}
+    if (advanced_filter.recent_study_time.on_off === 'on'){
+        recent_study_time_filter = {$and : [{'study_result.need_study_time' : {$lt : req.body.recent_study_time.low}}, {'study_result.need_study_time' : {$lt : req.body.recent_study_time.low}}]}
 
         if (advanced_filter.recent_study_time.and_group === 'on'){
-            and_filter.$and.user_flag = user_flag_filter
+            and_filter.$and.user_flag = recent_study_time_filter
         } else {
-            or_filter.user_flag = user_flag_filter
+            or_filter.user_flag = recent_study_time_filter
         }
     }
 
