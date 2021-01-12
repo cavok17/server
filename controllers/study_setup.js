@@ -445,7 +445,7 @@ exports.get_cardlist = async (req, res) => {
     // 책 단위로 카드를 받아서 통합하자
     for (i=0; i<session.booksnindexes.length; i++){
         filters.index_id = session.booksnindexes[i].index_ids
-        console.log('filters', filters)
+        // console.log('filters', filters)
         // let index_ids = session.booksnindexes[i].index_ids.map((index_array) => index_array.index_id)
         cardlist_of_singlebook = await Card
             // .find({index_id : index_ids, cardtype_name : cardtype_filter, status : cardstatus_filter, 'study_result.need_study_time' : {$gt : needstudytime_low_filter}, 'study_result.need_study_time' : {$gt : needstudytime_high_filter} })
@@ -487,7 +487,7 @@ exports.get_cardlist = async (req, res) => {
         delete cardlist_total[i].seq_in_index        
         delete cardlist_total[i].index_id
     }
-    console.log('cardlist_total', cardlist_total)
+    // console.log('cardlist_total', cardlist_total)
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
@@ -553,7 +553,16 @@ exports.get_cardlist = async (req, res) => {
     
     session = await session.save()
 
-    console.log('cardlist_studying', cardlist_studying)
+    // 학습 설정도 받아주시고요
+    let book_ids = []
+    for (i=0; i<session.booksnindexes.length; i++){
+        book_ids.push(session.booksnindexes[i].book_id)
+    }
+    let study_configuration = await Study_configuration.find({book_id : book_ids})
+    console.log(study_configuration)
+
+
+    // console.log('cardlist_studying', cardlist_studying)
     res.json({isloggedIn : true, cardlist_studying, });
 }
 
@@ -751,8 +760,7 @@ exports.get_studying_cards = async (req, res) => {
 
     // 컨텐츠를 받아오고
     let cards = await Card.find({_id : req.body.card_ids})
-        .select ('parent_card_id external_card_id seq_in_index contents memo')
-        .sort({seq_in_index : 1})
+        .select ('parent_card_id external_card_id seq_in_index contents')        
         .populate({path : 'parent_card_id',select : 'contents'})
         .populate({path : 'external_card_id',select : 'contents'})
     
@@ -761,11 +769,11 @@ exports.get_studying_cards = async (req, res) => {
             cards[i].contents.share = cards[i].parent_card_id.contents.share
         }
         if (cards[i].external_card_id != null) {
-                share = cardlist_total[i].external_card_id.contents.share,
-                face1 = cardlist_total[i].external_card_id.contents.face1,
-                selection = cardlist_total[i].external_card_id.contents.selection,
-                face2 = cardlist_total[i].external_card_id.contents.face2,
-                annotation = cardlist_total[i].external_card_id.contents.annotation
+            cards[i].contents.share = cards[i].external_card_id.contents.share,
+            cards[i].contents.face1 = cards[i].external_card_id.contents.face1,
+            cards[i].contents.selection = cards[i].external_card_id.contents.selection,
+            cards[i].contents.face2 = cards[i].external_card_id.contents.face2,
+            cards[i].contents.annotation = cards[i].external_card_id.contents.annotation
         }
     }
 
@@ -774,7 +782,6 @@ exports.get_studying_cards = async (req, res) => {
     delete cards.seq_in_index
 
     res.json({isloggedIn : true, cards, });
-
 }
 
 exports.show_the_rest_of_cards = async (req, res) => {

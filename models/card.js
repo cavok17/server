@@ -27,6 +27,7 @@ const cardschema = new mongoose.Schema({
     selection : {type : Array, default : []},
     face2 : {type : Array, default : []},
     annotation : {type : Array, default : []},
+    memo : {type : Array, default : []},
   },
   status : {type : String, default : 'yet'}, // yet, ing, hold, completed
   time_created : {type : Date, default : Date.now},
