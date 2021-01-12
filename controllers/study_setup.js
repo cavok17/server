@@ -333,15 +333,15 @@ exports.create_session= async (req, res) => {
         //     {_id : session.booksnindexes[0].book_id}, {['study_config.'+session.study_mode+'_mode'] : req.body.study_config})
         switch (req.body.study_mode){
             case 'read' :            
-                let book_config_modi_result = await Book.updateOne(
+                let book_config_modi_result_1 = await Book.updateOne(
                     {_id : session.booksnindexes[0].book_id}, {'study_config.read_mode' : req.body.study_config})
                 break
             case 'flip' :                
-                book_config_modi_result = await Book.updateOne(
+                let book_config_modi_result_2 = await Book.updateOne(
                     {_id : session.booksnindexes[0].book_id}, {'study_config.flip_mode' : req.body.study_config})
                 break
             case 'exam' :            
-                book_config_modi_result = await Book.updateOne(
+                let book_config_modi_result_3 = await Book.updateOne(
                     {_id : session.booksnindexes[0].book_id}, {'study_config.exam_mode' : req.body.study_config})                    
                 break
         }
@@ -350,15 +350,15 @@ exports.create_session= async (req, res) => {
             {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})            
         switch (req.body.study_mode){
             case 'read' :            
-                let book_config_modi_result = await User.updateOne(
+                let book_config_modi_result_4 = await User.updateOne(
                     {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})
                 break
             case 'flip' :                
-                book_config_modi_result = await User.updateOne(
+                let book_config_modi_result_5 = await User.updateOne(
                     {user_id : req.session.passport.user}, {'study_config.flip_mode' : req.body.study_config})
                 break
             case 'exam' :            
-                book_config_modi_result = await User.updateOne(
+                let book_config_modi_result_6 = await User.updateOne(
                     {user_id : req.session.passport.user}, {'study_config.exam_mode' : req.body.study_config})
                 break
         }
