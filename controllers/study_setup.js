@@ -162,20 +162,26 @@ exports.get_study_config = async (req, res) => {
 exports.get_index = async (req, res) => {
     console.log('body', req.body);
     
-    // aggregation을 통해 total_index_info를 만들고
-    let total_index_info = []
-    // total_index_info와 index 콜렉션 정보를 조합하여 single_book_info를 완성한다.
-    let single_book_info = {
-        book_id : req.body.selected_books.book_id,
-        title : req.body.selected_books.title,
-        index_info : []
-    }    
+    // 일단 인덱스를 받아오고
+    let indexes = await Index
+        .find({book_id : req.body.selected_books.book_id})
+        .select('name level seq yet ing hold completed')
+        .sort({seq : 1})
+
+    // 인덱스의 시퀀스가 정상적인지 확인하고 정상적이지 않으면 수정해준다.
+    let index_seq_modi_need = 'no'
+    for (i=0; i<indexes.length; i++){
+        if (indexes[i].seq != i){
+            let index_seq_modi_result = await Index.updateOne({_id : indexes[i]._id}, {seq : i})
+        }        
+    }
+    console.log(indexes)
 
     // ---------------------- 시~시~시~자악 ----------------------
 
     // book_id를 그냥 넣으니깐 filter를 안 먹어요. objectid로 바꿔서 넣었어요.
     let converted_book_id = mongoose.Types.ObjectId(req.body.selected_books.book_id)
-    let filter = {book_id : converted_book_id}    
+    let filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'flip-select']}}    
     
     // 현재는 복습 필요시점이 시간으로 되어 있는데, 그룹핑을 해줘야 해요.
     let current_time = Date.now()
@@ -190,21 +196,21 @@ exports.get_index = async (req, res) => {
         // need_study_time : 1,
         // need_study_time_by_milli : {$toDecimal : '$need_study_time'} ,
         book_id : 1,
-        body_id_body : {$toObjectId : req.body.book_id},        
+        // body_id_body : {$toObjectId : req.body.book_id},        
         need_study_time_group : {
             $switch : {
                 branches : [
                     {
-                        case : { $eq :['$need_study_time', null]},
+                        case : { $eq :['$detail_status.need_study_time', null]},
                         then : 'not_studying'
                     },                    {
-                        case : { $lt :[{$toDecimal : '$need_study_time'}, current_time]},
+                        case : { $lt :[{$toDecimal : '$detail_status.need_study_time'}, current_time]},
                         then : 'until_now'
                     },{
-                        case : {$and : [{$gte : [{$toDecimal : '$need_study_time'}, current_time]}, {$lt : [{$toDecimal : '$need_study_time'}, tomorrow]}]},
+                        case : {$and : [{$gte : [{$toDecimal : '$detail_status.need_study_time'}, current_time]}, {$lt : [{$toDecimal : '$need_study_time'}, tomorrow]}]},
                         then : 'until_today'
                     },{
-                        case : { $gt : [{$toDecimal : '$need_study_time'}, tomorrow]},
+                        case : { $gt : [{$toDecimal : '$detail_status.need_study_time'}, tomorrow]},
                         then : 'after_tomorrow'
                     }
                 ],
@@ -217,10 +223,10 @@ exports.get_index = async (req, res) => {
     // index별, status별, 복습시점별
     let group = {_id : {index_id : '$index_id', status : '$status', need_study_time_group : '$need_study_time_group'}, count : {$sum : 1}}
     let lookup = {
-        from : 'indexes',
-        localField : '_id.index_id',
-        foreignField : '_id',
-        as : 'index_info'
+        from : 'indexes', //collection to join
+        localField : '_id.index_id', //field from the input documents
+        foreignField : '_id', //field from the documents of the "from" collection
+        as : 'index_info' //output array field
     }
     
     // aggregate를 실행해요        
@@ -232,78 +238,27 @@ exports.get_index = async (req, res) => {
     ])    
     num_cards_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
     // console.log('num_cards_of_index', num_cards_of_index)
-
-    // aggregate결과를 보기좋게 정리해요                  
-    let single_index_info ={
-        index_id : null,
-        name : null,
-        yet : 0,
-        ing : {
-            until_now : 0,
-            until_today : 0,
-            after_tomorrow : 0,
-            total : 0
-        },
-        hold : 0,
-        completed : 0
-    }
+    
+    
+    // 인덱스에 카드 갯수 정보를 추가하고
     for (i=0; i<num_cards_of_index.length; i++){
-        // 학습 중이냐 아니냐에 따라 데이터 넣는 방식이 달라져요
-        if (num_cards_of_index[i]._id.status != 'ing'){
-            single_index_info[num_cards_of_index[i]._id.status] = num_cards_of_index[i].count
-        } else {
-            let need_study_time_group = num_cards_of_index[i]._id.need_study_time_group            
-            single_index_info.ing[need_study_time_group] = num_cards_of_index[i].count
-        }
-
-        if (num_cards_of_index.length === i+1 || String(num_cards_of_index[i]._id.index_id) !== String(num_cards_of_index[i+1]._id.index_id) ){
-            single_index_info.index_id = num_cards_of_index[i]._id.index_id                
-            single_index_info.ing.total = single_index_info.ing.until_now + single_index_info.ing.until_today + single_index_info.ing.after_tomorrow
-            console.log('single_index_info', single_index_info)
-            total_index_info.push(single_index_info)
+        if (num_cards_of_index[i]._id.status ==='ing') {
+            indexes[num_cards_of_index[i].index_info[0].seq]['ing'][num_cards_of_index[i]._id.need_study_time_group] = num_cards_of_index[i].count
+        } else {            
+            indexes[num_cards_of_index[i].index_info[0].seq][num_cards_of_index[i]._id.status] = num_cards_of_index[i].count
         }
     }
-
-    let indexes = await Index
-        .find({book_id : req.body.selected_books.book_id})
-        .select('name level seq')
-        .sort({seq : 1})
-
-    // let index_info_for_push
+    // 인덱스에 total 값 정리한 후
     for (i=0; i<indexes.length; i++){
-        let position_of_index = total_index_info.findIndex((index_info) => {            
-            return String(index_info.index_id) == String(indexes[i]._id)
-        }) 
-        let index_info_for_push ={}
-        if (position_of_index === -1) {
-            index_info_for_push = {            
-                index_id : indexes[i]._id,
-                name : indexes[i].name,
-                level : indexes[i].level,
-                seq : indexes[i].seq,
-                yet : 0,
-                ing : {
-                    until_now : 0,
-                    until_today : 0,
-                    after_tomorrow : 0,
-                    total : 0
-                },
-                hold : 0,
-                completed : 0,
-            }            
-        } else {
-            index_info_for_push = {            
-                index_id : indexes[i]._id,
-                name : indexes[i].name,
-                level : indexes[i].level,
-                seq : indexes[i].seq,
-                yet : total_index_info[position_of_index].yet,
-                ing : total_index_info[position_of_index].ing,
-                hold : total_index_info[position_of_index].hold,
-                completed : total_index_info[position_of_index].completed,
-            }
-        }
-        single_book_info.index_info.push(index_info_for_push)
+        indexes[i].ing.total = indexes[i].ing.not_studying + indexes[i].ing.until_today + indexes[i].ing.after_tomorrow
+    }
+    // console.log('indexes', indexes)
+
+    // 싱글북인포에 인덱스 정보를 넣어준다.
+    let single_book_info = {
+        book_id : req.body.selected_books.book_id,
+        title : req.body.selected_books.title,
+        index_info : indexes
     }
 
      res.json({isloggedIn : true,  single_book_info});    
