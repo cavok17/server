@@ -6,9 +6,11 @@ const index_schema = new mongoose.Schema({
     name : String,
     seq : Number,
     level : { type : Number, default : 1},
-    progress : { type : Number, default : 0},
+    
     num_cards : {
         total : {
+            progress : { type : Number, default : 0},
+            total : { type : Number, default : 0},    
             yet : { type : Number, default : 0},    
             ing : {
                 not_studying : { type : Number, default : 0},
@@ -21,6 +23,8 @@ const index_schema = new mongoose.Schema({
             completed : { type : Number, default : 0},
         },    
         read : {
+            progress : { type : Number, default : 0},
+            total : { type : Number, default : 0},    
             yet : { type : Number, default : 0},    
             ing : {
                 not_studying : { type : Number, default : 0},
@@ -33,6 +37,8 @@ const index_schema = new mongoose.Schema({
             completed : { type : Number, default : 0},
         },
         flip : {
+            progress : { type : Number, default : 0},
+            total : { type : Number, default : 0},    
             yet : { type : Number, default : 0},    
             ing : {
                 not_studying : { type : Number, default : 0},

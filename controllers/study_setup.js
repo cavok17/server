@@ -78,7 +78,25 @@ exports.get_index = async (req, res) => {
     let project = {
         index_id : 1,
         status : 1,
-        type : 1,
+        // type : 1,
+        type_group : {
+            $switch : {
+                branches : [
+                    {
+                        case : { $eq :['$type', 'read']},
+                        then : 'read'
+                    },
+                    {
+                        case : { $eq :['$type', 'flip-normal']},
+                        then : 'flip'
+                    },
+                    {
+                        case : { $eq :['$type', 'flip-select']},
+                        then : 'flip'
+                    },
+                ]
+            },
+        },
         // need_study_time : 1,
         // need_study_time_by_milli : {$toDecimal : '$need_study_time'} ,
         book_id : 1,
@@ -108,7 +126,7 @@ exports.get_index = async (req, res) => {
 
     // 조건에 맞는 카드 갯수를 구해야해요
     // index별, status별, 복습시점별
-    let group = {_id : {index_id : '$index_id', type : '$type', status : '$status', need_study_time_group : '$need_study_time_group'}, count : {$sum : 1},}
+    let group = {_id : {index_id : '$index_id', type : '$type_group', status : '$status', need_study_time_group : '$need_study_time_group'}, count : {$sum : 1},}
     let lookup = {
         from : 'indexes', //collection to join
         localField : '_id.index_id', //field from the input documents
@@ -128,24 +146,20 @@ exports.get_index = async (req, res) => {
     
     
     // 인덱스에 카드 갯수 정보를 추가하고
-    for (i=0; i<num_cards_of_index.length; i++){
-        let card_type
-        if (num_cards_of_index[i]._id.type === 'read'){
-            card_type = 'read'
-        } else {
-            card_type = 'flip'
-        }
-
+    for (i=0; i<num_cards_of_index.length; i++){        
         if (num_cards_of_index[i]._id.status ==='ing') {
-            indexes[num_cards_of_index[i].index_info[0].seq].num_cards[card_type]['ing'][num_cards_of_index[i]._id.need_study_time_group] += num_cards_of_index[i].count
+            indexes[num_cards_of_index[i].index_info[0].seq].num_cards[num_cards_of_index[i]._id.type]['ing'][num_cards_of_index[i]._id.need_study_time_group] = num_cards_of_index[i].count
         } else {            
-            indexes[num_cards_of_index[i].index_info[0].seq].num_cards[card_type][num_cards_of_index[i]._id.status] += num_cards_of_index[i].count
+            indexes[num_cards_of_index[i].index_info[0].seq].num_cards[num_cards_of_index[i]._id.type][num_cards_of_index[i]._id.status] = num_cards_of_index[i].count
         }
     }
     // 인덱스에 total 값 정리한 후
     for (i=0; i<indexes.length; i++){
-        indexes[i].num_cards.read.ing.total = indexes[i].num_cards.read.ing.not_studying + indexes[i].num_cards.read.ing.until_today + indexes[i].num_cards.read.ing.after_tomorrow
+        indexes[i].num_cards.read.ing.total = indexes[i].num_cards.read.ing.not_studying + indexes[i].num_cards.read.ing.until_today + indexes[i].num_cards.read.ing.after_tomorrow        
+        indexes[i].num_cards.read.total = indexes[i].num_cards.read.yet + indexes[i].num_cards.read.ing.total +indexes[i].num_cards.read.hold + indexes[i].num_cards.read.completed
         indexes[i].num_cards.flip.ing.total = indexes[i].num_cards.flip.ing.not_studying + indexes[i].num_cards.flip.ing.until_today + indexes[i].num_cards.read.ing.after_tomorrow
+        indexes[i].num_cards.flip.total = indexes[i].num_cards.flip.yet + indexes[i].num_cards.flip.ing.total +indexes[i].num_cards.flip.hold + indexes[i].num_cards.flip.completed
+
         indexes[i].num_cards.total.yet = indexes[i].num_cards.read.yet + indexes[i].num_cards.flip.yet
         indexes[i].num_cards.total.ing.not_studying = indexes[i].num_cards.read.ing.not_studying + indexes[i].num_cards.flip.ing.not_studying
         indexes[i].num_cards.total.ing.until_now = indexes[i].num_cards.read.ing.until_now + indexes[i].num_cards.flip.ing.until_now
@@ -154,6 +168,7 @@ exports.get_index = async (req, res) => {
         indexes[i].num_cards.total.ing.total = indexes[i].num_cards.read.ing.total + indexes[i].num_cards.flip.ing.total
         indexes[i].num_cards.total.hold = indexes[i].num_cards.read.hold + indexes[i].num_cards.flip.hold
         indexes[i].num_cards.total.completed = indexes[i].num_cards.read.completed + indexes[i].num_cards.flip.completed
+        indexes[i].num_cards.total.total = indexes[i].num_cards.read.total + indexes[i].num_cards.flip.total
     }
     // console.log('indexes', indexes)
 
@@ -161,11 +176,28 @@ exports.get_index = async (req, res) => {
 
     let project_for_progress = {
         index_id : 1,    
-        type : 1,
+        type_group : {
+            $switch : {
+                branches : [
+                    {
+                        case : { $eq :['$type', 'read']},
+                        then : 'read'
+                    },
+                    {
+                        case : { $eq :['$type', 'flip-normal']},
+                        then : 'flip'
+                    },
+                    {
+                        case : { $eq :['$type', 'flip-select']},
+                        then : 'flip'
+                    },
+                ]
+            },
+        },
         'detail_status.exp' : 1,        
     }
 
-    let group_for_progress = {_id : {index_id : '$index_id', type : '$type'}, count : {$sum : 1}, progress: { $avg: "$detail_status.exp" }}
+    let group_for_progress = {_id : {index_id : '$index_id', type : '$type_group'}, count : {$sum : 1}, progress: { $avg: "$detail_status.exp" }}
 
     
     let progress_of_index = await Card.aggregate([
@@ -176,9 +208,14 @@ exports.get_index = async (req, res) => {
     ])
     progress_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
 
-    // 인덱스에 카드 갯수 정보를 추가하고
+    // 프로그레스 정보를 추가하고
     for (i=0; i<progress_of_index.length; i++){       
-        indexes[num_cards_of_index[i].index_info[0].seq].progress = progress_of_index[i].progress    
+        indexes[progress_of_index[i].index_info[0].seq]['num_cards'][progress_of_index[i]._id.type].progress = progress_of_index[i].progress    
+    }
+
+    // 인덱스에 total 값 정리한 후
+    for (i=0; i<indexes.length; i++){
+        indexes[i].num_cards.total.progress = (indexes[i].num_cards.read.progress*indexes[i].num_cards.read.total + indexes[i].num_cards.flip.progress*indexes[i].num_cards.flip.total) / (indexes[i].num_cards.read.total + indexes[i].num_cards.flip.total)
     }
 
     // 싱글북인포에 인덱스 정보를 넣어준다.
@@ -188,8 +225,8 @@ exports.get_index = async (req, res) => {
         index_info : indexes
     }
 
-    // console.log(single_book_info)
-    // console.log(single_book_info.index_info[0].num_cards)
+    console.log(single_book_info)
+    console.log(single_book_info.index_info[0].num_cards)
      res.json({isloggedIn : true,  single_book_info});    
 }
 
