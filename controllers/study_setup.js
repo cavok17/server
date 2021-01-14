@@ -25,21 +25,33 @@ exports.get_study_config = async (req, res) => {
 
 
     // 전체 Booklist를 보내주는 게 낫지 않을까 싶음
-    let study_config
-    if (req.body.selectedbooks.length >= 2){        
-        study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
-    } else if (req.body.selectedbooks.length === 1) {
-        study_config = await Book.findOne({_id : req.body.selectedbooks[0].book_id}, {study_config : 1, _id : 0})
+    let result
+    if (req.body.selected_books.length >= 2){        
+        result = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
+    } else if (req.body.selected_books.length === 1) {
+        result = await Book.findOne({_id : req.body.selected_books[0].book_id}, {study_config : 1, _id : 0})
     }
+    // console.log('1',result.study_config)
 
     // 날짜를 변환해주고
     let current_time = Date.now()
     let today = new Date()
-    today.setHours(0,0,0,0)    
-    study_config.needstudytime_filter.low = today.setDate(today.getDate()+study_config.needstudytime_filter.low_gap)
-    study_config.needstudytime_filter.high = today.setDate(today.getDate()+study_config.needstudytime_filter.high_gap)
+    today.setHours(0,0,0,0)
+
+
+    for (let study_mode of ['read_mode', 'flip_mode', 'exam_mode']){        
+        let today = new Date()
+        today.setHours(0,0,0,0)
+        result.study_config[study_mode].needstudytime_filter.low = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap)
+
+        today = new Date()
+        today.setHours(0,0,0,0)
+        result.study_config[study_mode].needstudytime_filter.high = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap)
+    }
+
+    console.log(result.study_config)
     
-    res.json({isloggedIn : true, study_config});    
+    res.json({isloggedIn : true, study_config : result.study_config});    
 }
 
 // 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
@@ -225,8 +237,8 @@ exports.get_index = async (req, res) => {
         index_info : indexes
     }
 
-    console.log(single_book_info)
-    console.log(single_book_info.index_info[0].num_cards)
+    // console.log(single_book_info)
+    // console.log(single_book_info.index_info[0].num_cards)
      res.json({isloggedIn : true,  single_book_info});    
 }
 
