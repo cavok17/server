@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
-const study_configuration_schema = new mongoose.Schema({
+const level_config_schema = new mongoose.Schema({
   book_id : {type:mongoose.ObjectId, ref:'Book'},
   difficulty_setting : {
     lev_1 : {
@@ -113,7 +113,7 @@ const study_configuration_schema = new mongoose.Schema({
 
 
 
-module.exports = mongoose.model("Study_configuration", study_configuration_schema)
+module.exports = mongoose.model("Level_config", level_config_schema)
 
 
 

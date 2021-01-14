@@ -7,7 +7,7 @@ const Book = require('../models/book');
 const Card = require('../models/card');
 const Index = require('../models/index');
 const Session = require('../models/session');
-const Study_configuration = require('../models/study_configuration');
+const Level_config = require('../models/level_config');
 
 
 // 스터디 콘피그를 보내줍니다.
@@ -15,30 +15,15 @@ exports.get_study_config = async (req, res) => {
     console.log("스터디 콘피그를 보내줍니다..");
     console.log('body', req.body);    
     
-    // // 책과 인덱스 리스트를 받아옵니다.
-    // let session_id = req.body.session_id
-    // let session = await Session.findOne({_id : session_id},{booksnindexes : 1})    
-    // let booksnindexes = await get_booksnindexes(session)    
-    
-    // 학습 설정 관련 값도 뿌려주려고 합니다.
-    // 책마다 설정이 있긴 한데, 두 권 이상인 경우에는 두권 이상짜리 설정을 사용합니다.    
-
-
-    // 전체 Booklist를 보내주는 게 낫지 않을까 싶음
+    // 책 갯수에 맞게 스터디 콘피그 받아오시고요
     let result
     if (req.body.selected_books.length >= 2){        
         result = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
     } else if (req.body.selected_books.length === 1) {
         result = await Book.findOne({_id : req.body.selected_books[0].book_id}, {study_config : 1, _id : 0})
     }
-    // console.log('1',result.study_config)
 
-    // 날짜를 변환해주고
-    let current_time = Date.now()
-    let today = new Date()
-    today.setHours(0,0,0,0)
-
-
+    // 날짜를 변환해해서    
     for (let study_mode of ['read_mode', 'flip_mode', 'exam_mode']){        
         let today = new Date()
         today.setHours(0,0,0,0)
@@ -49,8 +34,7 @@ exports.get_study_config = async (req, res) => {
         result.study_config[study_mode].needstudytime_filter.high = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap)
     }
 
-    console.log(result.study_config)
-    
+    // 보내준다아아아아
     res.json({isloggedIn : true, study_config : result.study_config});    
 }
 
@@ -300,6 +284,127 @@ exports.create_session= async (req, res) => {
     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
 }
 
+// 고급 필터를 적용합시다.
+exports.apply_advanced_filter = async (req, res) => {
+    console.log("고급 필터 좀 사용할게요~");
+    console.log(req.body);
+
+
+    let whole_filters = {}
+    let and_filter = {}
+    let or_filter = {}
+    and_filter.$and = []
+    or_filter.$or = []
+
+    // 사용자 플래그
+    if (advanced_filter.user_flag.on_off === 'on'){
+        let user_flag_value = []
+        for (let flag of ['none', 'flag1', 'flag2', 'flag3', 'flag4', 'flag5']) {
+            if (req.body.advanced_filter.user_flag[flag] === 'on')
+            user_flag_value.push(flag)
+        }
+        let user_flag_filter = {$in : user_flag_value}
+
+        if (req.body.advanced_filter_mode === 'and'){
+            if (req.body.advanced_filter.user_flag.group === 'on') {
+                and_filter.$and.push(user_flag_filter)
+            } else {
+                or_filter.$or.push(user_flag_filter)
+            }
+        } else if (req.body.advanced_filter.user_flag.group === 'or') {
+            if (req.body.advanced_filter.user_flag.group === 'on') {
+                or_filter.$or.push(user_flag_filter)
+            } else {
+                and_filter.$and.push(user_flag_filter)
+            }
+        }   
+    }
+
+    // 제작자 플래그
+    if (advanced_filter.maker_flag.on_off === 'on'){
+        let maker_flag_value = []
+        for (let flag of ['none', 'flag1', 'flag2', 'flag3', 'flag4', 'flag5']) {
+            if (req.body.advanced_filter.maker_flag[flag] === 'on')
+            maker_flag_value.push(flag)
+        }
+        let maker_flag_filter = {$in : maker_flag_value}
+
+        if (req.body.advanced_filter_mode === 'and'){
+            if (req.body.advanced_filter.maker_flag.group === 'on') {
+                and_filter.$and.push(maker_flag_filter)
+            } else {
+                or_filter.$or.push(maker_flag_filter)
+            }
+        } else if (req.body.advanced_filter.maker_flag.group === 'or') {
+            if (req.body.advanced_filter.maker_flag.group === 'on') {
+                or_filter.$or.push(maker_flag_filter)
+            } else {
+                and_filter.$and.push(maker_flag_filter)
+            }
+        }   
+    }
+    
+    // 최근 학습 시점
+    if (req.body.advanced_filter.recent_study_time.on_off === 'on'){
+        let recent_study_time_filter = {$and : [{'study_result.need_study_time' : {$lt : req.body.advanced_filter.recent_study_time.low}}, {'study_result.need_study_time' : {$lt : req.body.advanced_filter.recent_study_time.high}}]}
+    
+        if (req.body.advanced_filter_mode === 'and'){
+            if (req.body.advanced_filter.recent_study_time.group === 'on') {
+                and_filter.$and.push(recent_study_time_filter)
+            } else {
+                or_filter.$or.push(recent_study_time_filter)
+            }
+        } else if (req.body.advanced_filter.recent_study_time.group === 'or') {
+            if (req.body.advanced_filter.recent_study_time.group === 'on') {
+                or_filter.$or.push(recent_study_time_filter)
+            } else {
+                and_filter.$and.push(recent_study_time_filter)
+            }
+        }    
+    }
+    
+    // 레벨
+    if (req.body.advanced_filter.level.on_off === 'on'){
+        let level_filter = {$and : [{'study_result.need_study_time' : {$lt : req.body.advanced_filter.level.low}}, {'study_result.need_study_time' : {$lt : req.body.advanced_filter.level.high}}]}
+    
+        if (req.body.advanced_filter_mode === 'and'){
+            if (req.body.advanced_filter.level.group === 'on') {
+                and_filter.$and.push(level_filter)
+            } else {
+                or_filter.$or.push(level_filter)
+            }
+        } else if (req.body.advanced_filter_mode === 'or'){
+            if (req.body.advanced_filter.level.group === 'on') {
+                or_filter.$or.push(level_filter)
+            } else {
+                and_filter.$and.push(level_filter)
+            }
+        }    
+    }
+    
+    // 하나로 통합헙시다.
+    if (req.body.advanced_filter_mode === 'and'){
+        and_filter.$and.push(or_filter)
+        whole_filters = and_filter
+    } else if (req.body.advanced_filter_mode === 'or'){
+        or_filter.$and.push(and_filter)
+        whole_filters = or_filter
+    }
+    
+    
+    console.log('and_filter',JSON.stringify(and_filter))
+    console.log('or_filter',JSON.stringify(or_filter))
+    console.log('whole_filters',JSON.stringify(whole_filters))
+
+
+
+
+
+
+
+}
+
+
 // 해당 목차의 카드 리스트를 전달합니다.
 exports.get_cardlist = async (req, res) => {
     console.log("공부를 시작합시다.");
@@ -491,80 +596,15 @@ exports.get_cardlist = async (req, res) => {
     for (i=0; i<session.booksnindexes.length; i++){
         book_ids.push(session.booksnindexes[i].book_id)
     }
-    let study_configuration = await Study_configuration.find({book_id : book_ids})
-    console.log(study_configuration)
+    let level_config = await Level_config.find({book_id : book_ids})
+    console.log(level_config)
 
 
     // console.log('cardlist_studying', cardlist_studying)
-    res.json({isloggedIn : true, cardlist_studying, study_configuration});
+    res.json({isloggedIn : true, cardlist_studying, level_config});
 }
 
-exports.apply_advanced_filter = async (req, res) => {
-    console.log("고급 필터 좀 사용할게요~");
-    console.log(req.body);
 
-    let filters = {}
-    let and_filter = {}
-    let or_filter = {}
-
-    let user_flag_filter = []
-    if (advanced_filter.user_flag.on_off === 'on'){
-        for (let user_flag in ['none', 'flag1', 'flag2', 'flag3', 'flag4', 'flag5']) {
-            if (advanced_filter.user_flag[user_flag] === 'on')
-            user_flag_filter.push(user_flag)
-        }
-
-        if (advanced_filter.user_flag.and_group === 'on'){
-            and_filter.$and.user_flag = user_flag_filter
-        } else {
-            or_filter.user_flag = user_flag_filter
-        }
-    }
-
-    let maker_flag_filter = []
-    if (advanced_filter.maker_flag.on_off === 'on'){
-        for (let maker_flag in ['none', 'flag1', 'flag2', 'flag3', 'flag4', 'flag5']) {
-            if (advanced_filter.maker_flag[maker_flag] === 'on')
-            maker_flag_filter.push(maker_flag)
-        }
-
-        if (advanced_filter.maker_flag.and_group === 'on'){
-            and_filter.$and.maker_flag = maker_flag_filter
-        } else {
-            or_filter.maker_flag = maker_flag_filter
-        }
-    }
-
-    let recent_study_time_filter = {}
-    if (advanced_filter.recent_study_time.on_off === 'on'){
-        recent_study_time_filter = {$and : [{'study_result.need_study_time' : {$lt : req.body.recent_study_time.low}}, {'study_result.need_study_time' : {$lt : req.body.recent_study_time.low}}]}
-
-        if (advanced_filter.recent_study_time.and_group === 'on'){
-            and_filter.$and.user_flag = recent_study_time_filter
-        } else {
-            or_filter.user_flag = recent_study_time_filter
-        }
-    }
-
-    let level_low_filter
-    let level_high_filter
-    if (advanced_filter.level.on_off === 'on'){
-        level_low_filter = advanced_filter.recent_study_time.low
-        level_low_filter = advanced_filter.recent_study_time.high
-
-        if (advanced_filter.recent_study_time.and_group === 'on'){
-            and_filter.$and.user_flag = user_flag_filter
-        } else {
-            or_filter.user_flag = user_flag_filter
-        }
-    }
-
-
-    filters.$or = Object.assign(and_filter, or_filter)    
-
-
-
-}
 
 exports.get_studying_cards_in_read_mode = async (req, res) => {
     console.log("목차별로 카드를 쏴드려요. 필터가 적용된 걸루요");
@@ -762,98 +802,48 @@ exports.req_add_cards = async (req, res) => {
 }
 
 
-exports.get_study_configuration = async (req, res) => {
-    console.log("학습 설정을 보내드립니다.");
+exports.get_level_config = async (req, res) => {
+    console.log("레벨 설정을 보내드립니다.");
     console.log(req.body);
 
-    let study_configuration = await Study_configuration.findOne({book_id : req.body.book_id})
+    let level_config = await Level_config.findOne({book_id : req.body.book_id})
 
-    res.json({isloggedIn : true, study_configuration})  
+    res.json({isloggedIn : true, level_config})  
 }
 
 
-exports.set_study_configuration = async (req, res) => {
+exports.set_level_config = async (req, res) => {
     console.log("학습 설정을 바꾸셨군요.");
     console.log(req.body);
 
-    let study_configuration = await Study_configuration.findOne({book_id : req.body.book_id})
+    let level_config = await level_config.findOne({book_id : req.body.book_id})
 
-    study_configuration.difficulty_setting = req.body.difficulty_setting
-    study_configuration.exp_setting = req.body.exp_setting
-    study_configuration.lev_setting = req.body.lev_setting
+    level_config.difficulty_setting = req.body.difficulty_setting
+    level_config.exp_setting = req.body.exp_setting
+    level_config.lev_setting = req.body.lev_setting
 
-    study_configuration = await study_configuration.save()
+    level_config = await level_config.save()
 
     res.json({isloggedIn : true, msg : "수정 완료"})  
 }
 
-exports.get_all_study_configurations = async (req, res) => {
-    console.log("학습 설정을 다 보내드립죠.");
-    console.log(req.body);
+// exports.get_all_level_configs = async (req, res) => {
+//     console.log("학습 설정을 다 보내드립죠.");
+//     console.log(req.body);
 
-    let selected_bookNindex_list = await Selected_bookNindex
-        .find({session_id : req.body.session_id})
-        .sort({seq : 1})
+//     let selected_bookNindex_list = await Selected_bookNindex
+//         .find({session_id : req.body.session_id})
+//         .sort({seq : 1})
 
-    let book_ids = []
-    for (i=0; i<selected_bookNindex_list.length; i++){
-        book_ids.push(selected_bookNindex_list[i].book_id)
-    }
+//     let book_ids = []
+//     for (i=0; i<selected_bookNindex_list.length; i++){
+//         book_ids.push(selected_bookNindex_list[i].book_id)
+//     }
 
-    let study_configurations = await Study_configuration.find({book_id : book_ids})
+//     let level_configs = await level_config.find({book_id : book_ids})
 
-    res.json({isloggedIn : true, study_configurations})  
-}
-
-exports.temp = async (req, res) => {
-    // 순서를 섞어야되믄 순서를 섞고
-    if(req.body.card_order === 'shuffle'){
-        for (let i = total_cardlist.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1)); // 무작위 인덱스(0 이상 i 미만)  
-            [array[i], array[j]] = [array[j], array[i]];
-        }    
-    }
-
-    // 복습 필요 순서로 정렬해야되믄 정렬도 하고
-    if(req.body.card_order === 'sort_by_time'){
-        cardlist.sort((a,b) => a.willstudy_time - b.willstudy_time)
-    }
-
-    // 다 됐으믄 전체 리스트를 수정하자고하자고
-    let studyingcard_total = await Studyingcard_total.updateOne(
-        {user_id : req.user},
-        {cardlist : total_cardlist}
-    )
-    
-    // 복습카드와 신규카드를 구분하는 작업이 필요함
-
-    // 다 됐으믄 현재 공부카드만 남겨놓자고
-    
-    let studyingcard_current = await Studyingcard_current.updateOne(
-        {user_id : req.user},
-        {cardlist : current_cardlist}
-    )
-
-    res.json({isloggedIn : true, cardlist});
-};
+//     res.json({isloggedIn : true, level_configs})  
+// }
 
 
-
-
-const get_booksnindexes = async function(session){
-    // let session = await Session.findOne({_id : session_id},{booksnindexes : 1})    
-    let booksnindexes = []
-    for (i=0; i<session.booksnindexes.length; i++){
-        let indexes_of_the_book = await Index
-            .find({book_id : session.booksnindexes[i].book_id})
-            .sort({seq : 1})        
-        let single_bookNindex = {
-            book_id : session.booksnindexes[i].book_id,
-            title : session.booksnindexes[i].title,
-            index_ids : indexes_of_the_book,
-        }
-        booksnindexes.push(single_bookNindex)
-    }
-    return booksnindexes
-}
 

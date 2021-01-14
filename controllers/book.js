@@ -7,7 +7,7 @@ const Card = require('../models/card');
 const Index = require('../models/index');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
-const Study_configuration = require('../models/study_configuration');
+const Level_config = require('../models/level_config');
 
 // 시퀀스 정보를 전달하는 공용함수입니다.
 const get_seq_info = async (category_id) => {        
@@ -268,7 +268,7 @@ const create_book =  async (req, res) => {
     );
     
     // 학습설정도 만들고
-    let study_configuration = await Study_configuration.create({        
+    let level_config = await Level_config.create({        
         book_id : book._id,
     });
 

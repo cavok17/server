@@ -88,11 +88,12 @@ const session_schema = new mongoose.Schema({
             completed : {type : Number, default : null},
         },
     },
-    advanced_filter_mode : {type : String, default : null}, //on, off
+    advanced_filter_on_off : {type : String, default : null}, //on, off
+    advanced_filter_mode : {type : String, default : null}, //or, and
     advanced_filter : {
         user_flag : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            on_off : {type : String, default : null},//on, off
+            group : {type : String, default : null}, //on, off
             none : {type : String, default : null},
             flag1 : {type : String, default : null},
             flag2 : {type : String, default : null},
@@ -102,7 +103,7 @@ const session_schema = new mongoose.Schema({
         },
         maker_flag : {
             on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            group : {type : String, default : null},
             none : {type : String, default : null},
             flag1 : {type : String, default : null},
             flag2 : {type : String, default : null},
@@ -112,25 +113,25 @@ const session_schema = new mongoose.Schema({
         },
         recent_study_time : {
             on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            group : {type : String, default : null},
             low : {type : String, default : null},
             high : {type : String, default : null},            
         },                    
         level : {
             on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            group : {type : String, default : null},
             low : {type : String, default : null},
             high : {type : String, default : null},            
         },
         study_times : {
             on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            group : {type : String, default : null},
             low : {type : String, default : null},
             high : {type : String, default : null},            
         },
         difficulty : {
             on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            group : {type : String, default : null},
             none : {type : String, default : null},
             diffi1 : {type : String, default : null},
             diffi2 : {type : String, default : null},
@@ -140,7 +141,7 @@ const session_schema = new mongoose.Schema({
         },
         test_result : {
             on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            group : {type : String, default : null},
             none : {type : String, default : null},
             right : {type : String, default : null},
             wrong : {type : String, default : null},

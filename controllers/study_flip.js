@@ -7,7 +7,7 @@ const readXlsxFile = require('read-excel-file/node');
 const Card = require('../models/card');
 const Session = require('../models/session');
 // const { session } = require("passport");
-const Study_configuration = require("../models/study_configuration");
+const Level_config = require("../models/level_config");
 
 // 난이도 평가를 반영합니다.
 exports.click_difficulty= async (req, res) => {
@@ -15,8 +15,8 @@ exports.click_difficulty= async (req, res) => {
     console.log(req.body);
 
     // 일단 북 아이디로 학습 설정을 찾고, 
-    let study_configuration = await Study_configuration.findOne({book_id : req.body.book_id})
-    console.log(study_configuration)
+    let level_config = await Level_config.findOne({book_id : req.body.book_id})
+    console.log(level_config)
 
     // 카드 아이디로 카드를 찾고
     let card = await Card.findOne({_id : req.body.card_id})
@@ -32,11 +32,11 @@ exports.click_difficulty= async (req, res) => {
     let exp_acquisition
     if(req.body.difficulty === 'lev_5') {
         switch(card.study_result.current_lev_study_times){
-            case 0 : exp_acquisition = study_configuration.exp_setting.one_time; break;
-            case 1 : exp_acquisition = study_configuration.exp_setting.two_times; break;
-            case 2 : exp_acquisition = study_configuration.exp_setting.three_times; break;
-            case 3 : exp_acquisition = study_configuration.exp_setting.four_times; break;
-            default : exp_acquisition = study_configuration.exp_setting.five_times; break;
+            case 0 : exp_acquisition = level_config.exp_setting.one_time; break;
+            case 1 : exp_acquisition = level_config.exp_setting.two_times; break;
+            case 2 : exp_acquisition = level_config.exp_setting.three_times; break;
+            case 3 : exp_acquisition = level_config.exp_setting.four_times; break;
+            default : exp_acquisition = level_config.exp_setting.five_times; break;
         }
         card.study_result.exp += exp_acquisition
 
@@ -51,8 +51,8 @@ exports.click_difficulty= async (req, res) => {
     // 복습 필요 시점도 다시 잡아주고
     // 알겠음을 선택했을 때랑, 아닐 때랑 복습 주기를 다르게 적용해줌
     if (req.body.difficulty === 'lev_5'){
-        let interval = study_configuration.lev_setting[req.body.difficulty]['interval']
-        let time_unit = study_configuration.lev_setting[req.body.difficulty]['time_unit']
+        let interval = level_config.lev_setting[req.body.difficulty]['interval']
+        let time_unit = level_config.lev_setting[req.body.difficulty]['time_unit']
         let restudy_term
         if (time_unit === 'min'){
             restudy_term = interval*60*1000
@@ -63,8 +63,8 @@ exports.click_difficulty= async (req, res) => {
         }
         card.need_study_time = Date.now() + restudy_term    
     } else {
-        let interval = study_configuration.difficulty_setting[req.body.difficulty]['interval']
-        let time_unit = study_configuration.difficulty_setting[req.body.difficulty]['time_unit']
+        let interval = level_config.difficulty_setting[req.body.difficulty]['interval']
+        let time_unit = level_config.difficulty_setting[req.body.difficulty]['time_unit']
         let restudy_term
         if (time_unit === 'min'){
             restudy_term = interval*60*1000
