@@ -31,6 +31,13 @@ exports.get_study_config = async (req, res) => {
     } else if (session.booksnindexes.length === 1) {
         study_config = await Book.findOne({_id : session.booksnindexes[0].book_id}, {study_config : 1, _id : 0})
     }
+
+    // 날짜를 변환해주고
+    let current_time = Date.now()
+    let today = new Date()
+    today.setHours(0,0,0,0)    
+    study_config.needstudytime_filter.low = today.setDate(today.getDate()+study_config.needstudytime_filter.low_gap)
+    study_config.needstudytime_filter.high = today.setDate(today.getDate()+study_config.needstudytime_filter.high_gap)
     
     res.json({isloggedIn : true, session_id, booksnindexes, study_config});    
 }
@@ -42,10 +49,11 @@ exports.get_index = async (req, res) => {
     // 일단 인덱스를 받아오고
     let indexes = await Index
         .find({book_id : req.body.selected_books.book_id})
-        .select('name level seq num_cards')
+        .select('name level seq num_cards progress')
         .sort({seq : 1})
 
     // 인덱스의 시퀀스가 정상적인지 확인하고 정상적이지 않으면 수정해준다.
+    // 뒤쪽에서 시퀀스 넘버로 어레이를 매니지 하니깐, 순서가 맞아야 한다.
     let index_seq_modi_need = 'no'
     for (i=0; i<indexes.length; i++){
         if (indexes[i].seq != i){
@@ -67,13 +75,14 @@ exports.get_index = async (req, res) => {
     tomorrow.setHours(0,0,0,0)    
     tomorrow = tomorrow.getTime()
     
-    let project_by_switch = {
+    let project = {
         index_id : 1,
         status : 1,
         type : 1,
         // need_study_time : 1,
         // need_study_time_by_milli : {$toDecimal : '$need_study_time'} ,
         book_id : 1,
+        'detail_status.exp' : 1,
         // body_id_body : {$toObjectId : req.body.book_id},        
         need_study_time_group : {
             $switch : {
@@ -99,7 +108,7 @@ exports.get_index = async (req, res) => {
 
     // 조건에 맞는 카드 갯수를 구해야해요
     // index별, status별, 복습시점별
-    let group = {_id : {index_id : '$index_id', type : '$type', status : '$status', need_study_time_group : '$need_study_time_group'}, count : {$sum : 1}}
+    let group = {_id : {index_id : '$index_id', type : '$type', status : '$status', need_study_time_group : '$need_study_time_group'}, count : {$sum : 1},}
     let lookup = {
         from : 'indexes', //collection to join
         localField : '_id.index_id', //field from the input documents
@@ -110,7 +119,7 @@ exports.get_index = async (req, res) => {
     // aggregate를 실행해요        
     let num_cards_of_index = await Card.aggregate([
         {$match : filter}, 
-        {$project : project_by_switch},
+        {$project : project},
         {$group : group},
         {$lookup : lookup}
     ])    
@@ -147,6 +156,30 @@ exports.get_index = async (req, res) => {
         indexes[i].num_cards.total.completed = indexes[i].num_cards.read.completed + indexes[i].num_cards.flip.completed
     }
     // console.log('indexes', indexes)
+
+// ----------------------------- 프로그레스 --------------------------------------------------------
+
+    let project_for_progress = {
+        index_id : 1,    
+        type : 1,
+        'detail_status.exp' : 1,        
+    }
+
+    let group_for_progress = {_id : {index_id : '$index_id', type : '$type'}, count : {$sum : 1}, progress: { $avg: "$detail_status.exp" }}
+
+    
+    let progress_of_index = await Card.aggregate([
+        {$match : filter}, 
+        {$project : project_for_progress},
+        {$group : group_for_progress},
+        {$lookup : lookup}
+    ])
+    progress_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
+
+    // 인덱스에 카드 갯수 정보를 추가하고
+    for (i=0; i<progress_of_index.length; i++){       
+        indexes[num_cards_of_index[i].index_info[0].seq].progress = progress_of_index[i].progress    
+    }
 
     // 싱글북인포에 인덱스 정보를 넣어준다.
     let single_book_info = {

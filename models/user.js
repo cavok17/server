@@ -30,78 +30,84 @@ const userschema = new mongoose.Schema({
   },
   recent_study_config : {
     read_mode : {            
-        sort_option : {type : String, default : null},   //standard, time, random     
+        sort_option : {type : String, default : 'standard'},   //standard, time, random     
         card_on_off : {
-            read_card : {type : String, default : null},
-            flip_card : {type : String, default : null},
+            read_card : {type : String, default : 'on'},
+            flip_card : {type : String, default : 'on'},
         },
         status_on_off : {
-            yet : {type : String, default : null},
-            ing : {type : String, default : null},            
-            hold : {type : String, default : null},
-            completed : {type : String, default : null},
+            yet : {type : String, default : 'on'},
+            ing : {type : String, default : 'on'},            
+            hold : {type : String, default : 'off'},
+            completed : {type : String, default : 'off'},
         },
-        collect_criteria : {type : String, default : null}, //all, by_now, by_today
+        collect_criteria : {type : String, default : 'by_today'}, //all, by_now, by_today
         needstudytime_filter : {
-            low : {type : Number, default : null},
-            high : {type : Number, default : null}
+            low : {type : Date, default : null},
+            low_gap : {type : Number, default : 0},
+            high : {type : Date, default : null},
+            high_gap : {type : Number, default : 1},
         },
         num_cards : {            
-            on_off : {type : String, default : null},
-            yet : {type : Number, default : null},
-            ing : {type : Number, default : null},
-            hold : {type : Number, default : null},
-            completed : {type : Number, default : null},
+            on_off : {type : String, default : 'off'},
+            yet : {type : Number, default : 50},
+            ing : {type : Number, default : 50},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
         },
     },
     flip_mode : {            
-        sort_option : {type : String, default : null},   //standard, time, random     
+        sort_option : {type : String, default : 'standard'},   //standard, time, random     
         card_on_off : {
-            read_card : {type : String, default : null},
-            flip_card : {type : String, default : null},
+            read_card : {type : String, default : 'on'},
+            flip_card : {type : String, default : 'on'},
         },
         status_on_off : {
-            yet : {type : String, default : null},
-            ing : {type : String, default : null},            
-            hold : {type : String, default : null},
-            completed : {type : String, default : null},
+            yet : {type : String, default : 'on'},
+            ing : {type : String, default : 'on'},            
+            hold : {type : String, default : 'off'},
+            completed : {type : String, default : 'off'},
         },
-        collect_criteria : {type : String, default : null}, //all, by_now, by_today
+        collect_criteria : {type : String, default : 'by_today'}, //all, by_now, by_today
         needstudytime_filter : {
-            low : {type : Number, default : null},
-            high : {type : Number, default : null}
+            low : {type : Date, default : null},
+            low_gap : {type : Number, default : 0},
+            high : {type : Date, default : null},
+            high_gap : {type : Number, default : 1},
         },
         num_cards : {            
-            on_off : {type : String, default : null},
-            yet : {type : Number, default : null},
-            ing : {type : Number, default : null},
-            hold : {type : Number, default : null},
-            completed : {type : Number, default : null},
+            on_off : {type : String, default : 'off'},
+            yet : {type : Number, default : 50},
+            ing : {type : Number, default : 50},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
         },
     },
     exam_mode : {            
-        sort_option : {type : String, default : null},   //standard, time, random     
+        sort_option : {type : String, default : 'standard'},   //standard, time, random     
         card_on_off : {
-            read_card : {type : String, default : null},
-            flip_card : {type : String, default : null},
+            read_card : {type : String, default : 'off'},
+            flip_card : {type : String, default : 'on'},
         },
         status_on_off : {
-            yet : {type : String, default : null},
-            ing : {type : String, default : null},            
-            hold : {type : String, default : null},
-            completed : {type : String, default : null},
+            yet : {type : String, default : 'on'},
+            ing : {type : String, default : 'on'},            
+            hold : {type : String, default : 'off'},
+            completed : {type : String, default : 'off'},
         },
-        collect_criteria : {type : String, default : null}, //all, by_now, by_today
+        collect_criteria : {type : String, default : 'by_today'}, //all, by_now, by_today
         needstudytime_filter : {
-            low : {type : Number, default : null},
-            high : {type : Number, default : null}
+            low : {type : Date, default : null},
+            low_gap : {type : Number, default : 0},
+            high : {type : Date, default : null},
+            high_gap : {type : Number, default : 1},
         },
         num_cards : {            
-            on_off : {type : String, default : null},
-            yet : {type : Number, default : null},
-            ing : {type : Number, default : null},
-            hold : {type : Number, default : null},
-            completed : {type : Number, default : null},
+            on_off : {type : String, default : 'off'},
+            yet : {type : Number, default : 50},
+            ing : {type : Number, default : 50},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
         },
     },
     advanced_filter : {

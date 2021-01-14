@@ -6,6 +6,7 @@ const index_schema = new mongoose.Schema({
     name : String,
     seq : Number,
     level : { type : Number, default : 1},
+    progress : { type : Number, default : 0},
     num_cards : {
         total : {
             yet : { type : Number, default : 0},    
