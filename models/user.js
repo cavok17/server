@@ -28,7 +28,7 @@ const userschema = new mongoose.Schema({
     likebook : {type : Boolean, default : true},
     hide_or_show : {type : Boolean, default : true}
   },
-  recent_study_config : {
+  study_config : {
     read_mode : {            
         sort_option : {type : String, default : 'standard'},   //standard, time, random     
         card_on_off : {

@@ -28,7 +28,7 @@ exports.get_study_config = async (req, res) => {
     let study_config
     if (req.body.selectedbooks.length >= 2){        
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
-    } else if (req.body.selectedbooks === 1) {
+    } else if (req.body.selectedbooks.length === 1) {
         study_config = await Book.findOne({_id : req.body.selectedbooks[0].book_id}, {study_config : 1, _id : 0})
     }
 

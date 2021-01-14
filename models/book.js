@@ -29,7 +29,7 @@ const book_schema = new mongoose.Schema({
         time_modify: {type : Date, default : null},
         study_mode : {type : String, default : '0'},
     },
-    recent_study_config : {
+    study_config : {
         read_mode : {            
             sort_option : {type : String, default : 'standard'},   //standard, time, random     
             card_on_off : {
