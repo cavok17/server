@@ -26,10 +26,10 @@ exports.get_study_config = async (req, res) => {
 
     // 전체 Booklist를 보내주는 게 낫지 않을까 싶음
     let study_config
-    if (session.booksnindexes.length >= 2){        
+    if (req.body.selectedbooks.length >= 2){        
         study_config = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
-    } else if (session.booksnindexes.length === 1) {
-        study_config = await Book.findOne({_id : session.booksnindexes[0].book_id}, {study_config : 1, _id : 0})
+    } else if (req.body.selectedbooks === 1) {
+        study_config = await Book.findOne({_id : req.body.selectedbooks[0].book_id}, {study_config : 1, _id : 0})
     }
 
     // 날짜를 변환해주고
@@ -39,7 +39,7 @@ exports.get_study_config = async (req, res) => {
     study_config.needstudytime_filter.low = today.setDate(today.getDate()+study_config.needstudytime_filter.low_gap)
     study_config.needstudytime_filter.high = today.setDate(today.getDate()+study_config.needstudytime_filter.high_gap)
     
-    res.json({isloggedIn : true, session_id, booksnindexes, study_config});    
+    res.json({isloggedIn : true, study_config});    
 }
 
 // 선택된 인덱스를 저장하고, 카드 수량을 전달합니다.
