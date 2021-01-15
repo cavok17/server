@@ -27,11 +27,13 @@ exports.get_study_config = async (req, res) => {
     for (let study_mode of ['read_mode', 'flip_mode', 'exam_mode']){        
         let today = new Date()
         today.setHours(0,0,0,0)
-        result.study_config[study_mode].needstudytime_filter.low = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap_day)
+        let low_day = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap_day)
+        result.study_config[study_mode].needstudytime_filter.low = low_day.getYear()+'-'+(low_day.getMonth()+1)+'-'+low_day.getDay()+1
 
         today = new Date()
         today.setHours(0,0,0,0)
-        result.study_config[study_mode].needstudytime_filter.high = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap_day)
+        let high_day = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap_day)
+        result.study_config[study_mode].needstudytime_filter.high = high_day.getYear()+'-'+(high_day.getMonth()+1)+'-'+high_day.getDay()+1        
     }
 
     // 보내준다아아아아
