@@ -18,24 +18,24 @@ exports.get_study_config = async (req, res) => {
     // 책 갯수에 맞게 스터디 콘피그 받아오시고요
     let result
     if (req.body.selected_books.length >= 2){        
-        result = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                        
+        result = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, advanced_filter : 1, _id : 0})                        
     } else if (req.body.selected_books.length === 1) {
-        result = await Book.findOne({_id : req.body.selected_books[0].book_id}, {study_config : 1, _id : 0})        
+        result = await Book.findOne({_id : req.body.selected_books[0].book_id}, {study_config : 1, advanced_filter : 1, _id : 0})        
     }
 
     // 날짜를 변환해해서    
     for (let study_mode of ['read_mode', 'flip_mode', 'exam_mode']){        
         let today = new Date()
         today.setHours(0,0,0,0)
-        result.study_config[study_mode].needstudytime_filter.low = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap)
+        result.study_config[study_mode].needstudytime_filter.low = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap_day)
 
         today = new Date()
         today.setHours(0,0,0,0)
-        result.study_config[study_mode].needstudytime_filter.high = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap)
+        result.study_config[study_mode].needstudytime_filter.high = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap_day)
     }
 
     // 보내준다아아아아
-    res.json({isloggedIn : true, study_config : result.study_config});    
+    res.json({isloggedIn : true, study_config : result.study_config, advanced_filter : result.advanced_filter});    
 }
 
 // ********************************************************************************************************************************
