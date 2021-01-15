@@ -29,6 +29,7 @@ const userschema = new mongoose.Schema({
     hide_or_show : {type : Boolean, default : true}
   },
   study_config : {
+    study_mode : {type : String, default : 'read_mode'},
     read_mode : {            
         sort_option : {type : String, default : 'standard'},   //standard, time, random     
         card_on_off : {
@@ -111,61 +112,68 @@ const userschema = new mongoose.Schema({
         },
     },
     advanced_filter : {
+        mode : {type : String, default : 'and'}, //or, and
         user_flag : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
-            none : {type : String, default : null},
-            flag1 : {type : String, default : null},
-            flag2 : {type : String, default : null},
-            flag3 : {type : String, default : null},
-            flag4 : {type : String, default : null},
-            flag5 : {type : String, default : null},
+            on_off : {type : String, default : 'off'},//on, off
+            group : {type : String, default : 'off'}, //on, off
+            none : {type : String, default : 'on'},
+            flag1 : {type : String, default : 'on'},
+            flag2 : {type : String, default : 'on'},
+            flag3 : {type : String, default : 'on'},
+            flag4 : {type : String, default : 'on'},
+            flag5 : {type : String, default : 'on'},
         },
         maker_flag : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
-            none : {type : String, default : null},
-            flag1 : {type : String, default : null},
-            flag2 : {type : String, default : null},
-            flag3 : {type : String, default : null},
-            flag4 : {type : String, default : null},
-            flag5 : {type : String, default : null},
+            on_off : {type : String, default : 'off'},
+            group : {type : String, default : 'off'},
+            none : {type : String, default : 'on'},
+            flag1 : {type : String, default : 'on'},
+            flag2 : {type : String, default : 'on'},
+            flag3 : {type : String, default : 'on'},
+            flag4 : {type : String, default : 'on'},
+            flag5 : {type : String, default : 'on'},
         },
         recent_study_time : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
+            on_off : {type : String, default : 'off'},
+            group : {type : String, default : 'off'},
             low : {type : String, default : null},
             high : {type : String, default : null},            
         },                    
         level : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
-            low : {type : String, default : null},
-            high : {type : String, default : null},            
+            on_off : {type : String, default : 'off'},
+            group : {type : String, default : 'off'},
+            low : {type : Number, default : 1},
+            high : {type : Number, default : 10},            
         },
         study_times : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
-            low : {type : String, default : null},
-            high : {type : String, default : null},            
+            on_off : {type : String, default : 'off'},
+            group : {type : String, default : 'off'},
+            low : {type : Number, default : 0},
+            high : {type : Number, default : 100},            
         },
         difficulty : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
-            none : {type : String, default : null},
-            diffi1 : {type : String, default : null},
-            diffi2 : {type : String, default : null},
-            diffi3 : {type : String, default : null},
-            diffi4 : {type : String, default : null},
-            diffi5 : {type : String, default : null},
+            on_off : {type : String, default : 'off'},
+            group : {type : String, default : 'off'},
+            none : {type : String, default : 'on'},
+            diffi1 : {type : String, default : 'on'},
+            diffi2 : {type : String, default : 'on'},
+            diffi3 : {type : String, default : 'on'},
+            diffi4 : {type : String, default : 'on'},
+            diffi5 : {type : String, default : 'on'},
         },
         test_result : {
-            on_off : {type : String, default : null},
-            and_group : {type : String, default : null},
-            none : {type : String, default : null},
-            right : {type : String, default : null},
-            wrong : {type : String, default : null},
+            on_off : {type : String, default : 'off'},
+            group : {type : String, default : 'off'},
+            none : {type : String, default : 'on'},
+            right : {type : String, default : 'on'},
+            wrong : {type : String, default : 'on'},
         },
+        writer : {
+            on_off : {type : String, default : 'off'},
+            group : {type : String, default : 'off'},
+            internal : {type : String, default : 'on'}, //내가 만든 것
+            external : {type : String, default : 'on'}, //원래 있던 것
+        }
     },  
 },          
 });

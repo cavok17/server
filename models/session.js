@@ -58,8 +58,7 @@ const session_schema = new mongoose.Schema({
         ing : {type : Number, default : 0},
         hold : {type : Number, default : 0},
         completed : {type : Number, default : 0},
-    },
-    
+    },    
     study_mode : {type : String, default : null},
     study_config : {            
         sort_option : {type : String, default : null},   //standard, time, random     
@@ -87,10 +86,10 @@ const session_schema = new mongoose.Schema({
             hold : {type : Number, default : null},
             completed : {type : Number, default : null},
         },
-    },
-    advanced_filter_on_off : {type : String, default : null}, //on, off
-    advanced_filter_mode : {type : String, default : null}, //or, and
-    advanced_filter : {
+    },    
+    advanced_filter_on_off : {type : String, default : null}, //on, off    
+    advanced_filter : {        
+        mode : {type : String, default : null}, //or, and
         user_flag : {
             on_off : {type : String, default : null},//on, off
             group : {type : String, default : null}, //on, off
@@ -146,6 +145,12 @@ const session_schema = new mongoose.Schema({
             right : {type : String, default : null},
             wrong : {type : String, default : null},
         },
+        writer : {
+            on_off : {type : String, default : null},
+            group : {type : String, default : null},
+            internal : {type : String, default : null}, //내가 만든 것
+            external : {type : String, default : null}, //원래 있던 것
+        }
     },    
     // cardlist_total : Array,
     cardlist_studying : [cardlist_studying_schema],

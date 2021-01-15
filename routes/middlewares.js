@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require("path");
 
 exports.isNotLoggedIn = (req, res, next) => {
-    console.log('req.isAuthenticated',req.isAuthenticated());
+    // console.log('req.isAuthenticated',req.isAuthenticated());
     if (!req.isAuthenticated()) {
         next();
     } else {
