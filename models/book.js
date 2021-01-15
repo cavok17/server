@@ -46,9 +46,9 @@ const book_schema = new mongoose.Schema({
             collect_criteria : {type : String, default : 'by_today'}, //all, by_now, by_today
             needstudytime_filter : {
                 low : {type : Date, default : null},
-                low_gap : {type : Number, default : 0},
+                low_gap_date : {type : Number, default : 0},
                 high : {type : Date, default : null},
-                high_gap : {type : Number, default : 1},
+                high_gap_date : {type : Number, default : 1},
             },
             num_cards : {            
                 on_off : {type : String, default : 'off'},
@@ -73,9 +73,9 @@ const book_schema = new mongoose.Schema({
             collect_criteria : {type : String, default : 'by_today'}, //all, by_now, by_today
             needstudytime_filter : {
                 low : {type : Date, default : null},
-                low_gap : {type : Number, default : 0},
+                low_gap_date : {type : Number, default : 0},
                 high : {type : Date, default : null},
-                high_gap : {type : Number, default : 1},
+                high_gap_date : {type : Number, default : 1},
             },
             num_cards : {            
                 on_off : {type : String, default : 'off'},
@@ -100,9 +100,9 @@ const book_schema = new mongoose.Schema({
             collect_criteria : {type : String, default : 'by_today'}, //all, by_now, by_today
             needstudytime_filter : {
                 low : {type : Date, default : null},
-                low_gap : {type : Number, default : 0},
+                low_gap_date : {type : Number, default : 0},
                 high : {type : Date, default : null},
-                high_gap : {type : Number, default : 1},
+                high_gap_date : {type : Number, default : 1},
             },
             num_cards : {            
                 on_off : {type : String, default : 'off'},

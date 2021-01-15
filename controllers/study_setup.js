@@ -23,18 +23,24 @@ exports.get_study_config = async (req, res) => {
         result = await Book.findOne({_id : req.body.selected_books[0].book_id}, {study_config : 1, advanced_filter : 1, _id : 0})        
     }
 
+    console.log(result.study_config.read_mode)
     // 날짜를 변환해해서    
     for (let study_mode of ['read_mode', 'flip_mode', 'exam_mode']){        
         let today = new Date()
         today.setHours(0,0,0,0)
-        let low_day = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap_day)
-        result.study_config[study_mode].needstudytime_filter.low = low_day.getYear()+'-'+(low_day.getMonth()+1)+'-'+low_day.getDay()+1
-
-        today = new Date()
-        today.setHours(0,0,0,0)
-        let high_day = today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap_day)
-        result.study_config[study_mode].needstudytime_filter.high = high_day.getYear()+'-'+(high_day.getMonth()+1)+'-'+high_day.getDay()+1        
+        let today_milli = today.getTime()
+        let low_milli = today_milli + result.study_config[study_mode].needstudytime_filter.low_gap_date * 86400000        
+        let high_milli = today_milli + result.study_config[study_mode].needstudytime_filter.high_gap_date * 86400000
+        let low_date = new Date(low_milli)        
+        let high_date = new Date(high_milli)
+        result.study_config[study_mode].needstudytime_filter.low = low_date.toISOString().slice(0,10)
+        // result.study_config[study_mode].needstudytime_filter.low = toString(low_date.getFullYear())+'-'+low_date.getMonth()+'-'+low_date.getDate()
+        // console.log(result.study_config[study_mode].needstudytime_filter.low)
+        result.study_config[study_mode].needstudytime_filter.high = high_date.toISOString().slice(0,10)
+        // console.log(result.study_config[study_mode].needstudytime_filter.high)
     }
+
+    console.log(result.advanced_filter)
 
     // 보내준다아아아아
     res.json({isloggedIn : true, study_config : result.study_config, advanced_filter : result.advanced_filter});    
