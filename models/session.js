@@ -75,9 +75,9 @@ const session_schema = new mongoose.Schema({
         collect_criteria : {type : String, default : null}, //all, by_now, by_today
         needstudytime_filter : {
             low : {type : Date, default : null},
-            low_gap : {type : Number, default : null},
+            low_gap_day : {type : Number, default : null},
             high : {type : Date, default : null},
-            high_gap : {type : Number, default : null},
+            high_gap_day : {type : Number, default : null},
         },
         num_cards : {            
             on_off : {type : String, default : null},

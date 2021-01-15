@@ -18,9 +18,9 @@ exports.get_study_config = async (req, res) => {
     // 책 갯수에 맞게 스터디 콘피그 받아오시고요
     let result
     if (req.body.selected_books.length >= 2){        
-        result = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                
+        result = await User.findOne({user_id : req.session.passport.user}, {study_config : 1, _id : 0})                        
     } else if (req.body.selected_books.length === 1) {
-        result = await Book.findOne({_id : req.body.selected_books[0].book_id}, {study_config : 1, _id : 0})
+        result = await Book.findOne({_id : req.body.selected_books[0].book_id}, {study_config : 1, _id : 0})        
     }
 
     // 날짜를 변환해해서    
@@ -480,11 +480,26 @@ exports.apply_advanced_filter = async (req, res) => {
 }
 
 
-// 선택된 책과 인덱스로 세션을 만듭니다.
+// 세션을 생성합니다.
 exports.create_session= async (req, res) => {
-    console.log("선택된 책 정보를 DB에 저장합니다.");
+    console.log("세션을 생성합니다..");
     console.log(req.body);
 
+    // 복습 필요 시점 필터 날짜 변환
+    let now = new Date().getTime()
+
+    let low_split = req.body.advanced_filter.recent_study_time.low.split('-')
+    let low_milli = new Date(low_split[0], low_split[1]-1, low_split[2]).getTime()
+    let low_gap_day = Math.floor((low_milli-now)/1000/60/24) -1
+
+    let high_split = req.body.advanced_filter.recent_study_time.high.split('-')
+    let high_milli = new Date(high_split[0], high_split[1]-1, high_split[2]).getTime()
+    let high_gap_day = Math.floor((high_milli-now)/1000/60/24) -1
+    
+    req.body.study_config.needstudytime_filter.low_gap_day = low_gap_day
+    req.body.study_config.needstudytime_filter.high_gap_day = high_gap_day
+
+    // 세션을 생성하고
     let session = await Session.create({
         user_id : req.session.passport.user,
         booksnindexes :  req.body.booksnindexes,        
@@ -495,44 +510,12 @@ exports.create_session= async (req, res) => {
     })
 
     // 저장도 하고
-    if(session.booksnindexes.length ===1){        
-        let book_config_modi_result = await Book.updateOne(
-            {_id : session.booksnindexes[0].book_id}, {'study_config.read_mode' : req.body.study_config})
-        
-        // // 이렇게 해도 되는지 확인해봅시다.
-        // let book_config_modi_result = await Book.updateOne(
-        //     {_id : session.booksnindexes[0].book_id}, {['study_config.'+session.study_mode+'_mode'] : req.body.study_config})
-        switch (req.body.study_mode){
-            case 'read' :            
-                let book_config_modi_result_1 = await Book.updateOne(
-                    {_id : session.booksnindexes[0].book_id}, {'study_config.read_mode' : req.body.study_config})
-                break
-            case 'flip' :                
-                let book_config_modi_result_2 = await Book.updateOne(
-                    {_id : session.booksnindexes[0].book_id}, {'study_config.flip_mode' : req.body.study_config})
-                break
-            case 'exam' :            
-                let book_config_modi_result_3 = await Book.updateOne(
-                    {_id : session.booksnindexes[0].book_id}, {'study_config.exam_mode' : req.body.study_config})                    
-                break
-        }
+    if(req.body.booksnindexes.length ===1){       
+        let config_modi_result = await Book.updateOne(
+            {_id : session.booksnindexes[0].book_id}, {['study_config.'+session.study_mode+'_mode'] : req.body.study_config, advanced_filter : req.body.advanced_filter})
     } else if(session.booksnindexes.length >= 2){
-        let user_config_modi_result = await User.updateOne(
-            {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})            
-        switch (req.body.study_mode){
-            case 'read' :            
-                let book_config_modi_result_4 = await User.updateOne(
-                    {user_id : req.session.passport.user}, {'study_config.read_mode' : req.body.study_config})
-                break
-            case 'flip' :                
-                let book_config_modi_result_5 = await User.updateOne(
-                    {user_id : req.session.passport.user}, {'study_config.flip_mode' : req.body.study_config})
-                break
-            case 'exam' :            
-                let book_config_modi_result_6 = await User.updateOne(
-                    {user_id : req.session.passport.user}, {'study_config.exam_mode' : req.body.study_config})
-                break
-        }
+        let config_modi_result = await User.updateOne(
+            {user_id : req.session.passport.user}, {['study_config.'+session.study_mode+'_mode'] : req.body.study_config, advanced_filter : req.body.advanced_filter})        
     };
 
     res.json({msg : 'Sucess!!!!!!!!!!!!!', session_id : session._id})
