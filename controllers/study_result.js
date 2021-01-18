@@ -11,6 +11,7 @@ const Session = require('../models/session');
 const { session } = require("passport");
 
 
+
 // 세션을 다 모아보자.
 exports.get_recent_study_result= async (req, res) => {    
     let sessions = await Session.find({user_id : req.session.passport.user})

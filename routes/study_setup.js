@@ -21,15 +21,6 @@ router.post('/get-study-config', isLoggedIn, Study_setup_controller.get_study_co
 // 세션을 생성합니다.
 router.post('/create-session', isLoggedIn, Study_setup_controller.create_session);
 
-// 카드리스트만 받아옵니다..
-router.post('/get-cardlist', isLoggedIn, Study_setup_controller.get_cardlist);
-
-// 카드를 보내줍니다.
-router.post('/get-studying-cards',Study_setup_controller.get_studying_cards);
-
-// 표준 읽기 모드에서 카드를 보내드립니다.
-router.post('/get-studying-cards-in-read-mode',Study_setup_controller.get_studying_cards_in_read_mode);
-
 // 카드를 보내줍니다.
 router.post('/get-level-config',Study_setup_controller.get_level_config);
 
