@@ -515,6 +515,7 @@ exports.create_session= async (req, res) => {
         study_mode : req.body.study_mode,
         study_config : req.body.study_config,
         advanced_filter_on_off : req.body.advanced_filter_on_off,
+        advanced_filter_save : req.body.advanced_filter_save,
         advanced_filter : req.body.advanced_filter,
     })
 
