@@ -498,16 +498,23 @@ exports.create_session= async (req, res) => {
     console.log("세션을 생성합니다..");
     console.log(req.body);
 
+    // from은 그 날짜를 그대로 쓰는데, to는 하루를 더해줘야 함
     req.body.study_config.needstudytime_filter.low = new Date(req.body.study_config.needstudytime_filter.low)
+    req.body.study_config.needstudytime_filter.low.setHours(0,0,0,0)
     req.body.study_config.needstudytime_filter.low_gap_date = Math.ceil((req.body.study_config.needstudytime_filter.low.getTime()-Date.now())/86400000)
     req.body.study_config.needstudytime_filter.high = new Date(req.body.study_config.needstudytime_filter.high)
-    req.body.study_config.needstudytime_filter.high_gap_date = Math.ceil((req.body.study_config.needstudytime_filter.high.getTime()-Date.now())/86400000)
-    for (i=0; i<2; i++){
-        req.body.advanced_filter.recent_study_time_value[i]= new Date(req.body.advanced_filter.recent_study_time_value[i])
-        req.body.advanced_filter.recent_study_time_value[i].setTime(0,0,0,0)
-        req.body.advanced_filter.recent_study_time_gap[i] = Math.ceil((req.body.advanced_filter.recent_study_time_value[i].getTime()-Date.now())/86400000)
-    }
-
+    req.body.study_config.needstudytime_filter.high.setDate(req.body.study_config.needstudytime_filter.high.getDate()+1)
+    req.body.study_config.needstudytime_filter.high.setHours(0,0,0,0)
+    req.body.study_config.needstudytime_filter.high_gap_date = Math.floor((req.body.study_config.needstudytime_filter.high.getTime()-Date.now())/86400000)
+    
+    req.body.advanced_filter.recent_study_time_value[0]= new Date(req.body.advanced_filter.recent_study_time_value[0])
+    req.body.advanced_filter.recent_study_time_value[0].setHours(0,0,0,0)
+    req.body.advanced_filter.recent_study_time_gap[0] = Math.ceil((req.body.advanced_filter.recent_study_time_value[0].getTime()-Date.now())/86400000)
+    req.body.advanced_filter.recent_study_time_value[1]= new Date(req.body.advanced_filter.recent_study_time_value[1])
+    req.body.advanced_filter.recent_study_time_value[1].setDate(req.body.advanced_filter.recent_study_time_value[1].getDate()+1) 
+    req.body.advanced_filter.recent_study_time_value[1].setHours(0,0,0,0)
+    req.body.advanced_filter.recent_study_time_gap[1] = Math.floor((req.body.advanced_filter.recent_study_time_value[1].getTime()-Date.now())/86400000)
+    
     // 세션을 생성하고
     let session = await Session.create({
         user_id : req.session.passport.user,
