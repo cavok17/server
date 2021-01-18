@@ -27,28 +27,22 @@ exports.get_study_config = async (req, res) => {
     // 날짜를 변환해해서    
     for (let study_mode of ['read_mode', 'flip_mode', 'exam_mode']){        
         if (result.study_config[study_mode].needstudytime_filter.low_gap_date != null){
-            let today = new Date()
-            result.study_config[study_mode].needstudytime_filter.low = new Date(today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap_date))
+            let today1 = new Date()
+            result.study_config[study_mode].needstudytime_filter.low = new Date(today1.setDate(today1.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap_date))
         }
         if (result.study_config[study_mode].needstudytime_filter.high_gap_date != null){
-            let today = new Date()
-            result.study_config[study_mode].needstudytime_filter.high = new Date(today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap_date))
+            let today2 = new Date()
+            result.study_config[study_mode].needstudytime_filter.high = new Date(today2.setDate(today2.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap_date))
         }
     }
 
-    console.log(result.advanced_filter.recent_study_time.low_gap_date)
-    if (result.advanced_filter.recent_study_time.low_gap_date != null){
-        let today = new Date()
-        result.advanced_filter.recent_study_time.low = new Date(today.setDate(today.getDate()+result.advanced_filter.recent_study_time.low_gap_date))
-        today = new Date()
-        result.advanced_filter.recent_study_time.high = new Date(today.setDate(today.getDate()+result.advanced_filter.recent_study_time.high_gap_date))
-        // 필요하면 setHours를 해주고
-        // 또 필요하면 to ISOString도 해 준다.
+    for (i=0; i<2; i++){
+        let today3 = new Date()
+        result.advanced_filter.recent_study_time_value[i] = new Date(today3.setDate(today3.getDate()+result.advanced_filter.recent_study_time_gap[i]))
     }
-
-    console.log(result.advanced_filter)
-
-    // 보내준다아아아아
+    
+    // console.log(result.advanced_filter)
+    
     res.json({isloggedIn : true, study_config : result.study_config, advanced_filter : result.advanced_filter});    
 }
 
@@ -74,7 +68,7 @@ exports.get_index = async (req, res) => {
     }
     console.log(indexes)
 
-    // -------------------------카드갯수  --------------------------------------------
+    // -------------------------카드갯수 계산 --------------------------------------------
 
     // book_id를 그냥 넣으니깐 filter를 안 먹어요. objectid로 바꿔서 넣었어요.
     let converted_book_id = mongoose.Types.ObjectId(req.body.selected_books.book_id)
@@ -85,7 +79,8 @@ exports.get_index = async (req, res) => {
     console.log('indexes', indexes)
 
 // ----------------------------- 프로그레스 --------------------------------------------------------
-
+    
+filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'flip-select']}}
     let project_for_progress = {
         index_id : 1,    
         type_group : {
@@ -126,6 +121,7 @@ exports.get_index = async (req, res) => {
     ])
     progress_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
 
+
     // 프로그레스 정보를 추가하고
     for (i=0; i<progress_of_index.length; i++){       
         indexes[progress_of_index[i].index_info[0].seq]['num_cards'][progress_of_index[i]._id.type].progress = progress_of_index[i].progress    
@@ -135,6 +131,8 @@ exports.get_index = async (req, res) => {
     for (i=0; i<indexes.length; i++){
         indexes[i].num_cards.total.progress = (indexes[i].num_cards.read.progress*indexes[i].num_cards.read.total + indexes[i].num_cards.flip.progress*indexes[i].num_cards.flip.total) / (indexes[i].num_cards.read.total + indexes[i].num_cards.flip.total)
     }
+
+// ----------------------------- 정리하자 --------------------------------------------------------
 
     // 싱글북인포에 인덱스 정보를 넣어준다.
     let single_book_info = {
@@ -504,24 +502,11 @@ exports.create_session= async (req, res) => {
     req.body.study_config.needstudytime_filter.low_gap_date = Math.ceil((req.body.study_config.needstudytime_filter.low.getTime()-Date.now())/86400000)
     req.body.study_config.needstudytime_filter.high = new Date(req.body.study_config.needstudytime_filter.high)
     req.body.study_config.needstudytime_filter.high_gap_date = Math.ceil((req.body.study_config.needstudytime_filter.high.getTime()-Date.now())/86400000)
-    req.body.advanced_filter.recent_study_time.low = new Date(req.body.advanced_filter.recent_study_time.low)
-    req.body.advanced_filter.recent_study_time.low_gap_date = Math.ceil((req.body.advanced_filter.recent_study_time.low.getTime()-Date.now())/86400000)
-    req.body.advanced_filter.recent_study_time.high = new Date(req.body.advanced_filter.recent_study_time.high)
-    req.body.advanced_filter.recent_study_time.high_gap_date = Math.ceil((req.body.advanced_filter.recent_study_time.high.getTime()-Date.now())/86400000)
-
-    // // 복습 필요 시점 필터 날짜 변환
-    // let today_milli = new Date().setHours(0,0,0,0)
-
-    // let low_split = req.body.advanced_filter.recent_study_time.low.split('-')
-    // let low_milli = new Date(low_split[0], low_split[1]-1, low_split[2]).getTime()
-    // let low_gap_date = Math.round((low_milli-today_milli)/1000/60/24)
-
-    // let high_split = req.body.advanced_filter.recent_study_time.high.split('-')
-    // let high_milli = new Date(high_split[0], high_split[1]-1, high_split[2]).getTime()
-    // let high_gap_date = Math.round((high_milli-today_milli)/1000/60/24)
-    
-    // req.body.study_config.needstudytime_filter.low_gap_date = low_gap_date
-    // req.body.study_config.needstudytime_filter.high_gap_date = high_gap_date
+    for (i=0; i<2; i++){
+        req.body.advanced_filter.recent_study_time_value[i]= new Date(req.body.advanced_filter.recent_study_time_value[i])
+        req.body.advanced_filter.recent_study_time_value[i].setTime(0,0,0,0)
+        req.body.advanced_filter.recent_study_time_gap[i] = Math.ceil((req.body.advanced_filter.recent_study_time_value[i].getTime()-Date.now())/86400000)
+    }
 
     // 세션을 생성하고
     let session = await Session.create({
