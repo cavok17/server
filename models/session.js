@@ -113,8 +113,10 @@ const session_schema = new mongoose.Schema({
         recent_study_time : {
             on_off : {type : String, default : null},
             group : {type : String, default : null},
-            low : {type : String, default : null},
-            high : {type : String, default : null},            
+            low : {type : Date, default : null},
+            low_gap_date : {type : Number, default : null},
+            high : {type : Date, default : null},          
+            high_gap_date : {type : Number, default : null},  
         },                    
         level : {
             on_off : {type : String, default : null},
@@ -126,7 +128,9 @@ const session_schema = new mongoose.Schema({
             on_off : {type : String, default : null},
             group : {type : String, default : null},
             low : {type : String, default : null},
+            low_gap_date : {type : Number, default : null},
             high : {type : String, default : null},            
+            high_gap_date : {type : Number, default : null},
         },
         difficulty : {
             on_off : {type : String, default : null},

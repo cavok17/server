@@ -138,8 +138,10 @@ const book_schema = new mongoose.Schema({
         recent_study_time : {
             on_off : {type : String, default : 'off'},
             group : {type : String, default : 'off'},
-            low : {type : String, default : null},
-            high : {type : String, default : null},            
+            low : {type : Date, default : null},
+            low_gap_date : {type : Number, default : -1},
+            high : {type : Date, default : null},
+            high_gap_date : {type : Number, default : 0},
         },                    
         level : {
             on_off : {type : String, default : 'off'},

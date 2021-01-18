@@ -26,18 +26,24 @@ exports.get_study_config = async (req, res) => {
     console.log(result.study_config.read_mode)
     // 날짜를 변환해해서    
     for (let study_mode of ['read_mode', 'flip_mode', 'exam_mode']){        
+        if (result.study_config[study_mode].needstudytime_filter.low_gap_date != null){
+            let today = new Date()
+            result.study_config[study_mode].needstudytime_filter.low = new Date(today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.low_gap_date))
+        }
+        if (result.study_config[study_mode].needstudytime_filter.high_gap_date != null){
+            let today = new Date()
+            result.study_config[study_mode].needstudytime_filter.high = new Date(today.setDate(today.getDate()+result.study_config[study_mode].needstudytime_filter.high_gap_date))
+        }
+    }
+
+    console.log(result.advanced_filter.recent_study_time.low_gap_date)
+    if (result.advanced_filter.recent_study_time.low_gap_date != null){
         let today = new Date()
-        today.setHours(0,0,0,0)
-        let today_milli = today.getTime()
-        let low_milli = today_milli + result.study_config[study_mode].needstudytime_filter.low_gap_date * 86400000        
-        let high_milli = today_milli + result.study_config[study_mode].needstudytime_filter.high_gap_date * 86400000
-        let low_date = new Date(low_milli)        
-        let high_date = new Date(high_milli)
-        result.study_config[study_mode].needstudytime_filter.low = low_date.toISOString().slice(0,10)
-        // result.study_config[study_mode].needstudytime_filter.low = toString(low_date.getFullYear())+'-'+low_date.getMonth()+'-'+low_date.getDate()
-        // console.log(result.study_config[study_mode].needstudytime_filter.low)
-        result.study_config[study_mode].needstudytime_filter.high = high_date.toISOString().slice(0,10)
-        // console.log(result.study_config[study_mode].needstudytime_filter.high)
+        result.advanced_filter.recent_study_time.low = new Date(today.setDate(today.getDate()+result.advanced_filter.recent_study_time.low_gap_date))
+        today = new Date()
+        result.advanced_filter.recent_study_time.high = new Date(today.setDate(today.getDate()+result.advanced_filter.recent_study_time.high_gap_date))
+        // 필요하면 setHours를 해주고
+        // 또 필요하면 to ISOString도 해 준다.
     }
 
     console.log(result.advanced_filter)
@@ -487,25 +493,35 @@ exports.apply_advanced_filter = async (req, res) => {
 
 }
 
-
+// **********************************************************************************
+// **********************************************************************************
 // 세션을 생성합니다.
 exports.create_session= async (req, res) => {
     console.log("세션을 생성합니다..");
     console.log(req.body);
 
-    // 복습 필요 시점 필터 날짜 변환
-    let now = new Date().getTime()
+    req.body.study_config.needstudytime_filter.low = new Date(req.body.study_config.needstudytime_filter.low)
+    req.body.study_config.needstudytime_filter.low_gap_date = Math.ceil((req.body.study_config.needstudytime_filter.low.getTime()-Date.now())/86400000)
+    req.body.study_config.needstudytime_filter.high = new Date(req.body.study_config.needstudytime_filter.high)
+    req.body.study_config.needstudytime_filter.high_gap_date = Math.ceil((req.body.study_config.needstudytime_filter.high.getTime()-Date.now())/86400000)
+    req.body.advanced_filter.recent_study_time.low = new Date(req.body.advanced_filter.recent_study_time.low)
+    req.body.advanced_filter.recent_study_time.low_gap_date = Math.ceil((req.body.advanced_filter.recent_study_time.low.getTime()-Date.now())/86400000)
+    req.body.advanced_filter.recent_study_time.high = new Date(req.body.advanced_filter.recent_study_time.high)
+    req.body.advanced_filter.recent_study_time.high_gap_date = Math.ceil((req.body.advanced_filter.recent_study_time.high.getTime()-Date.now())/86400000)
 
-    let low_split = req.body.advanced_filter.recent_study_time.low.split('-')
-    let low_milli = new Date(low_split[0], low_split[1]-1, low_split[2]).getTime()
-    let low_gap_day = Math.floor((low_milli-now)/1000/60/24) -1
+    // // 복습 필요 시점 필터 날짜 변환
+    // let today_milli = new Date().setHours(0,0,0,0)
 
-    let high_split = req.body.advanced_filter.recent_study_time.high.split('-')
-    let high_milli = new Date(high_split[0], high_split[1]-1, high_split[2]).getTime()
-    let high_gap_day = Math.floor((high_milli-now)/1000/60/24) -1
+    // let low_split = req.body.advanced_filter.recent_study_time.low.split('-')
+    // let low_milli = new Date(low_split[0], low_split[1]-1, low_split[2]).getTime()
+    // let low_gap_date = Math.round((low_milli-today_milli)/1000/60/24)
+
+    // let high_split = req.body.advanced_filter.recent_study_time.high.split('-')
+    // let high_milli = new Date(high_split[0], high_split[1]-1, high_split[2]).getTime()
+    // let high_gap_date = Math.round((high_milli-today_milli)/1000/60/24)
     
-    req.body.study_config.needstudytime_filter.low_gap_day = low_gap_day
-    req.body.study_config.needstudytime_filter.high_gap_day = high_gap_day
+    // req.body.study_config.needstudytime_filter.low_gap_date = low_gap_date
+    // req.body.study_config.needstudytime_filter.high_gap_date = high_gap_date
 
     // 세션을 생성하고
     let session = await Session.create({
