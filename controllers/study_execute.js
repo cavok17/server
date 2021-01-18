@@ -228,10 +228,10 @@ exports.get_studying_cards_in_read_mode = async (req, res) => {
     // read, flip-normal, flip-select, none, share
     // 스탠하고 랜덤은 쉐어를 넣고 차일드를 빼야하고, 타임은 쉐어를 빼고 차일드를 넣어야 해. 아님 취소
     if (session.study_config.card_on_off.read_card === 'on' ){
-        cardtype_filter = cardtype_filter.concat(['share, read'])
+        cardtype_filter = cardtype_filter.concat(['read'])
     }
     if (session.study_config.card_on_off.flip_card === 'on' ){
-        cardtype_filter = cardtype_filter.concat(['share, flip-normal', 'flip-select'])
+        cardtype_filter = cardtype_filter.concat(['flip-normal', 'flip-select'])
     }
     // 중복제거
     [...new Set(cardtype_filter)]
@@ -281,7 +281,9 @@ exports.get_studying_cards_in_read_mode = async (req, res) => {
 
     // 책 단위로 카드를 받아서 통합하자
     for (i=0; i<session.booksnindexes.length; i++){
-        let index_ids = session.booksnindexes[i].indexes.map((index_array) => index_array.index_id)
+        filters.index_id = session.booksnindexes[i].index_ids
+        // let index_ids = session.booksnindexes[i].indexes.map((index_array) => index_array.index_id)
+        console.log(filters)
         cardlist_of_singlebook = await Card           
             .find(filters)
             .select('type index_id seq_in_index parent_card_id position_of_contents external_card_id contents')                
@@ -294,34 +296,34 @@ exports.get_studying_cards_in_read_mode = async (req, res) => {
         cardlist_total = cardlist_total.concat(cardlist_of_singlebook)                
     }
     
-    // 하위카드가 없는 share카드의 삭제
-    // 포문으로 share 카드를 찾아서, 그 다음 카드의 parent와 동일하지 않다면 share를 삭제    
-    let delete_list = []
-    for (i=0; i<cardlist_total.length; i++){
-        if (cardlist_total[i].type ==='share'){
-            if (cardlist_total[i]._id != cardlist_total[i+1].parent_card_id || i === cardlist_total.length-1){
-                delete_list.push(i)
-            }
-        }
-    }    
-    delete_list.reverse()
-    for (i=0; i<delete_list.length; i++){
-        cardlist_total.splice(delete_list[i], 1)
-    }
+    // // 하위카드가 없는 share카드의 삭제 --> 쉐어 카드 자체가 들어오지 않으므로 상관없을 듯
+    // // 포문으로 share 카드를 찾아서, 그 다음 카드의 parent와 동일하지 않다면 share를 삭제    
+    // let delete_list = []
+    // for (i=0; i<cardlist_total.length; i++){
+    //     if (cardlist_total[i].type ==='share'){
+    //         if (cardlist_total[i]._id != cardlist_total[i+1].parent_card_id || i === cardlist_total.length-1){
+    //             delete_list.push(i)
+    //         }
+    //     }
+    // }    
+    // delete_list.reverse()
+    // for (i=0; i<delete_list.length; i++){
+    //     cardlist_total.splice(delete_list[i], 1)
+    // }
 
-    //익스터널은 데이터를 다시 만들어줘야...
-    for (i=0; i<cardlist_total.length; i++){
-        if (cardlist_total[i].position_of_content ==='external'){
-            cardlist_total[i].contents = {
-                none : cardlist_total[i].external_card_id.contents.none,
-                share : cardlist_total[i].external_card_id.contents.share,
-                face1 : cardlist_total[i].external_card_id.contents.face1,
-                selection : cardlist_total[i].external_card_id.contents.selection,
-                face2 : cardlist_total[i].external_card_id.contents.face2,
-                annotation : cardlist_total[i].external_card_id.contents.annotation,                
-            }
-        }
-    }
+    // //익스터널은 데이터를 다시 만들어줘야...
+    // for (i=0; i<cardlist_total.length; i++){
+    //     if (cardlist_total[i].position_of_content ==='external'){
+    //         cardlist_total[i].contents = {
+    //             none : cardlist_total[i].external_card_id.contents.none,
+    //             share : cardlist_total[i].external_card_id.contents.share,
+    //             face1 : cardlist_total[i].external_card_id.contents.face1,
+    //             selection : cardlist_total[i].external_card_id.contents.selection,
+    //             face2 : cardlist_total[i].external_card_id.contents.face2,
+    //             annotation : cardlist_total[i].external_card_id.contents.annotation,                
+    //         }
+    //     }
+    // }
 
     delete cardlist_total.external_card_id    
 
@@ -340,6 +342,15 @@ exports.get_studying_cards = async (req, res) => {
         .populate({path : 'parent_card_id',select : 'contents'})
         .populate({path : 'external_card_id',select : 'contents'})
     
+    // 날라온 카드 아이디 순서랑 맞춰주고
+    for (i=0; i<req.body.card_ids.length; i++){
+        if (cards[i]._id != req.body.card_ids[i]) {
+            let position = cards.findIndex((card) => card._id == req.body.card_ids[i])
+            [cards[i], cards[position]] = [cards[position], cards[i]]
+        }
+    }
+    
+    // 익스터널이나, 쉐어 카드의 컨텐츠 정리해주고
     for (i=0; i<cards.length; i++) {
         if (cards[i].parent_card_id != null) {
             cards[i].contents.share = cards[i].parent_card_id.contents.share
