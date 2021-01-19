@@ -189,6 +189,7 @@ exports.get_cardlist = async (req, res) => {
         if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
             cardlist_studying[i].detail_status.need_study_time = now
         }
+        cardlist_studying[i].detail_status.session_study_times = 0
     }
 
     // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴

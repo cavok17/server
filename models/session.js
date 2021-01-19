@@ -13,23 +13,28 @@ const cardlist_studying_schema = new mongoose.Schema({
 })
 
 const study_result_schema = new mongoose.Schema({
-    run : {type : String, default : 'yet'}, // done
-    study_hour_total : {type : Date, default : null}, 
-    study_hour_history : {type : Array, default : []},
-    exp_total : {type : Number, default : 0},
-    num_study_cards : {
+    num_cards_studied : {
+        total : {type : Number, default : 0},
         yet : {type : Number, default : 0},
-        re : {type : Number, default : 0},
+        ing : {type : Number, default : 0},
         hold : {type : Number, default : 0},
         completed : {type : Number, default : 0},
     },
-    num_click : {
-        lev_1 : {type : Number, default : 0},
-        lev_2 : {type : Number, default : 0},
-        lev_3 : {type : Number, default : 0},
-        lev_4 : {type : Number, default : 0},
-        lev_5 : {type : Number, default : 0},
-    }
+    avg_level :{
+        before : {type : Number, default : 0},
+        after : {type : Number, default : 0},
+    },
+    study_times : {
+        total : {type : Number, default : 0},
+        diffi1 : {type : Number, default : 0},
+        diffi2 : {type : Number, default : 0},
+        diffi3 : {type : Number, default : 0},
+        diffi4 : {type : Number, default : 0},
+        diffi5 : {type : Number, default : 0},
+    },
+    study_hour : {type : Number, default : 0},
+    exp : {type : Number, default : 0},
+    cards_until_today : {type : Number, default : 0},
 })
 
 const session_schema = new mongoose.Schema({

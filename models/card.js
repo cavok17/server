@@ -35,6 +35,7 @@ const cardschema = new mongoose.Schema({
     recent_study_time : {type : Date, default : null},
     need_study_time: {type : Date, default : null},
     recent_difficulty : {type : String, default : null},
+    session_study_times : {type : Number, default : null},
     total_study_times : {type : Number, default : 0},
     current_lev_study_times : {type : Number, default : 0},
     total_study_hour : {type : Date, default : 0},

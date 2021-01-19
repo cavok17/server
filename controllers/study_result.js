@@ -10,7 +10,37 @@ const Mentoring_req = require('../models/mentoring_req');
 const Session = require('../models/session');
 const { session } = require("passport");
 
+// 세션 결과를 정리합니다.
+exports.create_study_result= async (req, res) => {    
+    console.log("세션 결과를 정리합니다.");
+    console.log('body', req.body);
 
+    let session = await Session.find({_id : req.body.session_id})
+
+    for (i=0; i<req.body.cardlist_studying.length; i++){
+        if (req.body.cardlist_studying.detail_status.recent_difficulty === null){
+            req.body.cardlist_studying.length.splice(i+1,req.body.cardlist_studying.length)
+        }
+    }
+
+    for (i=0; i<req.body.cardlist_studying.length; i++){
+        switch(req.body.cardlist_studying.detail_status.recent_difficulty){
+            case 'diffi1' :
+                session.study_times.diff1 +=1
+                break
+        }
+        // study
+    }
+
+    // 총 학습카드
+    // 총 학습횟수
+        // 난이도 평가 결과
+    // 
+    // 총 학습시간
+
+
+
+}
 
 // 세션을 다 모아보자.
 exports.get_recent_study_result= async (req, res) => {    

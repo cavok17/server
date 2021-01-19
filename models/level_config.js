@@ -40,7 +40,7 @@ const level_config_schema = new mongoose.Schema({
       hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
-    diffi15 : {
+    diffi5 : {
       name : {type : String, default : 'diffi5'},
       nick : {type : String, default : '알겠음'},
       on_off : {type : String, default : 'on'},
