@@ -212,6 +212,50 @@ exports.get_cardlist = async (req, res) => {
 }
 
 
+exports.get_studying_cards = async (req, res) => {
+    console.log("카드 받으셔요~");
+    console.log(req.body);
+
+    // 컨텐츠를 받아오고
+    let cards = await Card.find({_id : req.body.card_ids})
+        .select ('parent_card_id external_card_id seq_in_index contents book_id')        
+        .populate({path : 'parent_card_id',select : 'contents'})
+        .populate({path : 'external_card_id',select : 'contents'})
+    
+    // 날라온 카드 아이디 순서랑 맞춰주고
+    for (i=0; i<req.body.card_ids.length; i++){
+        if (cards[i]._id != req.body.card_ids[i]) {
+            let position = cards.findIndex((card) => card._id == req.body.card_ids[i]);            
+            [cards[i], cards[position]] = [cards[position], cards[i]]
+        }
+    }
+    
+    // 익스터널이나, 쉐어 카드의 컨텐츠 정리해주고
+    for (i=0; i<cards.length; i++) {
+        if (cards[i].parent_card_id != null) {
+            cards[i].contents.share = cards[i].parent_card_id.contents.share
+        }
+        if (cards[i].external_card_id != null) {
+            cards[i].contents.share = cards[i].external_card_id.contents.share,
+            cards[i].contents.face1 = cards[i].external_card_id.contents.face1,
+            cards[i].contents.selection = cards[i].external_card_id.contents.selection,
+            cards[i].contents.face2 = cards[i].external_card_id.contents.face2,
+            cards[i].contents.annotation = cards[i].external_card_id.contents.annotation
+        }
+    }
+
+    delete cards.parent_card_id
+    delete cards.external_card_id
+    delete cards.seq_in_index
+
+    res.json({isloggedIn : true, cards, });
+}
+
+exports.show_the_rest_of_cards = async (req, res) => {
+
+}
+
+
 
 exports.get_studying_cards_in_read_mode = async (req, res) => {
     console.log("목차별로 카드를 쏴드려요. 필터가 적용된 걸루요");
@@ -336,48 +380,6 @@ exports.get_studying_cards_in_read_mode = async (req, res) => {
 }
 
 
-exports.get_studying_cards = async (req, res) => {
-    console.log("카드 받으셔요~");
-    console.log(req.body);
-
-    // 컨텐츠를 받아오고
-    let cards = await Card.find({_id : req.body.card_ids})
-        .select ('parent_card_id external_card_id seq_in_index contents book_id')        
-        .populate({path : 'parent_card_id',select : 'contents'})
-        .populate({path : 'external_card_id',select : 'contents'})
-    
-    // 날라온 카드 아이디 순서랑 맞춰주고
-    for (i=0; i<req.body.card_ids.length; i++){
-        if (cards[i]._id != req.body.card_ids[i]) {
-            let position = cards.findIndex((card) => card._id == req.body.card_ids[i]);            
-            [cards[i], cards[position]] = [cards[position], cards[i]]
-        }
-    }
-    
-    // 익스터널이나, 쉐어 카드의 컨텐츠 정리해주고
-    for (i=0; i<cards.length; i++) {
-        if (cards[i].parent_card_id != null) {
-            cards[i].contents.share = cards[i].parent_card_id.contents.share
-        }
-        if (cards[i].external_card_id != null) {
-            cards[i].contents.share = cards[i].external_card_id.contents.share,
-            cards[i].contents.face1 = cards[i].external_card_id.contents.face1,
-            cards[i].contents.selection = cards[i].external_card_id.contents.selection,
-            cards[i].contents.face2 = cards[i].external_card_id.contents.face2,
-            cards[i].contents.annotation = cards[i].external_card_id.contents.annotation
-        }
-    }
-
-    delete cards.parent_card_id
-    delete cards.external_card_id
-    delete cards.seq_in_index
-
-    res.json({isloggedIn : true, cards, });
-}
-
-exports.show_the_rest_of_cards = async (req, res) => {
-
-}
 
 
 exports.req_add_cards = async (req, res) => {
@@ -411,9 +413,8 @@ exports.req_add_cards = async (req, res) => {
     // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying
         .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
-    
 
-    // 다시 소팅함
+    res.json({isloggedIn : true, cardlist_studying, });
 
 }
 

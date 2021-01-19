@@ -4,8 +4,8 @@ const mongoose = require("mongoose");
 const level_config_schema = new mongoose.Schema({
   book_id : {type:mongoose.ObjectId, ref:'Book'},
   difficulty_setting : {
-    lev_1 : {
-      name : {type : String, default : '모르겠음'},
+    diffi1 : {
+      name : {type : String, default : 'diffi1'},
       nick : {type : String, default : '모르겠음'},
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 5},
@@ -13,8 +13,8 @@ const level_config_schema = new mongoose.Schema({
       hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
-    lev_2 : {
-      name : {type : String, default : '잘모르겠음'},
+    diffi2 : {
+      name : {type : String, default : 'diffi2'},
       nick : {type : String, default : '잘모르겠음'},
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 10},
@@ -22,8 +22,8 @@ const level_config_schema = new mongoose.Schema({
       hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
-    lev_3 : {
-      name : {type : String, default : '애매함'},
+    diffi3 : {
+      name : {type : String, default : 'diffi3'},
       nick : {type : String, default : '애매함'},
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 20},
@@ -31,8 +31,8 @@ const level_config_schema = new mongoose.Schema({
       hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
-    lev_4 : {
-      name : {type : String, default : '거의알겠음'},
+    diffi4 : {
+      name : {type : String, default : 'diffi4'},
       nick : {type : String, default : '거의알겠음'},
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 30},
@@ -40,8 +40,8 @@ const level_config_schema = new mongoose.Schema({
       hot_key : {type : String, default : null},
       gesture : {type : String, default : null},
     },
-    lev_5 : {
-      name : {type : String, default : '알겠음'},
+    diffi15 : {
+      name : {type : String, default : 'diffi5'},
       nick : {type : String, default : '알겠음'},
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 60},
