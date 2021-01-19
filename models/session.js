@@ -44,21 +44,24 @@ const session_schema = new mongoose.Schema({
         // seq : Number,   
         index_ids : [{type:mongoose.ObjectId, ref:'Index'}],
     }],
-    num_selected_cards : {
-        yet : {type : Number, default : 0},
-        ing : {type : Number, default : 0},
-        hold : {type : Number, default : 0},
-        completed : {type : Number, default : 0},
-        total : {type : Number, default : 0},
-        re_until_now : {type : Number, default : 0},
-        re_until_today : {type : Number, default : 0},
+    num_cards : {
+        yet : {
+            total : {type : Number, default : 0},
+            selected : {type : Number, default : 0},
+        },
+        ing : {
+            total : {type : Number, default : 0},
+            selected : {type : Number, default : 0},
+        },
+        hold : {
+            total : {type : Number, default : 0},
+            selected : {type : Number, default : 0},
+        },
+        completed : {
+            total : {type : Number, default : 0},
+            selected : {type : Number, default : 0},
+        },
     },
-    num_used_cards : {
-        yet : {type : Number, default : 0},
-        ing : {type : Number, default : 0},
-        hold : {type : Number, default : 0},
-        completed : {type : Number, default : 0},
-    },    
     study_mode : {type : String, default : null},
     study_config : {            
         sort_option : {type : String, default : null},   //standard, time, random     

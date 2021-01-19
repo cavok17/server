@@ -145,7 +145,12 @@ exports.get_cardlist = async (req, res) => {
         ing : cardlist_sepa.ing,
         hold : cardlist_sepa.hold,
         completed : cardlist_sepa.completed,
-    }        
+    }
+
+    session.num_cards.yet.total = cardlist_sepa.yet.length
+    session.num_cards.ing.total = cardlist_sepa.ing.length
+    session.num_cards.hold.total = cardlist_sepa.hold.length
+    session.num_cards.completed.total = cardlist_sepa.completed.length
 
 // -------------------------------------- 스터딩 -----------------------------------------------------
 
@@ -171,12 +176,11 @@ exports.get_cardlist = async (req, res) => {
     cardlist_studying = cardlist_studying.concat(cardlist_studying_yet, cardlist_studying_ing, cardlist_studying_hold, cardlist_studying_completed)
 
     // 사용한 카드가 몇 장인지 업데이트 해주자
-    session.num_used_cards = {
-        yet : cardlist_sepa.yet.length,
-        ing : cardlist_sepa.ing.length,
-        hold : cardlist_sepa.hold.length,
-        completed : cardlist_sepa.completed.length,
-    }
+    session.num_cards.yet.selected = cardlist_studying_yet.length
+    session.num_cards.ing.selected = cardlist_studying_ing.length
+    session.num_cards.hold.selected = cardlist_studying_hold.length
+    session.num_cards.completed.selected = cardlist_studying_completed.length
+    
 
     // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
     // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
@@ -204,7 +208,7 @@ exports.get_cardlist = async (req, res) => {
 
     // console.log('cardlist_studying', cardlist_studying)
     console.log(cardlist_studying)
-    res.json({isloggedIn : true, cardlist_studying, level_config});
+    res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }
 
 
@@ -338,7 +342,7 @@ exports.get_studying_cards = async (req, res) => {
 
     // 컨텐츠를 받아오고
     let cards = await Card.find({_id : req.body.card_ids})
-        .select ('parent_card_id external_card_id seq_in_index contents')        
+        .select ('parent_card_id external_card_id seq_in_index contents book_id')        
         .populate({path : 'parent_card_id',select : 'contents'})
         .populate({path : 'external_card_id',select : 'contents'})
     
