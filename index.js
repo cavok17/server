@@ -69,7 +69,7 @@ const cardtypeRouter = require('./routes/cardtype');
 const cardRouter = require('./routes/card');
 const study_setupRouter = require('./routes/study_setup');
 const study_executeRouter = require('./routes/study_execute');
-const study_flipRouter = require('./routes/study_flip');
+// const study_flipRouter = require('./routes/study_flip');
 const mentoringRouter = require('./routes/mentoring');
 
 app.use(passport.initialize());
@@ -81,7 +81,7 @@ app.use('/api/cardtype', cardtypeRouter)
 app.use('/api/card', cardRouter)
 app.use('/api/studysetup',study_setupRouter);
 app.use('/api/studyexecute',study_executeRouter);
-app.use('/api/study-flip',study_flipRouter);
+// app.use('/api/study-flip',study_flipRouter);
 app.use('/api/user', userRouter);
 app.use('/api/mentoring', mentoringRouter);
 
