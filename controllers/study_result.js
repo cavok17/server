@@ -15,30 +15,49 @@ exports.create_study_result= async (req, res) => {
     console.log("세션 결과를 정리합니다.");
     console.log('body', req.body);
 
-    let session = await Session.find({_id : req.body.session_id})
+    let session = await Session
+        .find({_id : req.body.session_id})
+        .select({cardlist_studying, study_result})
+    
+    session.cardlist_studying = session.cardlist_studying.concat(req.body.cardlist_studying)
 
     for (i=0; i<req.body.cardlist_studying.length; i++){
-        if (req.body.cardlist_studying.detail_status.recent_difficulty === null){
-            req.body.cardlist_studying.length.splice(i+1,req.body.cardlist_studying.length)
-        }
+        session.study_result.study_times.total += 1
+        session.study_result.study_times[req.body.cardlist_studying[i].detail_status.recent_difficulty] +=1
+        session.study_result.study_times.study_hour += req.body.cardlist_studying[i].detail_status.study_hour
+        session.study_result.study_times.exp += req.body.cardlist_studying[i].detail_status.exp
     }
 
-    for (i=0; i<req.body.cardlist_studying.length; i++){
-        switch(req.body.cardlist_studying.detail_status.recent_difficulty){
-            case 'diffi1' :
-                session.study_times.diff1 +=1
+    // 북에 업데이트
+    // Book 단위로 array를 분리해서 정리해야겠구만
+
+    // 중복 제거
+    req.body.cardlist_studying.reverse()
+    for (i=1; i<req.body.cardlist_studying.length; i++){
+        let dup = []
+        for(j=0; j<i; j++){
+            if(req.body.cardlist_studying[i]._id === req.body.cardlist_studying[j]._id){
+                dup.push(i)
                 break
-        }
-        // study
+            }
+        }        
+    }
+    dup.reverse()
+    for (i=0; i<dup.length; i++){
+        delete req.body.cardlist_studying[i]
+    }
+    
+    session = await session.save()
+
+    for (i=0; i<req.body.cardlist_studying.length; i++){
+        let card = await Card.updateOne(
+            {_id : req.body.cardlist_studying[i]._id}
+            {status : req.body.cardlist_studying[i].status,
+            detail_status : req.body.cardlist_studying[i].detail_status}
+        )
     }
 
-    // 총 학습카드
-    // 총 학습횟수
-        // 난이도 평가 결과
-    // 
-    // 총 학습시간
-
-
+    
 
 }
 

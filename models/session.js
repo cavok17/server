@@ -4,15 +4,22 @@ const mongoose = require("mongoose");
 const cardlist_studying_schema = new mongoose.Schema({
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
-    status : {type : String, default : 'yet'}, //done
-    study_time : {type : Date, default : null},
-    need_study_time : {type : Date, default : null},
-    difficulty : {type : String, default : null}, 
-    study_hour : {type : Date, default : null},
-    exp :  {type : Number, default : null},
+    status : {type : String, default : 'yet'}, //done    
+    detail_status : {
+        recent_study_time : {type : Date, default : null},
+        need_study_time: {type : Date, default : null},
+        recent_difficulty : {type : String, default : null},
+        session_study_times : {type : Number, default : null},
+        total_study_times : {type : Number, default : 0},
+        current_lev_study_times : {type : Number, default : 0},
+        total_study_hour : {type : Number, default : 0},
+        recent_study_hour : {type : Number, default : 0},
+        exp : {type : Number, default : 0},
+        level : {type : Number, default : 0},
+    }
 })
 
-const study_result_schema = new mongoose.Schema({
+const study_result_schema = new mongoose.Schema({    
     num_cards_studied : {
         total : {type : Number, default : 0},
         yet : {type : Number, default : 0},

@@ -176,22 +176,22 @@ exports.get_cardlist = async (req, res) => {
 
     // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
     // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림        
-    let now = new Date()       
-    for (i=0; i<cardlist_studying.length; i++){        
-        if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
-            // cardlist_studying[i].detail_status.need_study_time = now
-            cardlist_studying[i].detail_status.need_study_time = now.toString()
-            // ardlist_studying[i].detail_status.need_study_time = now.toISOString()
+    // let now = new Date()       
+    // for (i=0; i<cardlist_studying.length; i++){        
+    //     if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
+    //         // cardlist_studying[i].detail_status.need_study_time = now
+    //         cardlist_studying[i].detail_status.need_study_time = now.toString()
+    //         // ardlist_studying[i].detail_status.need_study_time = now.toISOString()
             
-        }
-        cardlist_studying[i].detail_status.session_study_times = 0
-    }
+    //     }
+    //     cardlist_studying[i].detail_status.session_study_times = 0
+    // }
 
-    // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
-    cardlist_studying
-        .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
+    // // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
+    // cardlist_studying
+    //     .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
     
-    session = await session.save()
+    // session = await session.save()
 
     // 학습 설정도 받아주시고요
     let book_ids = []
