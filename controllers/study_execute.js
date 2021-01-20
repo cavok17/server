@@ -28,8 +28,7 @@ exports.get_cardlist = async (req, res) => {
 
     // 1번
     let cardtype_filter = []    
-    // read, flip-normal, flip-select, none, share
-    // 스탠하고 랜덤은 쉐어를 넣고 차일드를 빼야하고, 타임은 쉐어를 빼고 차일드를 넣어야 해. 아님 취소
+    // read, flip-normal, flip-select, none, share    
     if (session.study_config.card_on_off.read_card === 'on' ){
         cardtype_filter = cardtype_filter.concat(['read'])
     }
@@ -52,32 +51,27 @@ exports.get_cardlist = async (req, res) => {
     let needstudytime_low
     if(session.study_config.status_on_off.ing === 'on'){
         switch (session.study_config.collect_criteria){
-            case 'all' :
-                needstudytime_low = new Date('2000/1/1/00:00:00')
-                needstudytime_high = new Date('2050/1/1/00:00:00')
+            case 'all' :                
                 break
-            case 'by_now' : 
-                needstudytime_low = new Date('2000/1/1/00:00:00')
+            case 'by_now' :                 
                 needstudytime_high = Date.now()
+                filters.$or= [{'detail_status.need_study_time' : {$lt : needstudytime_high}}, {'detail_status.need_study_time' : null}]
                 break
             case 'by_today' :
-                let tomorrow = new Date()
-                tomorrow.setDate(tomorrow.getDate()+1)
-                tomorrow.setHours(0,0,0,0)
-                // console.log(tomorrow.getTime())         
-                needstudytime_high = tomorrow
-                needstudytime_low = new Date('2000/1/1/00:00:00')
+                let needstudytime_high = new Date()
+                needstudytime_high.setDate(needstudytime_high.getDate()+1)
+                needstudytime_high.setHours(0,0,0,0)                             
+                filters.$or= [{'detail_status.need_study_time' : {$lt : needstudytime_high}}, {'detail_status.need_study_time' : null}]
                 break
             case 'custom' :
                 // 필터 날짜 변환하는 거 확인 필요함
-                needstudytime_low = session.study_config.needstudytime_filter.low
-                needstudytime_high = session.study_config.needstudytime_filter.high
+                needstudytime_low = new Date(session.study_config.needstudytime_filter.low)
+                needstudytime_high = new Date(session.study_config.needstudytime_filter.high)
+                filters.$or= [{$and : [{'detail_status.need_study_time' : {$gt : needstudytime_low,}}, {'detail_status.need_study_time' : {$lt : needstudytime_high}}]}, {'detail_status.need_study_time' : null}]
+                break
         }
-        
-        filters.$or= [{$and : [{'detail_status.need_study_time' : {$gt : needstudytime_low,}}, {'detail_status.need_study_time' : {$lt : needstudytime_high}}]}, {'detail_status.need_study_time' : null}]
     }
     
-
     // -------------------------------------- 토 탈 -----------------------------------------------------
     
     // 리스트를 하나로 통합하고
@@ -86,22 +80,19 @@ exports.get_cardlist = async (req, res) => {
     // 책 단위로 카드를 받아서 통합하자
     for (i=0; i<session.booksnindexes.length; i++){
         filters.index_id = session.booksnindexes[i].index_ids
-        // console.log('filters', filters)
-        // console.log('filters', filters)
-        // let index_ids = session.booksnindexes[i].index_ids.map((index_array) => index_array.index_id)
-        cardlist_of_singlebook = await Card
-            // .find({index_id : index_ids, cardtype_name : cardtype_filter, status : cardstatus_filter, 'study_result.need_study_time' : {$gt : needstudytime_low_filter}, 'study_result.need_study_time' : {$gt : needstudytime_high_filter} })
+        // console.log('filters', filters)                
+        cardlist_of_singlebook = await Card            
             .find(filters)
             .select('cardtype_name book_id index_id status seq_in_index detail_status')                
             .sort({seq_in_index : 1})
             .populate({path : 'index_id',select : 'seq'})
-        // for (j=0; j<cardlist_of_singlebook.length; j++){
-        //     cardlist_of_singlebook.book_order = i
-        // }
+        // 위에서는 인덱스 내 순서로만 정렬되어 있고, 이제 인덱스 순서로도 정렬해줘야 함.
         cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)        
+        // 통합 리스트를 만들기 위해 concat함
         cardlist_total = cardlist_total.concat(cardlist_of_singlebook)                
     }
     // console.log(cardlist_total)
+
     // -------------------------------------- 소트를 적용합시다. -----------------------------------------------------
     // 원본 그대로, 복습시점 빠른 순, 랜덤
     switch (req.body.card_order) {
@@ -111,8 +102,7 @@ exports.get_cardlist = async (req, res) => {
         case 'time' :
             cardlist_total.sort((a,b) => a.detail_status.need_study_time - b.detail_status.need_study_time)
             break
-        case 'random' :
-            // 쏼라
+        case 'random' :            
             for (let i = cardlist_total.length - 1; i > 0; i--) {
                 let j = Math.floor(Math.random() * (i + 1)); // 무작위 인덱스(0 이상 i 미만)  
                 [cardlist_total[i], cardlist_total[j]] = [cardlist_total[j], cardlist_total[i]];
@@ -120,16 +110,17 @@ exports.get_cardlist = async (req, res) => {
             break
     }
 
-    // 토탈 카드리스트에 시퀀스 정보를 생성합니다.
+    // 토탈 카드리스트에서의 시퀀스 정보를 생성합니다.
     for (i=0; i<cardlist_total.length; i++) {        
         cardlist_total[i].seq_in_total_list = i        
     }
 
+    // 불필요한 정보를 지워줍니다.
     for (i=0; i<cardlist_total.length; i++){
         delete cardlist_total[i].seq_in_index        
         delete cardlist_total[i].index_id
     }
-    // console.log('cardlist_total', cardlist_total)
+    console.log('cardlist_total', cardlist_total)
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
@@ -147,6 +138,7 @@ exports.get_cardlist = async (req, res) => {
         completed : cardlist_sepa.completed,
     }
 
+    // 카드 갯수를 업데이트 합니다.
     session.num_cards.yet.total = cardlist_sepa.yet.length
     session.num_cards.ing.total = cardlist_sepa.ing.length
     session.num_cards.hold.total = cardlist_sepa.hold.length
@@ -184,13 +176,13 @@ exports.get_cardlist = async (req, res) => {
 
     // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
     // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
-    let now = Date.now()        
-    for (i=0; i<cardlist_studying.length; i++){        
-        if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
-            cardlist_studying[i].detail_status.need_study_time = now
-        }
-        cardlist_studying[i].detail_status.session_study_times = 0
-    }
+    // let now = Date.now()        
+    // for (i=0; i<cardlist_studying.length; i++){        
+    //     if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
+    //         cardlist_studying[i].detail_status.need_study_time = now
+    //     }
+    //     cardlist_studying[i].detail_status.session_study_times = 0
+    // }
 
     // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying
