@@ -10,7 +10,7 @@ const level_config_schema = new mongoose.Schema({
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 5},
       time_unit : {type : String, default : 'min'},
-      hot_key : {type : String, default : null},
+      hot_key : {type : String, default : 'q'},
       gesture : {type : String, default : null},
     },
     diffi2 : {
@@ -19,7 +19,7 @@ const level_config_schema = new mongoose.Schema({
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 10},
       time_unit : {type : String, default : 'min'},
-      hot_key : {type : String, default : null},
+      hot_key : {type : String, default : 'w'},
       gesture : {type : String, default : null},
     },
     diffi3 : {
@@ -28,7 +28,7 @@ const level_config_schema = new mongoose.Schema({
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 20},
       time_unit : {type : String, default : 'min'},
-      hot_key : {type : String, default : null},
+      hot_key : {type : String, default : 'e'},
       gesture : {type : String, default : null},
     },
     diffi4 : {
@@ -37,7 +37,7 @@ const level_config_schema = new mongoose.Schema({
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 30},
       time_unit : {type : String, default : 'min'},
-      hot_key : {type : String, default : null},
+      hot_key : {type : String, default : 'r'},
       gesture : {type : String, default : null},
     },
     diffi5 : {
@@ -46,7 +46,7 @@ const level_config_schema = new mongoose.Schema({
       on_off : {type : String, default : 'on'},
       interval : {type : Number, default : 60},
       time_unit : {type : String, default : 'min'},
-      hot_key : {type : String, default : null},
+      hot_key : {type : String, default : 't'},
       gesture : {type : String, default : null},
     },
   },

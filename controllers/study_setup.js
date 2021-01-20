@@ -23,7 +23,7 @@ exports.set_level_config = async (req, res) => {
     console.log("학습 설정을 바꾸셨군요.");
     console.log(req.body);
 
-    let level_config = await level_config.findOne({book_id : req.body.book_id})
+    let level_config = await Level_config.findOne({book_id : req.body.book_id})
 
     level_config.difficulty_setting = req.body.difficulty_setting
     level_config.exp_setting = req.body.exp_setting
@@ -293,190 +293,252 @@ exports.apply_advanced_filter = async (req, res) => {
     let or_filter = {}
     and_filter.$and = []
     or_filter.$or = []
+    
+    // let user_flag_filter
+    // if (req.body.advanced_filter.user_flag_on_off === 'on'){        
+    //     user_flag_filter = {$in : req.body.advanced_filter.user_flag_value}
+    // }
+    // let maker_flag_filter
+    // if (req.body.advanced_filter.maker_flag_on_off === 'on'){        
+    //     maker_flag_filter = {$in : req.body.advanced_filter.user_flag_value}
+    // }
+    // let difficulty_filter
+    // if (req.body.advanced_filter.difficulty_on_off === 'on'){        
+    //     difficulty_filter = {$in : req.body.advanced_filter.difficulty_value}
+    // }
+    // let test_result_filter
+    // if (req.body.advanced_filter.test_result_on_off === 'on'){        
+    //     test_result_filter = {$in : req.body.advanced_filter.test_result_value}
+    // }
+    // let writer_filter
+    // if (req.body.advanced_filter.writer_on_off === 'on'){        
+    //     writer_filter = {$in : req.body.advanced_filter.writer_value}
+    // }
 
     // 사용자 플래그
-    if (advanced_filter.user_flag.on_off === 'on'){
-        let user_flag_value = []
-        for (let flag of ['none', 'flag1', 'flag2', 'flag3', 'flag4', 'flag5']) {
-            if (req.body.advanced_filter.user_flag[flag] === 'on')
-            user_flag_value.push(flag)
+    let user_flag_filter
+    let maker_flag_filter
+    let difficulty_filter
+    let test_result_filter
+    let writer_filter
+    for (filter_name of ['user_flag','maker_flag','difficulty','test_result','writer']){
+        if (req.body.advanced_filter[filter_name+'_on_off'] === 'on'){        
+            eval(filter_name+'filter') = {$in : req.body.advanced_filter[filter_name+'_value']}
         }
-        let user_flag_filter = {$in : user_flag_value}
+    }
+    let recent_study_time_filter
+    if (req.body.advanced_filter.recent_study_time_on_off === 'on'){        
+        let from = new Date(req.body.advanced_filter.recent_study_time_value[0])
+        let to = new Date(req.body.advanced_filter.recent_study_time_value[1])
+        to.setDate(to.getDate()+1)
+        recent_study_time_filter = {$and : [{'detail_status.need_study_time' : {$gte : from}}, {'detail_status.need_study_time' : {$lte : to}}]}
+    }
+    let level_filter
+    if (req.body.advanced_filter.level_on_off === 'on'){        
+        let from = req.body.advanced_filter.level_value[0]
+        let to = req.body.advanced_filter.level_value[1]
+        level_filter = {$and : [{'detail_status.level' : {$gte : from}}, {'detail_status.level' : {$lte : to}}]}
+    }
+    let study_times_filter
+    if (req.body.advanced_filter.study_times_on_off === 'on'){        
+        let from = req.body.advanced_filter.study_times_value[0]
+        let to = req.body.advanced_filter.study_times_value[1]
+        study_times_filter = {$and : [{'detail_status.study_times' : {$gte : from}}, {'detail_status.study_times' : {$lte : to}}]}
+    }
+    
 
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.user_flag.group === 'on') {
-                and_filter.$and.push(user_flag_filter)
-            } else {
-                or_filter.$or.push(user_flag_filter)
+    for (comp of ['user_flag','maker_flag']){
+        if (advanced_filter[comp+'_on_off'] === 'on'){ //일단 해당 필터가 on이면
+            if (req.body.advanced_filter.mode === 'and'){
+                if (req.body.advanced_filter[comp+'_group'] === 'on') {
+                    and_filter.$and.push(...eval(comp+'_filter'))
+                } else {
+                    or_filter.$or.push(...eval(comp+'_filter'))
+                }
+            } else if (req.body.advanced_filter.mode === 'or'){
+                if (req.body.advanced_filter[comp+'_group'] === 'on') {
+                    or_filter.$or.push(...eval(comp+'_filter'))
+                } else {
+                    and_filter.$and.push(...eval(comp+'_filter'))
+                }
             }
-        } else if (req.body.advanced_filter.mode === 'or') {
-            if (req.body.advanced_filter.user_flag.group === 'on') {
-                or_filter.$or.push(user_flag_filter)
-            } else {
-                and_filter.$and.push(user_flag_filter)
-            }
-        }   
+        }
     }
 
-    // 제작자 플래그
-    if (advanced_filter.maker_flag.on_off === 'on'){
-        let maker_flag_value = []
-        for (let flag of ['none', 'flag1', 'flag2', 'flag3', 'flag4', 'flag5']) {
-            if (req.body.advanced_filter.maker_flag[flag] === 'on')
-            maker_flag_value.push(flag)
-        }
-        let maker_flag_filter = {$in : maker_flag_value}
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.user_flag_group === 'on') {
+    //             and_filter.$and.push(user_flag_filter)
+    //         } else {
+    //             or_filter.$or.push(user_flag_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.mode === 'or') {
+    //         if (req.body.advanced_filter.user_flag_group === 'on') {
+    //             or_filter.$or.push(user_flag_filter)
+    //         } else {
+    //             and_filter.$and.push(user_flag_filter)
+    //         }
+    //     }   
+    // }
 
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.maker_flag.group === 'on') {
-                and_filter.$and.push(maker_flag_filter)
-            } else {
-                or_filter.$or.push(maker_flag_filter)
-            }
-        } else if (req.body.advanced_filter.mode === 'or') {
-            if (req.body.advanced_filter.maker_flag.group === 'on') {
-                or_filter.$or.push(maker_flag_filter)
-            } else {
-                and_filter.$and.push(maker_flag_filter)
-            }
-        }   
-    }
+    // // 제작자 플래그
+    // if (advanced_filter.maker_flag.on_off === 'on'){
+    //     let maker_flag_value = []
+    //     for (let flag of ['none', 'flag1', 'flag2', 'flag3', 'flag4', 'flag5']) {
+    //         if (req.body.advanced_filter.maker_flag[flag] === 'on')
+    //         maker_flag_value.push(flag)
+    //     }
+    //     let maker_flag_filter = {$in : maker_flag_value}
+
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.maker_flag.group === 'on') {
+    //             and_filter.$and.push(maker_flag_filter)
+    //         } else {
+    //             or_filter.$or.push(maker_flag_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.mode === 'or') {
+    //         if (req.body.advanced_filter.maker_flag.group === 'on') {
+    //             or_filter.$or.push(maker_flag_filter)
+    //         } else {
+    //             and_filter.$and.push(maker_flag_filter)
+    //         }
+    //     }   
+    // }
     
     // 최근 학습 시점
     // String 변환 필요 여부, Number 변환 필요 여부
-    if (req.body.advanced_filter.recent_study_time.on_off === 'on'){
-        let low_split = req.body.advanced_filter.recent_study_time.low.split('-')
-        let low = new Date(low_split[0], low_split[1]-1, low_split[2]).getTime()        
+    // if (req.body.advanced_filter.recent_study_time.on_off === 'on'){
+    //     let low_split = req.body.advanced_filter.recent_study_time.low.split('-')
+    //     let low = new Date(low_split[0], low_split[1]-1, low_split[2]).getTime()        
         
-        let high_split = req.body.advanced_filter.recent_study_time.high.split('-')
-        let high = new Date(high_split[0], high_split[1]-1, high_split[2]+1).getTime()
+    //     let high_split = req.body.advanced_filter.recent_study_time.high.split('-')
+    //     let high = new Date(high_split[0], high_split[1]-1, high_split[2]+1).getTime()
         
-        let recent_study_time_filter = {$and : [{'study_result.need_study_time' : {$gt : low}}, {'study_result.need_study_time' : {$lt : high}}]}
+    //     let recent_study_time_filter = {$and : [{'study_result.need_study_time' : {$gt : low}}, {'study_result.need_study_time' : {$lt : high}}]}
     
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.recent_study_time.group === 'on') {
-                and_filter.$and.push(recent_study_time_filter)
-            } else {
-                or_filter.$or.push(recent_study_time_filter)
-            }
-        } else if (req.body.advanced_filter.mode === 'or') {
-            if (req.body.advanced_filter.recent_study_time.group === 'on') {
-                or_filter.$or.push(recent_study_time_filter)
-            } else {
-                and_filter.$and.push(recent_study_time_filter)
-            }
-        }    
-    }
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.recent_study_time.group === 'on') {
+    //             and_filter.$and.push(recent_study_time_filter)
+    //         } else {
+    //             or_filter.$or.push(recent_study_time_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.mode === 'or') {
+    //         if (req.body.advanced_filter.recent_study_time.group === 'on') {
+    //             or_filter.$or.push(recent_study_time_filter)
+    //         } else {
+    //             and_filter.$and.push(recent_study_time_filter)
+    //         }
+    //     }    
+    // }
     
-    // 레벨
-    if (req.body.advanced_filter.level.on_off === 'on'){
-        let level_filter = {$and : [{'study_result.level' : {$gte : req.body.advanced_filter.level.low}}, {'study_result.level' : {$lte : req.body.advanced_filter.level.high}}]}
+    // // 레벨
+    // if (req.body.advanced_filter.level.on_off === 'on'){
+    //     let level_filter = {$and : [{'study_result.level' : {$gte : req.body.advanced_filter.level.low}}, {'study_result.level' : {$lte : req.body.advanced_filter.level.high}}]}
     
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.level.group === 'on') {
-                and_filter.$and.push(level_filter)
-            } else {
-                or_filter.$or.push(level_filter)
-            }
-        } else if (req.body.advanced_filter.mode === 'or'){
-            if (req.body.advanced_filter.level.group === 'on') {
-                or_filter.$or.push(level_filter)
-            } else {
-                and_filter.$and.push(level_filter)
-            }
-        }    
-    }
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.level.group === 'on') {
+    //             and_filter.$and.push(level_filter)
+    //         } else {
+    //             or_filter.$or.push(level_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.mode === 'or'){
+    //         if (req.body.advanced_filter.level.group === 'on') {
+    //             or_filter.$or.push(level_filter)
+    //         } else {
+    //             and_filter.$and.push(level_filter)
+    //         }
+    //     }    
+    // }
     
-    // 스터디 타임즈
-    if (req.body.advanced_filter.study_times.on_off === 'on'){
-        let study_times_filter = {$and : [{'study_result.study_times' : {$gte : req.body.advanced_filter.study_times.low}}, {'study_result.study_times' : {$lte : req.body.advanced_filter.study_times.high}}]}
+    // // 스터디 타임즈
+    // if (req.body.advanced_filter.study_times.on_off === 'on'){
+    //     let study_times_filter = {$and : [{'study_result.study_times' : {$gte : req.body.advanced_filter.study_times.low}}, {'study_result.study_times' : {$lte : req.body.advanced_filter.study_times.high}}]}
     
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.level.group === 'on') {
-                and_filter.$and.push(level_filter)
-            } else {
-                or_filter.$or.push(level_filter)
-            }
-        } else if (req.body.advanced_filter.mode === 'or'){
-            if (req.body.advanced_filter.level.group === 'on') {
-                or_filter.$or.push(level_filter)
-            } else {
-                and_filter.$and.push(level_filter)
-            }
-        }    
-    }
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.level.group === 'on') {
+    //             and_filter.$and.push(level_filter)
+    //         } else {
+    //             or_filter.$or.push(level_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.mode === 'or'){
+    //         if (req.body.advanced_filter.level.group === 'on') {
+    //             or_filter.$or.push(level_filter)
+    //         } else {
+    //             and_filter.$and.push(level_filter)
+    //         }
+    //     }    
+    // }
 
-    // difficulty
-    if (advanced_filter.difficulty.on_off === 'on'){
-        let difficulty_value = []
-        for (let diffi of ['none', 'diffi1', 'diffi2', 'diffi3', 'diffi4', 'diffi5']) {
-            if (req.body.advanced_filter.difficulty[diffi] === 'on')
-            difficulty_value.push(diffi)
-        }
-        let difficulty_filter = {$in : difficulty_value}
+    // // difficulty
+    // if (advanced_filter.difficulty.on_off === 'on'){
+    //     let difficulty_value = []
+    //     for (let diffi of ['none', 'diffi1', 'diffi2', 'diffi3', 'diffi4', 'diffi5']) {
+    //         if (req.body.advanced_filter.difficulty[diffi] === 'on')
+    //         difficulty_value.push(diffi)
+    //     }
+    //     let difficulty_filter = {$in : difficulty_value}
 
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.difficulty.group === 'on') {
-                and_filter.$and.push(difficulty_filter)
-            } else {
-                or_filter.$or.push(difficulty_filter)
-            }
-        } else if (req.body.advanced_filter.mode === 'or') {
-            if (req.body.advanced_filter.difficulty.group === 'on') {
-                or_filter.$or.push(difficulty_filter)
-            } else {
-                and_filter.$and.push(difficulty_filter)
-            }
-        }   
-    }
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.difficulty.group === 'on') {
+    //             and_filter.$and.push(difficulty_filter)
+    //         } else {
+    //             or_filter.$or.push(difficulty_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.mode === 'or') {
+    //         if (req.body.advanced_filter.difficulty.group === 'on') {
+    //             or_filter.$or.push(difficulty_filter)
+    //         } else {
+    //             and_filter.$and.push(difficulty_filter)
+    //         }
+    //     }   
+    // }
 
-    // test_result
-    if (advanced_filter.test_result.on_off === 'on'){
-        let test_result_value = []
-        for (let result of ['none', 'right', 'wrong']) {
-            if (req.body.advanced_filter.test_result[result] === 'on')
-            test_result_value.push(result)
-        }
-        let test_result_filter = {$in : test_result_value}
+    // // test_result
+    // if (advanced_filter.test_result.on_off === 'on'){
+    //     let test_result_value = []
+    //     for (let result of ['none', 'right', 'wrong']) {
+    //         if (req.body.advanced_filter.test_result[result] === 'on')
+    //         test_result_value.push(result)
+    //     }
+    //     let test_result_filter = {$in : test_result_value}
 
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.test_result.group === 'on') {
-                and_filter.$and.push(test_result_filter)
-            } else {
-                or_filter.$or.push(test_result_filter)
-            }
-        } else if (req.body.advanced_filter.mode === 'or') {
-            if (req.body.advanced_filter.test_result.group === 'on') {
-                or_filter.$or.push(test_result_filter)
-            } else {
-                and_filter.$and.push(test_result_filter)
-            }
-        }   
-    }
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.test_result.group === 'on') {
+    //             and_filter.$and.push(test_result_filter)
+    //         } else {
+    //             or_filter.$or.push(test_result_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.mode === 'or') {
+    //         if (req.body.advanced_filter.test_result.group === 'on') {
+    //             or_filter.$or.push(test_result_filter)
+    //         } else {
+    //             and_filter.$and.push(test_result_filter)
+    //         }
+    //     }   
+    // }
 
-    // writer
-    if (advanced_filter.writer.on_off === 'on'){
-        let writer_value = []
-        for (let who of ['internal', 'external']) {
-            if (req.body.advanced_filter.writer[who] === 'on')
-            writer_value.push(who)
-        }
-        let writer_filter = {$in : writer_value}
+    // // writer
+    // if (advanced_filter.writer.on_off === 'on'){
+    //     let writer_value = []
+    //     for (let who of ['internal', 'external']) {
+    //         if (req.body.advanced_filter.writer[who] === 'on')
+    //         writer_value.push(who)
+    //     }
+    //     let writer_filter = {$in : writer_value}
 
-        if (req.body.advanced_filter.mode === 'and'){
-            if (req.body.advanced_filter.writer.group === 'on') {
-                and_filter.$and.push(writer_filter)
-            } else {
-                or_filter.$or.push(writer_filter)
-            }
-        } else if (req.body.advanced_filter.writer.group === 'or') {
-            if (req.body.advanced_filter.writer.group === 'on') {
-                or_filter.$or.push(writer_filter)
-            } else {
-                and_filter.$and.push(writer_filter)
-            }
-        }   
-    }
+    //     if (req.body.advanced_filter.mode === 'and'){
+    //         if (req.body.advanced_filter.writer.group === 'on') {
+    //             and_filter.$and.push(writer_filter)
+    //         } else {
+    //             or_filter.$or.push(writer_filter)
+    //         }
+    //     } else if (req.body.advanced_filter.writer.group === 'or') {
+    //         if (req.body.advanced_filter.writer.group === 'on') {
+    //             or_filter.$or.push(writer_filter)
+    //         } else {
+    //             and_filter.$and.push(writer_filter)
+    //         }
+    //     }   
+    // }
 
     // book_id를 그냥 넣으니깐 filter를 안 먹어요. objectid로 바꿔서 넣었어요.
     let converted_book_id = mongoose.Types.ObjectId(req.body.selected_books.book_id)
