@@ -180,8 +180,9 @@ exports.get_cardlist = async (req, res) => {
     for (i=0; i<cardlist_studying.length; i++){        
         if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
             // cardlist_studying[i].detail_status.need_study_time = now
-            cardlist_studying[i].detail_status.need_study_time = cardlist_studying[i].detail_status.need_study_time.toString()
-            console.log(typeof(cardlist_studying[i].detail_status.need_study_time))
+            cardlist_studying[i].detail_status.need_study_time = now.toString()
+            // ardlist_studying[i].detail_status.need_study_time = now.toISOString()
+            
         }
         cardlist_studying[i].detail_status.session_study_times = 0
     }
