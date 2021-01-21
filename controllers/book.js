@@ -56,7 +56,7 @@ const get_booklist = async (req, res) => {
             path : 'book_ids',
             populate : {
                 path : 'category_id',
-                select : 'name seq_in_category'
+                select : 'name seq_in_category result num_cards'
             }
         });
     

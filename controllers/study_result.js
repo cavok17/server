@@ -28,7 +28,7 @@ exports.create_study_result= async (req, res) => {
 
     for (book_id of booklist){
         let result = {
-            study_times = {
+            study_times : {
                 total : 0,
                 diffi1 : 0,
                 diffi2 : 0,
@@ -36,18 +36,23 @@ exports.create_study_result= async (req, res) => {
                 diffi4 : 0,
                 diffi5 : 0,
             },
-            study_hour = 0,
-            exp = 0
+            study_hour : 0,
+            exp : 0,
+            recent_study_time : new Date(0)
         }
         for (i=0; i<req.body.cardlist_studying.length; i++){
             result.study_times.total += 1
             result.study_times[req.body.cardlist_studying[i].detail_status.recent_difficulty] +=1
             result.study_hour += req.body.cardlist_studying[i].detail_status.study_hour
             result.exp += req.body.cardlist_studying[i].detail_status.exp
+            if (result.recent_study_time < req.body.cardlist_studying[i].detail_status.recent_study_time){
+                result.recent_study_time = req.body.cardlist_studying[i].detail_status.recent_study_time
+            }
         }
 
         let book = await Book.update({_id : book_id},{result})
         
+        // 여기서부터는 세션 정보
         session.study_result.study_times.total += result.study_times.total
         session.study_result.study_times.diffi1 += result.study_times.diffi1
         session.study_result.study_times.diffi2 += result.study_times.diffi2

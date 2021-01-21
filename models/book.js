@@ -34,16 +34,18 @@ const book_schema = new mongoose.Schema({
         },
         study_hour : {type : Number, default : 0},
         exp : {type : Number, default : 0},
+        recent_modify_time : {type : Date, default : 0},
+        recent_study_time : {type : Date, default : 0},
     },
     num_cards : {
         read : {type : Number, default : 0},
         flip : {type : Number, default : 0},        
     },
     recent :{
-        num_card_created : {type : Number, default : null},
-        time_study: {type : Date, default : null},
+        // num_card_created : {type : Number, default : null},
+        // time_study: {type : Date, default : null},
         time_modify: {type : Date, default : null},
-        study_mode : {type : String, default : '0'},
+        // study_mode : {type : String, default : '0'},
     },
     study_config : {
         study_mode : {type : String, default : 'read_mode'},
