@@ -39,7 +39,7 @@ exports.create_card = async (req, res) => {
         {$inc : {seq_in_index : 1}}
     )       
     
-    // 카드 정보에 카드타입 아이디 외 카드타입까지 넣어줌
+    // 카드 정보에 카드타입 아이디 외 카드타입까지 넣어줌 ---> 이거는 받아서 넣는 걸로 합시다.
     let cardtype = await Cardtype.findOne({_id: req.body.cardtype_id})
 
     // 카드를 생성합니다.
@@ -60,7 +60,19 @@ exports.create_card = async (req, res) => {
             face2 : req.body.face2,
             annotation : req.body.annotation
         }
-    })    
+    })
+
+    // 카드 갯수 정보 업데이트
+    switch (cardtype.type){
+        case 'read' :
+            let book1 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.read' : 1}})
+            break
+        case 'flip-normal' :
+        case 'flip-select' :
+            let book2 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.flip' : 1}})
+            break
+
+    }
     
     // 쓸 일이 있을지는 모르겠으나, 자식 카드 정보를 기록해보자고
     // 자식 카드의 시퀀스는 일단 관리하지 않는 것으로
@@ -95,11 +107,13 @@ exports.create_card_by_excel = async (req, res) => {
 
     let new_cards = []
     let failure_list = []
+    let num_cards = {read : 0, flip :0}
     // let current_row 
     readXlsxFile(req.file.path).then((table) =>{        
         // 첫 행은 읽어들이지 않음
-        for (i=1; i<table.length; i++){                        
+        for (i=1; i<table.length; i++){
             // 각 행에 매칭되는 카드타입을 찾아야 혀.
+            
             let cardtype = cardtypes.find((tmp_cardtype) => {            
                 return tmp_cardtype.name === table[i][0]
             })
@@ -109,7 +123,18 @@ exports.create_card_by_excel = async (req, res) => {
             if(cardtype == null){
                 failure_list.push(i+1)
                 continue;
-            }            
+            } else {
+                // 카드 갯수 정보 업데이트
+                switch (cardtype.type){
+                    case 'read' :
+                        num_cards.read += 1
+                        break
+                    case 'flip-normal' :
+                    case 'flip-select' :
+                        num_cards.flip += 1
+                        break
+                }
+            }           
 
             let new_card = {
                 cardtype_id: cardtype._id,
@@ -154,6 +179,8 @@ exports.create_card_by_excel = async (req, res) => {
         let cards = Card.insertMany(new_cards)
     })    
     
+    // 카드 갯수 업데이트
+    let book = await Book.updateOne({_id : req.body.book_id}, {$inc : {'num_cards.read' : num_cards.read, 'num_cards.flip' : num_cards.flip}})
     let cardlist = await get_cardlist_func(req.body.index_id)
     res.json({isloggedIn : true, msg : '업로드 완료', cardlist});
 
@@ -228,6 +255,18 @@ exports.update_card = async (req, res) => {
 exports.delete_card = async (req, res) => {
     console.log("카드를 삭제합니다.");
     console.log(req.body);
+
+    let card = await Card.findOne({_id : req.body.card_id})
+    switch (card.type){
+        case 'read' :
+            let book1 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.read' : -1}})
+            break
+        case 'flip-normal' :
+        case 'flip-select' :
+            let book2 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.flip' : -1}})
+            break
+
+    }
 
     let card_delete_result = await Card.deleteOne({_id : req.body.card_id})
     let seq_modi_result = await Card.updateMany(

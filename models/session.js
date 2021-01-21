@@ -5,6 +5,7 @@ const cardlist_studying_schema = new mongoose.Schema({
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
     status : {type : String, default : 'yet'}, //done    
+    type : {type : String, default : null},
     detail_status : {
         recent_study_time : {type : Date, default : null},
         need_study_time: {type : Date, default : null},

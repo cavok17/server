@@ -22,7 +22,23 @@ const book_schema = new mongoose.Schema({
     // num_cards: {type : Number, default : 0},
     // new_index_no : {type : Number, default : 1},
     // new_card_no : {type : Number, default : 0},
-    time_created: {type : Date, default : Date.now},    
+    time_created: {type : Date, default : Date.now},
+    result : {
+        study_times : {
+            total : {type : Number, default : 0},
+            diffi1 : {type : Number, default : 0},
+            diffi2 : {type : Number, default : 0},
+            diffi3 : {type : Number, default : 0},
+            diffi4 : {type : Number, default : 0},
+            diffi5 : {type : Number, default : 0},
+        },
+        study_hour : {type : Number, default : 0},
+        exp : {type : Number, default : 0},
+    },
+    num_cards : {
+        read : {type : Number, default : 0},
+        flip : {type : Number, default : 0},        
+    },
     recent :{
         num_card_created : {type : Number, default : null},
         time_study: {type : Date, default : null},

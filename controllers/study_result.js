@@ -21,16 +21,44 @@ exports.create_study_result= async (req, res) => {
     
     session.cardlist_studying = session.cardlist_studying.concat(req.body.cardlist_studying)
 
-    for (i=0; i<req.body.cardlist_studying.length; i++){
-        session.study_result.study_times.total += 1
-        session.study_result.study_times[req.body.cardlist_studying[i].detail_status.recent_difficulty] +=1
-        session.study_result.study_times.study_hour += req.body.cardlist_studying[i].detail_status.study_hour
-        session.study_result.study_times.exp += req.body.cardlist_studying[i].detail_status.exp
+    // 북에 업데이트
+    let booklist = session.cardlist_studying.map((cardlist) => cardlist.book_id)
+    booklist = new Set(booklist)
+    booklist = [...booklist]
+
+    for (book_id of booklist){
+        let result = {
+            study_times = {
+                total : 0,
+                diffi1 : 0,
+                diffi2 : 0,
+                diffi3 : 0,
+                diffi4 : 0,
+                diffi5 : 0,
+            },
+            study_hour = 0,
+            exp = 0
+        }
+        for (i=0; i<req.body.cardlist_studying.length; i++){
+            result.study_times.total += 1
+            result.study_times[req.body.cardlist_studying[i].detail_status.recent_difficulty] +=1
+            result.study_hour += req.body.cardlist_studying[i].detail_status.study_hour
+            result.exp += req.body.cardlist_studying[i].detail_status.exp
+        }
+
+        let book = await Book.update({_id : book_id},{result})
+        
+        session.study_result.study_times.total += result.study_times.total
+        session.study_result.study_times.diffi1 += result.study_times.diffi1
+        session.study_result.study_times.diffi2 += result.study_times.diffi2
+        session.study_result.study_times.diffi3 += result.study_times.diffi3
+        session.study_result.study_times.diffi4 += result.study_times.diffi4
+        session.study_result.study_times.diffi5 += result.study_times.diffi5
+        session.study_result.study_times.study_hour += result.study_hour
+        session.study_result.study_times.exp += result.exp
     }
 
-    // 북에 업데이트
-    // Book 단위로 array를 분리해서 정리해야겠구만
-
+    // 카드 정보 업데이트
     // 중복 제거
     req.body.cardlist_studying.reverse()
     for (i=1; i<req.body.cardlist_studying.length; i++){
@@ -47,42 +75,15 @@ exports.create_study_result= async (req, res) => {
         delete req.body.cardlist_studying[i]
     }
     
+    // 세션 업데이트
     session = await session.save()
 
+    // 카드 업데이트
     for (i=0; i<req.body.cardlist_studying.length; i++){
         let card = await Card.updateOne(
-            {_id : req.body.cardlist_studying[i]._id}
+            {_id : req.body.cardlist_studying[i]._id},
             {status : req.body.cardlist_studying[i].status,
             detail_status : req.body.cardlist_studying[i].detail_status}
         )
-    }
-
-    
-
-}
-
-// 세션을 다 모아보자.
-exports.get_recent_study_result= async (req, res) => {    
-    let sessions = await Session.find({user_id : req.session.passport.user})
-        .select('cardlist_working')
-    
-    let cardlist_working = []
-    for (i=0; i<sessions.length; i++){
-        cardlist_working = cardlist_working.concat(sessions[i].cardlist_working)
-    }
-
-    let all_book_result = []
-    for (j=0; j<book_ids.length; j++){
-        for (i=0; i<cardlist_working.length; i++){
-            let single_book_result = {}
-            if (cardlist_working[i].book_id === book_ids[j]){
-                single_book_result.book_id = book_ids[j]
-                if (cardlist_working[i].study_time >0){
-                    single_book_result.study_times +=1
-                    single_book_result.study_hour += cardlist_working[i].study_hour
-                }
-            }
-            all_book_result.push(single_book_result)
-        }
     }
 }
