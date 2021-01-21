@@ -58,54 +58,59 @@ const level_config_schema = new mongoose.Schema({
     five_times : {type : Number, default : -500},
   },
   lev_setting : {
-    lev_1 : {
-      need_exp : {type : Number, default : 1000},
-      interval : {type : Number, default : 0.5},
-      time_unit : {type : String, default : 'day'},
-    },
-    lev_2 : {
+    lev_0 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 1},
       time_unit : {type : String, default : 'day'},
     },
-    lev_3 : {
+    lev_1 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 1.5},
       time_unit : {type : String, default : 'day'},
     },
-    lev_4 : {
+    lev_2 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 2},
       time_unit : {type : String, default : 'day'},
     },
-    lev_5 : {
+    lev_3 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 2.5},
       time_unit : {type : String, default : 'day'},
     },
-    lev_6 : {
+    lev_4 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 3},
       time_unit : {type : String, default : 'day'},
     },
-    lev_7 : {
+    lev_5 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 3.5},
       time_unit : {type : String, default : 'day'},
     },
-    lev_8 : {
+    lev_6 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 4},
       time_unit : {type : String, default : 'day'},
     },
-    lev_9 : {
+    lev_7 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 4.5},
       time_unit : {type : String, default : 'day'},
     },
-    lev_10 : {
+    lev_8 : {
       need_exp : {type : Number, default : 1000},
       interval : {type : Number, default : 5},
+      time_unit : {type : String, default : 'day'},
+    },
+    lev_9 : {
+      need_exp : {type : Number, default : 1000},
+      interval : {type : Number, default : 5.5},
+      time_unit : {type : String, default : 'day'},
+    },
+    lev_10 : {
+      need_exp : {type : Number, default : 1000},
+      interval : {type : Number, default : 6},
       time_unit : {type : String, default : 'day'},
     },    
   }
