@@ -8,6 +8,7 @@ const Index = require('../models/index');
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const Level_config = require('../models/level_config');
+const category = require("../models/category");
 
 // 시퀀스 정보를 전달하는 공용함수입니다.
 const get_seq_info = async (category_id) => {        
@@ -56,10 +57,12 @@ const get_booklist = async (req, res) => {
             path : 'book_ids',
             populate : {
                 path : 'category_id',
-                select : 'name seq_in_category result num_cards'
+                select : 'title seq_in_category result num_cards'
+                // select : 'name seq_in_category'
             }
         });
     
+    // console.log(categorybooklist[0].book_ids)
     categorybooklist = categorybooklist.sort((a,b) => a.seq - b.seq);
     
     for (i=0; i<categorybooklist.length; i++){

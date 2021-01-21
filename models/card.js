@@ -41,7 +41,7 @@ const cardschema = new mongoose.Schema({
     total_study_hour : {type : Number, default : 0},
     recent_study_hour : {type : Number, default : 0},
     exp : {type : Number, default : 0},
-    level : {type : Number, default : 1},
+    level : {type : Number, default : 0},
   },
 });
 

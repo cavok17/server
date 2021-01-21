@@ -39,20 +39,15 @@ exports.create_card = async (req, res) => {
         {$inc : {seq_in_index : 1}}
     )       
     
-    // 카드 정보에 카드타입 아이디 외 카드타입까지 넣어줌 ---> 이거는 받아서 넣는 걸로 합시다.
-    let cardtype = await Cardtype.findOne({_id: req.body.cardtype_id})
-
-    // 카드를 생성합니다.
-    // sanitize 쓰는 거 연구 필요
-    let card = await Card.create({
+    let new_card = {
         cardtype_id: req.body.cardtype_id,
-        type : cardtype.type,
+        type : req.body.type,
         book_id: req.body.book_id,
         index_id: req.body.index_id,        
         parent_card_id : req.body.parent_card_id,
         seq_in_index: req.body.seq_in_index*1 + 1,
         contents : {
-            maker_flag : req.body.flag_of_maker,
+            maker_flag : null,
             none : req.body.none,
             share : req.body.share,
             face1 : req.body.face1,
@@ -60,10 +55,35 @@ exports.create_card = async (req, res) => {
             face2 : req.body.face2,
             annotation : req.body.annotation
         }
-    })
+    }
 
+    switch (req.body.flag_of_maker[0]){
+        case '1' :
+            new_card.contents.maker_flag = ['flag1']
+            break
+        case '2' :
+            new_card.contents.maker_flag = ['flag2']
+            break
+        case '3' :
+            new_card.contents.maker_flag = ['flag3']
+            break
+        case '4' :
+            new_card.contents.maker_flag = ['flag4']
+            break
+        case '5' :
+            new_card.contents.maker_flag = ['flag5']
+            break
+        default :
+            new_card.contents.maker_flag = ['none']
+    }
+    console.log(new_card)
+
+    // 카드를 생성합니다.
+    // sanitize 쓰는 거 연구 필요
+    let card = await Card.create(new_card)
+    
     // 카드 갯수 정보 업데이트
-    switch (cardtype.type){
+    switch (req.body.type){
         case 'read' :
             let book1 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.read' : 1}})
             break
@@ -71,7 +91,6 @@ exports.create_card = async (req, res) => {
         case 'flip-select' :
             let book2 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.flip' : 1}})
             break
-
     }
     
     // 쓸 일이 있을지는 모르겠으나, 자식 카드 정보를 기록해보자고
@@ -84,8 +103,6 @@ exports.create_card = async (req, res) => {
 
     let cardlist = await get_cardlist_func(req.body.index_id)
     res.json({isloggedIn : true, cardlist});
-
-
 };
 
 
