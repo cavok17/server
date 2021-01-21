@@ -11,12 +11,12 @@ const cardlist_studying_schema = new mongoose.Schema({
         need_study_time: {type : Date, default : null},
         recent_difficulty : {type : String, default : null},
         session_study_times : {type : Number, default : null},
-        total_study_times : {type : Number, default : 0},
-        current_lev_study_times : {type : Number, default : 0},
-        total_study_hour : {type : Number, default : 0},
-        recent_study_hour : {type : Number, default : 0},
-        exp : {type : Number, default : 0},
-        level : {type : Number, default : 0},
+        total_study_times : {type : Number, default : null},
+        current_lev_study_times : {type : Number, default : null},
+        total_study_hour : {type : Number, default : null},
+        recent_study_hour : {type : Number, default : null},
+        exp : {type : Number, default : null},
+        level : {type : Number, default : null},
     }
 })
 

@@ -47,7 +47,7 @@ exports.create_card = async (req, res) => {
         parent_card_id : req.body.parent_card_id,
         seq_in_index: req.body.seq_in_index*1 + 1,
         contents : {
-            maker_flag : null,
+            maker_flag : req.body.flag_of_maker,
             none : req.body.none,
             share : req.body.share,
             face1 : req.body.face1,
@@ -57,31 +57,31 @@ exports.create_card = async (req, res) => {
         }
     }
 
-    switch (req.body.flag_of_maker[0]){
-        case '1' :
-            new_card.contents.maker_flag = ['flag1']
-            break
-        case '2' :
-            new_card.contents.maker_flag = ['flag2']
-            break
-        case '3' :
-            new_card.contents.maker_flag = ['flag3']
-            break
-        case '4' :
-            new_card.contents.maker_flag = ['flag4']
-            break
-        case '5' :
-            new_card.contents.maker_flag = ['flag5']
-            break
-        default :
-            new_card.contents.maker_flag = ['none']
-    }
-    console.log(new_card)
+    // switch (req.body.flag_of_maker[0]){
+    //     case '1' :
+    //         new_card.contents.maker_flag = ['flag1']
+    //         break
+    //     case '2' :
+    //         new_card.contents.maker_flag = ['flag2']
+    //         break
+    //     case '3' :
+    //         new_card.contents.maker_flag = ['flag3']
+    //         break
+    //     case '4' :
+    //         new_card.contents.maker_flag = ['flag4']
+    //         break
+    //     case '5' :
+    //         new_card.contents.maker_flag = ['flag5']
+    //         break
+    //     default :
+    //         new_card.contents.maker_flag = ['none']
+    // }
+    // console.log(new_card)
 
     // 카드를 생성합니다.
     // sanitize 쓰는 거 연구 필요
     let card = await Card.create(new_card)
-    
+
     // 카드 갯수 정보 업데이트
     switch (req.body.type){
         case 'read' :
