@@ -8,6 +8,7 @@ const Index = require('../models/index');
 const Category = require('../models/category');
 const Mentoring_req = require('../models/mentoring_req');
 const Session = require('../models/session');
+const Study_result = require('../models/study_result');
 const { session } = require("passport");
 
 // 세션 결과를 정리합니다.
@@ -15,19 +16,72 @@ exports.create_study_result= async (req, res) => {
     console.log("세션 결과를 정리합니다.");
     console.log('body', req.body);
 
+    let cardlist_studied = req.body.cardlist_studying
+
     let session = await Session
         .find({_id : req.body.session_id})
         .select({cardlist_studying, study_result})
     
-    session.cardlist_studying = session.cardlist_studying.concat(req.body.cardlist_studying)
+    session.cardlist_studying = session.cardlist_studying.concat(cardlist_studied)
+    session = await session.save()
 
-    // 북에 업데이트
-    let booklist = session.cardlist_studying.map((cardlist) => cardlist.book_id)
-    booklist = new Set(booklist)
-    booklist = [...booklist]
+    // 시간 데이터를 날짜 데이터로 보정
+    for (i=0; i<cardlist_studyied.length; i++){
+        cardlist_studyied[i].detail_status.recent_study_time = new Date(cardlist_studied[i].detail_status.recent_study_time)
+        cardlist_studyied[i].detail_status.recent_study_time.setHours(0,0,0,0)
+    }
 
-    for (book_id of booklist){
-        let result = {
+    // 책 종류와 날짜 종류를 발라냄
+    let book_ids = cardlist_studyied.map((cardlist) => cardlist.book_id)
+    book_ids = new Set(book_ids)
+    book_ids = [...book_ids]
+    let study_dates = cardlist_studyied.map((cardlist) => cardlist.recent_study_time)    
+    study_dates = new Set(study_dates)
+    study_dates = [...study_dates]
+
+    for (book_id of book_ids){
+        for (study_date of study_dates){
+            for(i=0; i<cardlist_studied.lenght; i++){
+                let result = {
+                    study_times : {
+                        total : 0,
+                        diffi1 : 0,
+                        diffi2 : 0,
+                        diffi3 : 0,
+                        diffi4 : 0,
+                        diffi5 : 0,
+                    },
+                    study_hour : 0,
+                    exp : 0,
+                    recent_study_time : new Date(0)
+                }
+                if (cardlist_studied.book_id == book_id && cardlist_studied.detail_status.recent_study_time == study_date ){
+                    study_result.study_times.total += 1                    
+                    study_result.study_times[cardlist_studied.detail_status.difficulty] += 1                    
+                    study_result.study_hour += cardlist_studied.detail_status.study_hour
+                    study_result.exp += cardlist_studied.detail_status.exp
+                }
+            }
+            // 저장한다.
+        }
+    }
+
+    let result_of_book = {
+        study_times : {
+            total : 0,
+            diffi1 : 0,
+            diffi2 : 0,
+            diffi3 : 0,
+            diffi4 : 0,
+            diffi5 : 0,
+        },
+        study_hour : 0,
+        exp : 0,
+        recent_study_time : new Date(0)
+    }
+
+    for (book_id of book_ids){
+        let result_of_book = {
             study_times : {
                 total : 0,
                 diffi1 : 0,
@@ -40,15 +94,15 @@ exports.create_study_result= async (req, res) => {
             exp : 0,
             recent_study_time : new Date(0)
         }
-        for (i=0; i<req.body.cardlist_studying.length; i++){
-            result.study_times.total += 1
-            result.study_times[req.body.cardlist_studying[i].detail_status.recent_difficulty] +=1
-            result.study_hour += req.body.cardlist_studying[i].detail_status.study_hour
-            result.exp += req.body.cardlist_studying[i].detail_status.exp
-            if (result.recent_study_time < req.body.cardlist_studying[i].detail_status.recent_study_time){
-                result.recent_study_time = req.body.cardlist_studying[i].detail_status.recent_study_time
-            }
-        }
+        // for (i=0; i<req.body.cardlist_studying.length; i++){
+        //     result.study_times.total += 1
+        //     result.study_times[req.body.cardlist_studying[i].detail_status.recent_difficulty] +=1
+        //     result.study_hour += req.body.cardlist_studying[i].detail_status.study_hour
+        //     result.exp += req.body.cardlist_studying[i].detail_status.exp
+        //     if (result.recent_study_time < req.body.cardlist_studying[i].detail_status.recent_study_time){
+        //         result.recent_study_time = req.body.cardlist_studying[i].detail_status.recent_study_time
+        //     }
+        // }
 
         let book = await Book.update({_id : book_id},{result})
         

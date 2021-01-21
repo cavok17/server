@@ -135,10 +135,10 @@ const book_schema = new mongoose.Schema({
         mode : {type : String, default : 'and'}, 
         user_flag_on_off : {type : Boolean, default : false},
         user_flag_group : {type : Boolean, default : false},
-        user_flag_value : {type : [String], default : ['none','flag1','flag2','flag3','flag4','flag5']},
+        user_flag_value : {type : [String], default : ['0','1','2','3','4','5']},
         maker_flag_on_off : {type : Boolean, default : false},
         maker_flag_group : {type : Boolean, default : false},
-        maker_flag_value : {type : [String], default : ['none','flag1','flag2','flag3','flag4','flag5']},
+        maker_flag_value : {type : [String], default : ['0','1','2','3','4','5']},
         recent_study_time_on_off : {type : Boolean, default : false},
         recent_study_time_group : {type : Boolean, default : false},
         recent_study_time_value : {type : [Date], default : [null,null]},
@@ -158,7 +158,7 @@ const book_schema = new mongoose.Schema({
         writer_on_off : {type : Boolean, default : false},
         writer_group : {type : Boolean, default : false},
         writer_value : {type : [String], default : ['internal','external']},
-    },      
+    },    
 });
 
 module.exports = mongoose.model("Book", book_schema)

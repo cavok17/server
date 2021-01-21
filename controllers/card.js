@@ -57,27 +57,6 @@ exports.create_card = async (req, res) => {
         }
     }
 
-    // switch (req.body.flag_of_maker[0]){
-    //     case '1' :
-    //         new_card.contents.maker_flag = ['flag1']
-    //         break
-    //     case '2' :
-    //         new_card.contents.maker_flag = ['flag2']
-    //         break
-    //     case '3' :
-    //         new_card.contents.maker_flag = ['flag3']
-    //         break
-    //     case '4' :
-    //         new_card.contents.maker_flag = ['flag4']
-    //         break
-    //     case '5' :
-    //         new_card.contents.maker_flag = ['flag5']
-    //         break
-    //     default :
-    //         new_card.contents.maker_flag = ['none']
-    // }
-    // console.log(new_card)
-
     // 카드를 생성합니다.
     // sanitize 쓰는 거 연구 필요
     let card = await Card.create(new_card)
@@ -244,7 +223,29 @@ exports.update_card = async (req, res) => {
 
     let card = await Card.findOne({_id : req.body.card_id})
 
+    let num_cards = {read : 0, flip : 0}
+    switch (card.type) {
+        case 'read' : 
+            num_cards.read -= 1
+            break
+        case 'flip-normal' : 
+        case 'flip-select' : 
+            num_cards.flip -= 1
+            break
+    }
+    switch (req.body.type) {
+        case 'read' : 
+            num_cards.read = 1
+            break
+        case 'flip-normal' : 
+        case 'flip-select' : 
+            num_cards.flip = 1
+            break
+    }
+    let book = await Book.updateOne({_id : req.body.book_id}, {$inc : {'num_cards.read' : num_cards.read, 'num_cards.flip' : num_cards.flip}})
+
     card.cardtype_id = req.body.cardtype_id
+    card.type = req.body.type
     card.parent_card_id = req.body.parent_card_id
     card.contents.maker_flag = req.body.flag_of_maker
     card.contents.share = req.body.share
@@ -284,6 +285,7 @@ exports.delete_card = async (req, res) => {
             break
 
     }
+    
 
     let card_delete_result = await Card.deleteOne({_id : req.body.card_id})
     let seq_modi_result = await Card.updateMany(
@@ -300,8 +302,33 @@ exports.delete_many_card = async (req, res) => {
     console.log("카드를 삭제합니다.");
     console.log(req.body);
 
+    // 카드 갯수 업데이트
+    let delete_cards = await Card.find({$in : {_id : req.body.card_id}}).select('type')
+    let num_cards = {read : 0, flip : 0}
+    for (i=0; i<delete_cards.length; i++){
+        switch (delete_cards[i].type){
+            case 'read' :
+                num_cards.read -=1
+                break
+            case 'flip-normal' :
+            case 'flip-select' :
+                num_cards.flip -=1
+                break
+        }
+    }
+    let book = await Book.updateOne({_id : req.body.book_id}, {$inc : {'num_cards.read' : num_cards.read, 'num_cards.flip' : num_cards.flip}})
+    // 카드 삭제
     let card_delete_result = await Card.deleteMany({$in : {_id : req.body.card_id}})
-    
+    // 시퀀스 정리
+    let cards = await Card
+        .find({index_id : req.body.index_is})
+        .sort({seq_in_index : 1})
+        .select('seq_in_index')
+    for (i=0; i<cards.length; i++){
+        if (cards.seq_in_index != i){
+            let seq_modi = await Card.updateOne({_id : cards[i]._id},{seq_in_index : i})
+        }
+    }    
     let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
