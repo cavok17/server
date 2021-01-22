@@ -18,12 +18,18 @@ exports.create_studyresult= async (req, res) => {
     console.log('body', req.body);
 
     // 일단 카드리스트를 받아온다규
-    let cardlist_studied = req.body.cardlist_studyied
+    let cardlist_studied = req.body.cardlist_studied
     // 세션 받아와서 일단 저장해부러봐바
     let session = await Session
         .find({_id : req.body.session_id})
-        .select('cardlist_total, study_result')    
-    session.cardlist_studying = session.cardlist_studying.concat(cardlist_studied)
+        .select('cardlist_total, cardlist_studied, study_result')
+    console.log('session.cardlist_studied', session.cardlist_studied)
+
+    if (session.cardlist_studied){
+        session.cardlist_studied = session.cardlist_studied.concat(cardlist_studied)
+    } else {
+        session.cardlist_studied = cardlist_studied
+    }
     
 
     // 결과를 만들어 보자
@@ -35,13 +41,15 @@ exports.create_studyresult= async (req, res) => {
 
     console.log(cardlist_studied)
 
-    // // 책 종류와 날짜 종류를 발라냄
-    // let book_ids = cardlist_studyied.map((cardlist) => cardlist.book_id)
-    // book_ids = new Set(book_ids)
-    // book_ids = [...book_ids]
-    // let study_dates = cardlist_studyied.map((cardlist) => cardlist.recent_study_time)    
-    // study_dates = new Set(study_dates)
-    // study_dates = [...study_dates]
+    // 책 종류와 날짜 종류를 발라냄
+    let book_ids = cardlist_studied.map((cardlist) => cardlist.book_id)
+    book_ids = new Set(book_ids)
+    book_ids = [...book_ids]
+    let study_dates = cardlist_studied.map((cardlist) => cardlist.recent_study_time)    
+    study_dates = new Set(study_dates)
+    study_dates = [...study_dates]
+
+    console.log(study_dates)
 
     // for (book_id of book_ids){
     //     for (study_date of study_dates){
