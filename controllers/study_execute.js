@@ -120,7 +120,8 @@ exports.get_cardlist = async (req, res) => {
         delete cardlist_total[i].seq_in_index        
         delete cardlist_total[i].index_id
     }
-    console.log('cardlist_total', cardlist_total)
+    session.cardlist_total = cardlist_total
+    // console.log('cardlist_total', cardlist_total)
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
@@ -166,6 +167,7 @@ exports.get_cardlist = async (req, res) => {
     }
 
     cardlist_studying = cardlist_studying.concat(cardlist_studying_yet, cardlist_studying_ing, cardlist_studying_hold, cardlist_studying_completed)
+    
 
     // 사용한 카드가 몇 장인지 업데이트 해주자
     session.num_cards.yet.selected = cardlist_studying_yet.length
@@ -191,7 +193,7 @@ exports.get_cardlist = async (req, res) => {
     // cardlist_studying
     //     .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
     
-    // session = await session.save()
+    session = await session.save()
 
     // 학습 설정도 받아주시고요
     let book_ids = []
@@ -204,6 +206,7 @@ exports.get_cardlist = async (req, res) => {
 
     // console.log('cardlist_studying', cardlist_studying)
     // console.log(cardlist_studying)
+    console.log('1', cardlist_studying)
     res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }
 

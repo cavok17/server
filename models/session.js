@@ -133,13 +133,12 @@ const session_schema = new mongoose.Schema({
         writer_group : {type : Boolean, default : null},
         writer_value : {type : [String], default : null},
     },    
-    // cardlist_total : Array,
-    cardlist_studying : [cardlist_studying_schema],
+    cardlist_total : [cardlist_studying_schema],
     cardlist_sepa : {
-        yet : Array,
-        ing : Array,
-        hold : Array,
-        completed : Array
+        yet : [cardlist_studying_schema],
+        ing : [cardlist_studying_schema],
+        hold : [cardlist_studying_schema],
+        completed : [cardlist_studying_schema],
     },
     study_result : [study_result_schema],
 });
