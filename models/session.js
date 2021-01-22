@@ -141,7 +141,30 @@ const session_schema = new mongoose.Schema({
         hold : [cardlist_schema],
         completed : [cardlist_schema],
     },
-    study_result : [study_result_schema],
+    study_result : {    
+        num_cards : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        avg_level :{
+            before : {type : Number, default : 0},
+            after : {type : Number, default : 0},
+        },
+        study_times : {
+            total : {type : Number, default : 0},
+            diffi1 : {type : Number, default : 0},
+            diffi2 : {type : Number, default : 0},
+            diffi3 : {type : Number, default : 0},
+            diffi4 : {type : Number, default : 0},
+            diffi5 : {type : Number, default : 0},
+        },
+        study_hour : {type : Number, default : 0},
+        exp : {type : Number, default : 0},
+        cards_until_today : {type : Number, default : 0},
+    },
 });
 
 module.exports = mongoose.model("Session", session_schema)
