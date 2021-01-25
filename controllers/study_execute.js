@@ -122,7 +122,7 @@ exports.get_cardlist = async (req, res) => {
         delete cardlist_total[i].index_id
     }
     session.cardlist_total = cardlist_total
-    console.log('cardlist_total', cardlist_total)
+    // console.log('cardlist_total', cardlist_total)
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고

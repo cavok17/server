@@ -59,7 +59,7 @@ exports.create_studyresult= async (req, res) => {
     for (book_id of book_ids){
         for (study_date of study_dates){   
             single_result = new Study_result
-            console.log(single_result)
+            // console.log(single_result)
             // let single_result = {
             //     session_id : null,
             //     book_id : null,
@@ -144,8 +144,9 @@ exports.create_studyresult= async (req, res) => {
             //     recent_study_time : new Date(0)
             // }
             // console.log(session.cardlist_total)
-            for(i=0; i<cardlist_studied.length; i++){                
-                if (cardlist_studied[i].book_id == book_id && cardlist_studied[i].detail_status.recent_study_time == study_date ){                
+            
+            for(i=0; i<cardlist_studied.length; i++){ 
+                if (cardlist_studied[i].book_id == book_id && cardlist_studied[i].detail_status.recent_study_date == study_date ){                
                     let type
                     switch (cardlist_studied[i].type){
                         case 'read' :
@@ -155,14 +156,14 @@ exports.create_studyresult= async (req, res) => {
                         case 'flip-select' :
                             type = 'flip'
                             break                        
-                    }
+                    }                    
                     // num_cards를 수정한다.
-                    single_result[type].num_cards[cardlist_studied[i].former_status] -= 1
-                    single_result[type].num_cards[cardlist_studied[i].status] += 1
+                    single_result[type].num_cards_change[cardlist_studied[i].former_status] -= 1
+                    single_result[type].num_cards_change[cardlist_studied[i].status] += 1
                     // 세션 스터디 타임즈가 1인 경우에만 스터디_카드스가 올라간다.
                     if (cardlist_studied[i].detail_status.session_study_times === 1){                        
-                        single_result[type].study_cards.total +=1
-                        single_result[type].study_cards[cardlist_studied[i].former_status] +=1
+                        single_result[type].studied_cards.total +=1
+                        single_result[type].studied_cards[cardlist_studied[i].former_status] +=1
                     }
                     single_result[type].study_times.total += 1                                        
                     single_result[type].study_times[cardlist_studied[i].detail_status.recent_difficulty] += 1                    
@@ -175,16 +176,17 @@ exports.create_studyresult= async (req, res) => {
                     
                 }
             }
+            
             // 토탈값을 만든다.
-            single_result.total.num_cards.yet = single_result.read.num_cards.yet + single_result.flip.num_cards.yet
-            single_result.total.num_cards.ing = single_result.read.num_cards.ing + single_result.flip.num_cards.ing
-            single_result.total.num_cards.hold = single_result.read.num_cards.hold + single_result.flip.num_cards.hold
-            single_result.total.num_cards.completed = single_result.read.num_cards.completed + single_result.flip.num_cards.completed
-            single_result.total.study_cards.total = single_result.read.study_cards.total + single_result.flip.study_cards.total
-            single_result.total.study_cards.yet = single_result.read.study_cards.yet + single_result.flip.study_cards.yet
-            single_result.total.study_cards.ing = single_result.read.study_cards.ing + single_result.flip.study_cards.ing
-            single_result.total.study_cards.hold = single_result.read.study_cards.hold + single_result.flip.study_cards.hold
-            single_result.total.study_cards.completed = single_result.read.study_cards.completed + single_result.flip.study_cards.completed
+            single_result.total.num_cards_change.yet = single_result.read.num_cards_change.yet + single_result.flip.num_cards_change.yet
+            single_result.total.num_cards_change.ing = single_result.read.num_cards_change.ing + single_result.flip.num_cards_change.ing
+            single_result.total.num_cards_change.hold = single_result.read.num_cards_change.hold + single_result.flip.num_cards_change.hold
+            single_result.total.num_cards_change.completed = single_result.read.num_cards_change.completed + single_result.flip.num_cards_change.completed
+            single_result.total.studied_cards.total = single_result.read.studied_cards.total + single_result.flip.studied_cards.total
+            single_result.total.studied_cards.yet = single_result.read.studied_cards.yet + single_result.flip.studied_cards.yet
+            single_result.total.studied_cards.ing = single_result.read.studied_cards.ing + single_result.flip.studied_cards.ing
+            single_result.total.studied_cards.hold = single_result.read.studied_cards.hold + single_result.flip.studied_cards.hold
+            single_result.total.studied_cards.completed = single_result.read.studied_cards.completed + single_result.flip.studied_cards.completed
             single_result.total.study_times.total = single_result.read.study_times.total + single_result.flip.study_times.total
             single_result.total.study_times.diffi1 = single_result.read.study_times.diffi1 + single_result.flip.study_times.diffi1
             single_result.total.study_times.diffi2 = single_result.read.study_times.diffi2 + single_result.flip.study_times.diffi2
@@ -194,21 +196,21 @@ exports.create_studyresult= async (req, res) => {
             single_result.total.study_hour = single_result.read.study_hour + single_result.flip.study_hour
             single_result.total.exp = single_result.read.exp + single_result.flip.exp
 
-            // console.log(single_result)
+            console.log(single_result)
 
             // 해당 세션, 북, 날짜로 스터디리절트가 생성되어 있으면 업데이트 하고 아니면 생성한다.
             let studyresult_of_book = await Study_result.findOne({session_id : req.body.session_id, book_id, study_date})
             // console.log(studyresult_of_book)
             if (studyresult_of_book){
-                studyresult_of_book.total.num_cards.yet += single_result.total.num_cards.yet
-                studyresult_of_book.total.num_cards.ing += single_result.total.num_cards.ing
-                studyresult_of_book.total.num_cards.hold += single_result.total.num_cards.hold
-                studyresult_of_book.total.num_cards.completed += single_result.total.num_cards.completed
-                studyresult_of_book.total.study_cards.total += single_result.total.study_cards.total
-                studyresult_of_book.total.study_cards.yet += single_result.total.study_cards.yet
-                studyresult_of_book.total.study_cards.ing += single_result.total.study_cards.ing
-                studyresult_of_book.total.study_cards.hold += single_result.total.study_cards.hold
-                studyresult_of_book.total.study_cards.completed += single_result.total.study_cards.completed
+                studyresult_of_book.total.num_cards_change.yet += single_result.total.num_cards_change.yet
+                studyresult_of_book.total.num_cards_change.ing += single_result.total.num_cards_change.ing
+                studyresult_of_book.total.num_cards_change.hold += single_result.total.num_cards_change.hold
+                studyresult_of_book.total.num_cards_change.completed += single_result.total.num_cards_change.completed
+                studyresult_of_book.total.studied_cards.total += single_result.total.studied_cards.total
+                studyresult_of_book.total.studied_cards.yet += single_result.total.studied_cards.yet
+                studyresult_of_book.total.studied_cards.ing += single_result.total.studied_cards.ing
+                studyresult_of_book.total.studied_cards.hold += single_result.total.studied_cards.hold
+                studyresult_of_book.total.studied_cards.completed += single_result.total.studied_cards.completed
                 studyresult_of_book.total.study_times.total += single_result.total.study_times.total
                 studyresult_of_book.total.study_times.diffi1 += single_result.total.study_times.diffi1
                 studyresult_of_book.total.study_times.diffi2 += single_result.total.study_times.diffi2
@@ -217,15 +219,15 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.total.study_times.diffi5 += single_result.total.study_times.diffi5
                 studyresult_of_book.total.study_hour += single_result.total.study_hour
                 studyresult_of_book.total.exp += single_result.total.exp
-                studyresult_of_book.read.num_cards.yet += single_result.read.num_cards.yet
-                studyresult_of_book.read.num_cards.ing += single_result.read.num_cards.ing
-                studyresult_of_book.read.num_cards.hold += single_result.read.num_cards.hold
-                studyresult_of_book.read.num_cards.completed += single_result.read.num_cards.completed
-                studyresult_of_book.read.study_cards.total += single_result.read.study_cards.total
-                studyresult_of_book.read.study_cards.yet += single_result.read.study_cards.yet
-                studyresult_of_book.read.study_cards.ing += single_result.read.study_cards.ing
-                studyresult_of_book.read.study_cards.hold += single_result.read.study_cards.hold
-                studyresult_of_book.read.study_cards.completed += single_result.read.study_cards.completed
+                studyresult_of_book.read.num_cards_change.yet += single_result.read.num_cards_change.yet
+                studyresult_of_book.read.num_cards_change.ing += single_result.read.num_cards_change.ing
+                studyresult_of_book.read.num_cards_change.hold += single_result.read.num_cards_change.hold
+                studyresult_of_book.read.num_cards_change.completed += single_result.read.num_cards_change.completed
+                studyresult_of_book.read.studied_cards.total += single_result.read.studied_cards.total
+                studyresult_of_book.read.studied_cards.yet += single_result.read.studied_cards.yet
+                studyresult_of_book.read.studied_cards.ing += single_result.read.studied_cards.ing
+                studyresult_of_book.read.studied_cards.hold += single_result.read.studied_cards.hold
+                studyresult_of_book.read.studied_cards.completed += single_result.read.studied_cards.completed
                 studyresult_of_book.read.study_times.total += single_result.read.study_times.total
                 studyresult_of_book.read.study_times.diffi1 += single_result.read.study_times.diffi1
                 studyresult_of_book.read.study_times.diffi2 += single_result.read.study_times.diffi2
@@ -234,15 +236,15 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.read.study_times.diffi5 += single_result.read.study_times.diffi5
                 studyresult_of_book.read.study_hour += single_result.read.study_hour
                 studyresult_of_book.read.exp += single_result.read.exp
-                studyresult_of_book.flip.num_cards.yet += single_result.flip.num_cards.yet
-                studyresult_of_book.flip.num_cards.ing += single_result.flip.num_cards.ing
-                studyresult_of_book.flip.num_cards.hold += single_result.flip.num_cards.hold
-                studyresult_of_book.flip.num_cards.completed += single_result.flip.num_cards.completed
-                studyresult_of_book.flip.study_cards.total += single_result.flip.study_cards.total
-                studyresult_of_book.flip.study_cards.yet += single_result.flip.study_cards.yet
-                studyresult_of_book.flip.study_cards.ing += single_result.flip.study_cards.ing
-                studyresult_of_book.flip.study_cards.hold += single_result.flip.study_cards.hold
-                studyresult_of_book.flip.study_cards.completed += single_result.flip.study_cards.completed
+                studyresult_of_book.flip.num_cards_change.yet += single_result.flip.num_cards_change.yet
+                studyresult_of_book.flip.num_cards_change.ing += single_result.flip.num_cards_change.ing
+                studyresult_of_book.flip.num_cards_change.hold += single_result.flip.num_cards_change.hold
+                studyresult_of_book.flip.num_cards_change.completed += single_result.flip.num_cards_change.completed
+                studyresult_of_book.flip.studied_cards.total += single_result.flip.studied_cards.total
+                studyresult_of_book.flip.studied_cards.yet += single_result.flip.studied_cards.yet
+                studyresult_of_book.flip.studied_cards.ing += single_result.flip.studied_cards.ing
+                studyresult_of_book.flip.studied_cards.hold += single_result.flip.studied_cards.hold
+                studyresult_of_book.flip.studied_cards.completed += single_result.flip.studied_cards.completed
                 studyresult_of_book.flip.study_times.total += single_result.flip.study_times.total
                 studyresult_of_book.flip.study_times.diffi1 += single_result.flip.study_times.diffi1
                 studyresult_of_book.flip.study_times.diffi2 += single_result.flip.study_times.diffi2
@@ -252,7 +254,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.flip.study_hour += single_result.flip.study_hour
                 studyresult_of_book.flip.exp += single_result.flip.exp
                 // console.log('1번이냐')
-                studyresult_of_book = await result_by_book.save()
+                studyresult_of_book = await studyresult_of_book.save()
             } else {
                 // 없으면 single_result에 기본 정보를 생성해서 크리에이트한다.
                 // console.log(single_result)
@@ -267,30 +269,30 @@ exports.create_studyresult= async (req, res) => {
             // 북에도 업데이트
             let book = await Book.updateOne({_id : book_id},
                 {$inc : {
-                    'num_cards.total.yet' : single_result.total.num_cards.yet,
-                    'num_cards.total.ing' : single_result.total.num_cards.ing,
-                    'num_cards.total.hold' : single_result.total.num_cards.hold,
-                    'num_cards.total.completed' : single_result.total.num_cards.completed,
+                    'num_cards.total.yet' : single_result.total.num_cards_change.yet,
+                    'num_cards.total.ing' : single_result.total.num_cards_change.ing,
+                    'num_cards.total.hold' : single_result.total.num_cards_change.hold,
+                    'num_cards.total.completed' : single_result.total.num_cards_change.completed,
+                    'num_cards.read.yet' : single_result.read.num_cards_change.yet,
+                    'num_cards.read.ing' : single_result.read.num_cards_change.ing,
+                    'num_cards.read.hold' : single_result.read.num_cards_change.hold,
+                    'num_cards.read.completed' : single_result.read.num_cards_change.completed,
+                    'num_cards.flip.yet' : single_result.flip.num_cards_change.yet,
+                    'num_cards.flip.ing' : single_result.flip.num_cards_change.ing,
+                    'num_cards.flip.hold' : single_result.flip.num_cards_change.hold,
+                    'num_cards.flip.completed' : single_result.flip.num_cards_change.completed,
                     'result.total.study_times.total' : single_result.total.study_times.total,
                     'result.total.study_times.diff1' : single_result.total.study_times.diff1,
                     'result.total.study_times.diff2' : single_result.total.study_times.diff2,
                     'result.total.study_times.diff3' : single_result.total.study_times.diff3,
                     'result.total.study_times.diff4' : single_result.total.study_times.diff4,
                     'result.total.study_times.diff5' : single_result.total.study_times.diff5,
-                    'num_cards.read.yet' : single_result.read.num_cards.yet,
-                    'num_cards.read.ing' : single_result.read.num_cards.ing,
-                    'num_cards.read.hold' : single_result.read.num_cards.hold,
-                    'num_cards.read.completed' : single_result.read.num_cards.completed,
                     'result.read.study_times.total' : single_result.read.study_times.total,
                     'result.read.study_times.diff1' : single_result.read.study_times.diff1,
                     'result.read.study_times.diff2' : single_result.read.study_times.diff2,
                     'result.read.study_times.diff3' : single_result.read.study_times.diff3,
                     'result.read.study_times.diff4' : single_result.read.study_times.diff4,
                     'result.read.study_times.diff5' : single_result.read.study_times.diff5,
-                    'num_cards.flip.yet' : single_result.flip.num_cards.yet,
-                    'num_cards.flip.ing' : single_result.flip.num_cards.ing,
-                    'num_cards.flip.hold' : single_result.flip.num_cards.hold,
-                    'num_cards.flip.completed' : single_result.flip.num_cards.completed,
                     'result.flip.study_times.total' : single_result.flip.study_times.total,
                     'result.flip.study_times.diff1' : single_result.flip.study_times.diff1,
                     'result.flip.study_times.diff2' : single_result.flip.study_times.diff2,
@@ -306,21 +308,21 @@ exports.create_studyresult= async (req, res) => {
                 }}, {recent_study_time : new Date(study_date)})
 
             // 마지막으로 세션 데이터를 업데이트 한다.
-            session.study_result.total.study_cards.total += single_result.total.study_cards.total
-            session.study_result.total.study_cards.yet += single_result.total.study_cards.yet
-            session.study_result.total.study_cards.ing += single_result.total.study_cards.ing
-            session.study_result.total.study_cards.hold += single_result.total.study_cards.hold
-            session.study_result.total.study_cards.completed += single_result.total.study_cards.completed
-            session.study_result.read.study_cards.total += single_result.read.study_cards.total
-            session.study_result.read.study_cards.yet += single_result.read.study_cards.yet
-            session.study_result.read.study_cards.ing += single_result.read.study_cards.ing
-            session.study_result.read.study_cards.hold += single_result.read.study_cards.hold
-            session.study_result.read.study_cards.completed += single_result.read.study_cards.completed
-            session.study_result.flip.study_cards.total += single_result.flip.study_cards.total
-            session.study_result.flip.study_cards.yet += single_result.flip.study_cards.yet
-            session.study_result.flip.study_cards.ing += single_result.flip.study_cards.ing
-            session.study_result.flip.study_cards.hold += single_result.flip.study_cards.hold
-            session.study_result.flip.study_cards.completed += single_result.flip.study_cards.completed
+            session.study_result.total.studied_cards.total += single_result.total.studied_cards.total
+            session.study_result.total.studied_cards.yet += single_result.total.studied_cards.yet
+            session.study_result.total.studied_cards.ing += single_result.total.studied_cards.ing
+            session.study_result.total.studied_cards.hold += single_result.total.studied_cards.hold
+            session.study_result.total.studied_cards.completed += single_result.total.studied_cards.completed
+            session.study_result.read.studied_cards.total += single_result.read.studied_cards.total
+            session.study_result.read.studied_cards.yet += single_result.read.studied_cards.yet
+            session.study_result.read.studied_cards.ing += single_result.read.studied_cards.ing
+            session.study_result.read.studied_cards.hold += single_result.read.studied_cards.hold
+            session.study_result.read.studied_cards.completed += single_result.read.studied_cards.completed
+            session.study_result.flip.studied_cards.total += single_result.flip.studied_cards.total
+            session.study_result.flip.studied_cards.yet += single_result.flip.studied_cards.yet
+            session.study_result.flip.studied_cards.ing += single_result.flip.studied_cards.ing
+            session.study_result.flip.studied_cards.hold += single_result.flip.studied_cards.hold
+            session.study_result.flip.studied_cards.completed += single_result.flip.studied_cards.completed
             session.study_result.total.study_times.total += single_result.total.study_times.total
             session.study_result.total.study_times.diffi1 += single_result.total.study_times.diffi1
             session.study_result.total.study_times.diffi2 += single_result.total.study_times.diffi2
@@ -354,7 +356,7 @@ exports.create_studyresult= async (req, res) => {
         // 중복부터 제거함
     req.body.cardlist_studied.reverse()
     let dup = []
-    console.log('111',req.body.cardlist_studied)
+    // console.log('111',req.body.cardlist_studied)
     for (i=1; i< req.body.cardlist_studied.length; i++){
         for(j=0; j<i; j++){
             if(req.body.cardlist_studied[i]._id === req.body.cardlist_studied[j]._id){

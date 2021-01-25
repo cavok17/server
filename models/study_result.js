@@ -13,7 +13,7 @@ const study_result_schema = new mongoose.Schema({
             hold : {type : Number, default : 0},
             completed : {type : Number, default : 0},
         },
-        study_cards : {
+        studied_cards : {
             total : {type : Number, default : 0},
             yet : {type : Number, default : 0},
             ing : {type : Number, default : 0},
@@ -39,7 +39,7 @@ const study_result_schema = new mongoose.Schema({
             hold : {type : Number, default : 0},
             completed : {type : Number, default : 0},
         },
-        study_cards : {
+        studied_cards : {
             total : {type : Number, default : 0},
             yet : {type : Number, default : 0},
             ing : {type : Number, default : 0},
@@ -65,7 +65,7 @@ const study_result_schema = new mongoose.Schema({
             hold : {type : Number, default : 0},
             completed : {type : Number, default : 0},
         },
-        study_cards : {
+        studied_cards : {
             total : {type : Number, default : 0},
             yet : {type : Number, default : 0},
             ing : {type : Number, default : 0},
