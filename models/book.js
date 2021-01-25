@@ -17,9 +17,8 @@ const book_schema = new mongoose.Schema({
     // recent_visit_index: String,
     seq_in_category : Number,
     seq_in_like : {type : Number, default : null},
-    num_pages : {type : Number, default : 0},
+    // num_pages : {type : Number, default : 0},
     // num_indexes : {type : Number, default : 1},
-    // num_cards: {type : Number, default : 0},
     // new_index_no : {type : Number, default : 1},
     // new_card_no : {type : Number, default : 0},
     time_created: {type : Date, default : Date.now},
@@ -34,19 +33,39 @@ const book_schema = new mongoose.Schema({
         },
         study_hour : {type : Number, default : 0},
         exp : {type : Number, default : 0},
+        lev : {type : Number, default : 0},
         recent_modify_time : {type : Date, default : 0},
         recent_study_time : {type : Date, default : 0},
     },
     num_cards : {
-        read : {type : Number, default : 0},
-        flip : {type : Number, default : 0},        
+        total : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        read : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        flip : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        }
     },
-    recent :{
-        // num_card_created : {type : Number, default : null},
-        // time_study: {type : Date, default : null},
-        time_modify: {type : Date, default : null},
-        // study_mode : {type : String, default : '0'},
-    },
+    // recent :{
+    //     // num_card_created : {type : Number, default : null},
+    //     // time_study: {type : Date, default : null},
+    //     time_modify: {type : Date, default : null},
+    //     // study_mode : {type : String, default : '0'},
+    // },
     study_config : {
         study_mode : {type : String, default : 'read_mode'},
         read_mode : {            
