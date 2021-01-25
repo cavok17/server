@@ -176,7 +176,14 @@ exports.create_card_by_excel = async (req, res) => {
     })    
     
     // 카드 갯수 업데이트
-    let book = await Book.updateOne({_id : req.body.book_id}, {$inc : {'num_cards.read' : num_cards.read, 'num_cards.flip' : num_cards.flip}})
+    let book = await Book.updateOne({_id : req.body.book_id}, {$inc : {
+        'num_cards.read.total' : num_cards.read, 
+        'num_cards.read.yet' : num_cards.read, 
+        'num_cards.flip.total' : num_cards.flip,
+        'num_cards.flip.yet' : num_cards.flip,
+        'num_cards.total.total' : num_cards.read + num_cards.flip,
+        'num_cards.total.yet' : num_cards.read + num_cards.flip,
+    }})
     let cardlist = await get_cardlist_func(req.body.index_id)
     res.json({isloggedIn : true, msg : '업로드 완료', cardlist});
 

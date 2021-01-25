@@ -6,20 +6,19 @@ const Index = require('../models/index');
 
 
 // 인덱스 정보를 가져옵니다.
-const get_indexList = async (req, res) => {  
+exports.get_indexlist = async (req, res) => {  
     console.log('인덱스 리스트 가지러 왔느냐.');    
     console.log(req.body);
 
     const indexList = await Index
         .find({book_id : req.body.book_id})
         .sort({seq : 1});
-    // console.log(indexList);
 
     res.json({isloggedIn : true, indexList, });
 };
 
 // 인덱스를 생성합니다.
-const create_index = async (req, res) => {  
+exports.create_index = async (req, res) => {  
     console.log('인덱스를 새로 생성합니다.');
     console.log(req.body);
 
@@ -60,11 +59,15 @@ const create_index = async (req, res) => {
         
     };
     
-    return get_indexList(req,res)
+    const indexList = await Index
+        .find({book_id : req.body.book_id})
+        .sort({seq : 1});
+
+    res.json({isloggedIn : true, indexList, });
 };
 
 // 인덱스 이름을 변경합니다.
-const change_index_name = async(req, res) => {
+exports.change_index_name = async(req, res) => {
     console.log('인덱스 이름을 변경합니다.');
     console.log(req.body);
 
@@ -73,11 +76,15 @@ const change_index_name = async(req, res) => {
         {name : req.body.name}
     );
 
-    get_indexList(req, res); 
+    const indexList = await Index
+        .find({book_id : req.body.book_id})
+        .sort({seq : 1});
+
+    res.json({isloggedIn : true, indexList, });
 };
 
 // 인덱스 레벨을 변경합니다.
-const change_index_level = async(req, res) => {
+exports.change_index_level = async(req, res) => {
     console.log('인덱스 레벨을 변경합니다.');
     console.log(req.body);
 
@@ -121,14 +128,22 @@ const change_index_level = async(req, res) => {
                 {book_id : req.body.book_id,
                 seq : {$gte : req.body.seq, $lt : next_same_level_index_seq}},
                 {$inc : {level : 1}});
-            get_indexList(req, res); 
+            const indexList = await Index
+                .find({book_id : req.body.book_id})
+                .sort({seq : 1});
+        
+            res.json({isloggedIn : true, indexList, });
         }
     } else if(req.body.action == 'left'){
         let level_modi_result = await Index.updateMany(
             {book_id : req.body.book_id,
             seq : {$gte : req.body.seq, $lt : next_same_level_index_seq}},
             {$inc : {level : -1}});
-        get_indexList(req, res); 
+        const indexList = await Index
+        .find({book_id : req.body.book_id})
+        .sort({seq : 1});
+    
+        res.json({isloggedIn : true, indexList, });
     };    
 };
 
@@ -202,7 +217,7 @@ const change_index_level = async(req, res) => {
 // };
 
 // 인덱스를 삭제합니다.
-const delete_index = async(req, res) => {
+exports.delete_index = async(req, res) => {
     console.log('인덱스를 삭제합니다.');
     console.log(req.body);
 
@@ -241,14 +256,9 @@ const delete_index = async(req, res) => {
     
     // 나중에 카드 옮기는 로직도 필요함
 
-    get_indexList(req, res); 
-};
+    const indexList = await Index
+        .find({book_id : req.body.book_id})
+        .sort({seq : 1});
 
-module.exports ={
-    get_indexList,
-    create_index,
-    change_index_name,
-    change_index_level,
-    // change_index_order,
-    delete_index,
+    res.json({isloggedIn : true, indexList, });
 };

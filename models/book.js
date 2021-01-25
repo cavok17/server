@@ -16,11 +16,7 @@ const book_schema = new mongoose.Schema({
     hide_or_show : {type : Boolean, default : true},
     // recent_visit_index: String,
     seq_in_category : Number,
-    seq_in_like : {type : Number, default : null},
-    // num_pages : {type : Number, default : 0},
-    // num_indexes : {type : Number, default : 1},
-    // new_index_no : {type : Number, default : 1},
-    // new_card_no : {type : Number, default : 0},
+    seq_in_like : {type : Number, default : null},    
     time_created: {type : Date, default : Date.now},
     result : {
         study_times : {

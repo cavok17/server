@@ -81,8 +81,12 @@ exports.get_index = async (req, res) => {
     // 일단 인덱스를 받아오고
     let indexes = await Index
         .find({book_id : req.body.selected_books.book_id})
-        .select('name level seq num_cards progress')
+        .select('name level seq num_cards')
         .sort({seq : 1})
+    
+    // for (i=0; i<indexes.length; i++){
+    //     console.log(indexes[i].num_cards)
+    // }
 
     // 인덱스의 시퀀스가 정상적인지 확인하고 정상적이지 않으면 수정해준다.
     // 뒤쪽에서 시퀀스 넘버로 어레이를 매니지 하니깐, 순서가 맞아야 한다.
@@ -145,7 +149,9 @@ exports.get_index = async (req, res) => {
         {$lookup : lookup}
     ])
     progress_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
-
+    // for (i=0; i<progress_of_index.length; i++){
+    //     console.log('progress_of_index', progress_of_index[i])
+    // }
 
     // 카드 타입별 프로그레스 정보를 추가하고
     for (i=0; i<progress_of_index.length; i++){       
@@ -167,8 +173,8 @@ exports.get_index = async (req, res) => {
     }
 
     // console.log('single_book_info',single_book_info)
-    // console.log(single_book_info.index_info[0].num_cards)
-     res.json({isloggedIn : true,  single_book_info});    
+    // console.log(single_book_info.index_info[1].num_cards)
+    res.json({isloggedIn : true,  single_book_info});    
 }
 
 // ********************************************************************************************************************************
@@ -219,6 +225,7 @@ const get_num_cards_of_index = async (indexes, filter) => {
                         then : 'until_now'
                     },{
                         case : {$and : [{$gte : [{$toDecimal : '$detail_status.need_study_time'}, current_time]}, {$lt : [{$toDecimal : '$need_study_time'}, tomorrow]}]},
+                        // case : { $lt :[{$toDecimal : '$detail_status.need_study_time'}, tomorrow]},
                         then : 'until_today'
                     },{
                         case : { $gt : [{$toDecimal : '$detail_status.need_study_time'}, tomorrow]},
@@ -262,10 +269,10 @@ const get_num_cards_of_index = async (indexes, filter) => {
     // 인덱스에 total 값 정리한 후
     for (i=0; i<indexes.length; i++){
         // read 카드 토탈값들을 정리하고
-        indexes[i].num_cards.read.ing.total = indexes[i].num_cards.read.ing.not_studying + indexes[i].num_cards.read.ing.until_today + indexes[i].num_cards.read.ing.after_tomorrow        
+        indexes[i].num_cards.read.ing.total = indexes[i].num_cards.read.ing.not_studying + indexes[i].num_cards.read.ing.until_now + indexes[i].num_cards.read.ing.until_today + indexes[i].num_cards.read.ing.after_tomorrow        
         indexes[i].num_cards.read.total = indexes[i].num_cards.read.yet + indexes[i].num_cards.read.ing.total +indexes[i].num_cards.read.hold + indexes[i].num_cards.read.completed
         // flip 카드 토탈값들을 정리하고
-        indexes[i].num_cards.flip.ing.total = indexes[i].num_cards.flip.ing.not_studying + indexes[i].num_cards.flip.ing.until_today + indexes[i].num_cards.flip.ing.after_tomorrow
+        indexes[i].num_cards.flip.ing.total = indexes[i].num_cards.flip.ing.not_studying + indexes[i].num_cards.flip.ing.until_now + indexes[i].num_cards.flip.ing.until_today + indexes[i].num_cards.flip.ing.after_tomorrow
         indexes[i].num_cards.flip.total = indexes[i].num_cards.flip.yet + indexes[i].num_cards.flip.ing.total +indexes[i].num_cards.flip.hold + indexes[i].num_cards.flip.completed
         // read와 flip을 합한 값들을 정리하고
         indexes[i].num_cards.total.yet = indexes[i].num_cards.read.yet + indexes[i].num_cards.flip.yet
