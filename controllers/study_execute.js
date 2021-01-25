@@ -113,6 +113,7 @@ exports.get_cardlist = async (req, res) => {
     // 토탈 카드리스트에서의 시퀀스 정보를 생성합니다.
     for (i=0; i<cardlist_total.length; i++) {        
         cardlist_total[i].seq_in_total_list = i        
+        cardlist_total[i].former_status = null
     }
 
     // 불필요한 정보를 지워줍니다.
@@ -176,8 +177,7 @@ exports.get_cardlist = async (req, res) => {
     session.num_cards.completed.selected = cardlist_studying_completed.length
     
 
-    // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
-    // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림        
+    // // 정보가 필요하면 넣어
     // let now = new Date()       
     // for (i=0; i<cardlist_studying.length; i++){        
     //     if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
@@ -189,9 +189,9 @@ exports.get_cardlist = async (req, res) => {
     //     cardlist_studying[i].detail_status.session_study_times = 0
     // }
 
-    // // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
-    // cardlist_studying
-    //     .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
+    // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
+    cardlist_studying
+        .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
     
     session = await session.save()
 
