@@ -30,6 +30,7 @@ const cardschema = new mongoose.Schema({
     memo : {type : Array, default : []},
   },
   status : {type : String, default : 'yet'}, // yet, ing, hold, completed
+  former_status : {type : String, default : null}, 
   time_created : {type : Date, default : Date.now},
   detail_status : {
     recent_study_time : {type : Date, default : null},
