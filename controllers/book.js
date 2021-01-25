@@ -571,6 +571,18 @@ const change_hide_config = async(req, res) => {
     get_booklist(req, res); 
 };
 
+const get_card_status = async(req, res) => {
+    console.log(req.body);
+
+    let cards = await Card.find({book_id : req.body.book_id})
+        .select('type status index_id status detail_status')
+        .sort({index_id : 1})
+
+    res.json({isloggedIn : true, cardlist});
+}
+
+
+
 // // write를 시작합니다.
 // const start_write = async(req, res) => {
 //     console.log('write를 시작합니다.');
@@ -601,4 +613,5 @@ module.exports ={
     change_category_name,
     change_like_config,
     change_hide_config,    
+    get_card_status,
 };

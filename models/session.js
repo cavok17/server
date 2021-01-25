@@ -16,7 +16,8 @@ const cardlist_schema = new mongoose.Schema({
         current_lev_study_times : {type : Number, default : null},
         total_study_hour : {type : Number, default : null},
         recent_study_hour : {type : Number, default : null},
-        exp : {type : Number, default : null},
+        exp_aquisition  : {type : Number, default : null},
+        exp_accumulation : {type : Number, default : null},
         level : {type : Number, default : null},
     }
 })

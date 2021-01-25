@@ -58,93 +58,8 @@ exports.create_studyresult= async (req, res) => {
     // 책 및 날짜 단위로 데이터를 추출하여 저장함
     for (book_id of book_ids){
         for (study_date of study_dates){   
-            single_result = new Study_result
-            // console.log(single_result)
-            // let single_result = {
-            //     session_id : null,
-            //     book_id : null,
-            //     study_date : null,
-            //     total : {
-            //         num_cards_change : {
-                        // total : 0
-                        // yet : 0,
-            //             ing : 0,
-            //             hold : 0,
-            //             completed : 0                    
-            //         },
-            //         study_cards : {
-            //             total : 0,
-            //             yet : 0,
-            //             ing : 0,
-            //             hold : 0,
-            //             completed : 0                    
-            //         },
-            //         study_times : {
-            //             total : 0,
-            //             diffi1 : 0,
-            //             diffi2 : 0,
-            //             diffi3 : 0,
-            //             diffi4 : 0,
-            //             diffi5 : 0,
-            //         },
-            //         study_hour : 0,
-            //         exp : 0,
-            //     },
-            //     read : {
-            //         num_cards : {
-            //             yet : 0,
-            //             ing : 0,
-            //             hold : 0,
-            //             completed : 0                    
-            //         },
-            //         study_cards : {
-            //             total : 0,
-            //             yet : 0,
-            //             ing : 0,
-            //             hold : 0,
-            //             completed : 0                    
-            //         },
-            //         study_times : {
-            //             total : 0,
-            //             diffi1 : 0,
-            //             diffi2 : 0,
-            //             diffi3 : 0,
-            //             diffi4 : 0,
-            //             diffi5 : 0,
-            //         },
-            //         study_hour : 0,
-            //         exp : 0,
-            //     },
-            //     flip : {
-            //         num_cards : {
-            //             yet : 0,
-            //             ing : 0,
-            //             hold : 0,
-            //             completed : 0                    
-            //         },
-            //         study_cards : {
-            //             total : 0,
-            //             yet : 0,
-            //             ing : 0,
-            //             hold : 0,
-            //             completed : 0                    
-            //         },
-            //         study_times : {
-            //             total : 0,
-            //             diffi1 : 0,
-            //             diffi2 : 0,
-            //             diffi3 : 0,
-            //             diffi4 : 0,
-            //             diffi5 : 0,
-            //         },
-            //         study_hour : 0,
-            //         exp : 0,
-            //     },
-                
-            //     recent_study_time : new Date(0)
-            // }
-            // console.log(session.cardlist_total)
             
+            let single_result = new Study_result            
             for(i=0; i<cardlist_studied.length; i++){ 
                 if (cardlist_studied[i].book_id == book_id && cardlist_studied[i].detail_status.recent_study_date == study_date ){                
                     let type
@@ -375,7 +290,7 @@ exports.create_studyresult= async (req, res) => {
     // 카드 업데이트
     // console.log('저장', req.body.cardlist_studied)
     for (i=0; i<req.body.cardlist_studied.length; i++){
-        console.log('이게 왜 없다고 나오냐', req.body.cardlist_studied[i])
+        // console.log('이게 왜 없다고 나오냐', req.body.cardlist_studied[i])
         let card = await Card.updateOne(
             {_id : req.body.cardlist_studied[i]._id},
             {status : req.body.cardlist_studied[i].status,
