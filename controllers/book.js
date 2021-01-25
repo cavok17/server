@@ -575,10 +575,10 @@ const get_card_status = async(req, res) => {
     console.log(req.body);
 
     let cards = await Card.find({book_id : req.body.book_id})
-        .select('type status index_id status detail_status')
+        .select('type status index_id detail_status')
         .sort({index_id : 1})
 
-    res.json({isloggedIn : true, cardlist});
+    res.json({isloggedIn : true, cards});
 }
 
 

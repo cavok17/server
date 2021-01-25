@@ -23,8 +23,7 @@ exports.create_studyresult= async (req, res) => {
     // 세션 받아와서 일단 저장해부러봐바
     let session = await Session
         .findOne({_id : req.body.session_id})
-        // .select('cardlist_total, cardlist_studied, study_result')
-    // console.log('session.study_result', session)
+        .select('cardlist_total cardlist_studied study_result')
 
     // 처음 저장하면 undefined일 것임
     if (session.cardlist_studied){
@@ -83,7 +82,7 @@ exports.create_studyresult= async (req, res) => {
                     single_result[type].study_times.total += 1                                        
                     single_result[type].study_times[cardlist_studied[i].detail_status.recent_difficulty] += 1                    
                     single_result[type].study_hour += cardlist_studied[i].detail_status.recent_study_hour
-                    single_result[type].exp += cardlist_studied[i].detail_status.exp
+                    single_result[type].exp_aquisition += cardlist_studied[i].detail_status.exp_aquisition
                     // recent_study_time의 최대값을 찾는다.
                     if (single_result.recent_study_time < cardlist_studied[i].detail_status.recent_study_time){
                         single_result.recent_study_time = cardlist_studied[i].detail_status.recent_study_time
@@ -109,7 +108,7 @@ exports.create_studyresult= async (req, res) => {
             single_result.total.study_times.diffi4 = single_result.read.study_times.diffi4 + single_result.flip.study_times.diffi4
             single_result.total.study_times.diffi5 = single_result.read.study_times.diffi5 + single_result.flip.study_times.diffi5
             single_result.total.study_hour = single_result.read.study_hour + single_result.flip.study_hour
-            single_result.total.exp = single_result.read.exp + single_result.flip.exp
+            single_result.total.exp_aquisition = single_result.read.exp_aquisition + single_result.flip.exp_aquisition
 
             // console.log(single_result)
 
@@ -133,7 +132,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.total.study_times.diffi4 += single_result.total.study_times.diffi4
                 studyresult_of_book.total.study_times.diffi5 += single_result.total.study_times.diffi5
                 studyresult_of_book.total.study_hour += single_result.total.study_hour
-                studyresult_of_book.total.exp += single_result.total.exp
+                studyresult_of_book.total.exp_aquisition += single_result.total.exp_aquisition
                 studyresult_of_book.read.num_cards_change.yet += single_result.read.num_cards_change.yet
                 studyresult_of_book.read.num_cards_change.ing += single_result.read.num_cards_change.ing
                 studyresult_of_book.read.num_cards_change.hold += single_result.read.num_cards_change.hold
@@ -150,7 +149,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.read.study_times.diffi4 += single_result.read.study_times.diffi4
                 studyresult_of_book.read.study_times.diffi5 += single_result.read.study_times.diffi5
                 studyresult_of_book.read.study_hour += single_result.read.study_hour
-                studyresult_of_book.read.exp += single_result.read.exp
+                studyresult_of_book.read.exp_aquisition += single_result.read.exp_aquisition
                 studyresult_of_book.flip.num_cards_change.yet += single_result.flip.num_cards_change.yet
                 studyresult_of_book.flip.num_cards_change.ing += single_result.flip.num_cards_change.ing
                 studyresult_of_book.flip.num_cards_change.hold += single_result.flip.num_cards_change.hold
@@ -167,7 +166,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.flip.study_times.diffi4 += single_result.flip.study_times.diffi4
                 studyresult_of_book.flip.study_times.diffi5 += single_result.flip.study_times.diffi5
                 studyresult_of_book.flip.study_hour += single_result.flip.study_hour
-                studyresult_of_book.flip.exp += single_result.flip.exp
+                studyresult_of_book.flip.exp_aquisition += single_result.flip.exp_aquisition
                 // console.log('1번이냐')
                 studyresult_of_book = await studyresult_of_book.save()
             } else {
@@ -217,9 +216,9 @@ exports.create_studyresult= async (req, res) => {
                     'result.total.study_hour' : single_result.total.study_hour,
                     'result.read.study_hour' : single_result.read.study_hour,
                     'result.flip.study_hour' : single_result.flip.study_hour,
-                    'result.total.exp' : single_result.total.exp,
-                    'result.read.exp' : single_result.read.exp,
-                    'result.flip.exp' : single_result.flip.exp,
+                    'result.total.exp_aquisition' : single_result.total.exp_aquisition,
+                    'result.read.exp_aquisition' : single_result.read.exp_aquisition,
+                    'result.flip.exp_aquisition' : single_result.flip.exp_aquisition,
                 }}, {recent_study_time : new Date(study_date)})
 
             // 마지막으로 세션 데이터를 업데이트 한다.
@@ -259,9 +258,9 @@ exports.create_studyresult= async (req, res) => {
             session.study_result.total.study_hour += single_result.total.study_hour
             session.study_result.read.study_hour += single_result.read.study_hour
             session.study_result.flip.study_hour += single_result.flip.study_hour
-            session.study_result.total.exp += single_result.total.exp            
-            session.study_result.read.exp += single_result.read.exp            
-            session.study_result.flip.exp += single_result.flip.exp            
+            session.study_result.total.exp_aquisition += single_result.total.exp_aquisition            
+            session.study_result.read.exp_aquisition += single_result.read.exp_aquisition            
+            session.study_result.flip.exp_aquisition += single_result.flip.exp_aquisition            
         }
     }
 
@@ -281,7 +280,7 @@ exports.create_studyresult= async (req, res) => {
             }
         }        
     }
-    // console.log('222', dup)
+    console.log('dup', dup)
     dup.reverse()
     for (i=0; i<dup.length; i++){
         delete req.body.cardlist_studied[i]

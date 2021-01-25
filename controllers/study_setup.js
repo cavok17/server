@@ -92,7 +92,7 @@ exports.get_index = async (req, res) => {
             let index_seq_modi_result = await Index.updateOne({_id : indexes[i]._id}, {seq : i})
         }        
     }
-    console.log(indexes)
+    // console.log(indexes)
 
     // -------------------------카드갯수 계산 --------------------------------------------
 
@@ -102,11 +102,10 @@ exports.get_index = async (req, res) => {
 
     indexes = await get_num_cards_of_index(indexes, filter)
 
-    console.log('indexes', indexes)
+    // console.log('indexes', indexes)
 
-// ----------------------------- 프로그레스 --------------------------------------------------------
-    
-filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'flip-select']}}
+// ----------------------------- 프로그레스 --------------------------------------------------------    
+    filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'flip-select']}}
     let project_for_progress = {
         index_id : 1,    
         type_group : {
@@ -127,7 +126,7 @@ filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'fl
                 ]
             },
         },
-        'detail_status.exp' : 1,        
+        'detail_status.exp_accumulation' : 1,        
     }
 
     let group_for_progress = {_id : {index_id : '$index_id', type : '$type_group'}, count : {$sum : 1}, progress: { $avg: "$detail_status.exp" }}
@@ -148,12 +147,12 @@ filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'fl
     progress_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
 
 
-    // 프로그레스 정보를 추가하고
+    // 카드 타입별 프로그레스 정보를 추가하고
     for (i=0; i<progress_of_index.length; i++){       
         indexes[progress_of_index[i].index_info[0].seq]['num_cards'][progress_of_index[i]._id.type].progress = progress_of_index[i].progress    
     }
 
-    // 인덱스에 total 값 정리한 후
+    // 토탈 프로그레스 정보도 추가하고
     for (i=0; i<indexes.length; i++){
         indexes[i].num_cards.total.progress = (indexes[i].num_cards.read.progress*indexes[i].num_cards.read.total + indexes[i].num_cards.flip.progress*indexes[i].num_cards.flip.total) / (indexes[i].num_cards.read.total + indexes[i].num_cards.flip.total)
     }
@@ -167,7 +166,7 @@ filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'fl
         index_info : indexes
     }
 
-    // console.log(single_book_info)
+    // console.log('single_book_info',single_book_info)
     // console.log(single_book_info.index_info[0].num_cards)
      res.json({isloggedIn : true,  single_book_info});    
 }
@@ -262,11 +261,13 @@ const get_num_cards_of_index = async (indexes, filter) => {
     }
     // 인덱스에 total 값 정리한 후
     for (i=0; i<indexes.length; i++){
+        // read 카드 토탈값들을 정리하고
         indexes[i].num_cards.read.ing.total = indexes[i].num_cards.read.ing.not_studying + indexes[i].num_cards.read.ing.until_today + indexes[i].num_cards.read.ing.after_tomorrow        
         indexes[i].num_cards.read.total = indexes[i].num_cards.read.yet + indexes[i].num_cards.read.ing.total +indexes[i].num_cards.read.hold + indexes[i].num_cards.read.completed
-        indexes[i].num_cards.flip.ing.total = indexes[i].num_cards.flip.ing.not_studying + indexes[i].num_cards.flip.ing.until_today + indexes[i].num_cards.read.ing.after_tomorrow
+        // flip 카드 토탈값들을 정리하고
+        indexes[i].num_cards.flip.ing.total = indexes[i].num_cards.flip.ing.not_studying + indexes[i].num_cards.flip.ing.until_today + indexes[i].num_cards.flip.ing.after_tomorrow
         indexes[i].num_cards.flip.total = indexes[i].num_cards.flip.yet + indexes[i].num_cards.flip.ing.total +indexes[i].num_cards.flip.hold + indexes[i].num_cards.flip.completed
-
+        // read와 flip을 합한 값들을 정리하고
         indexes[i].num_cards.total.yet = indexes[i].num_cards.read.yet + indexes[i].num_cards.flip.yet
         indexes[i].num_cards.total.ing.not_studying = indexes[i].num_cards.read.ing.not_studying + indexes[i].num_cards.flip.ing.not_studying
         indexes[i].num_cards.total.ing.until_now = indexes[i].num_cards.read.ing.until_now + indexes[i].num_cards.flip.ing.until_now
