@@ -64,11 +64,11 @@ exports.create_card = async (req, res) => {
     // 카드 갯수 정보 업데이트
     switch (req.body.type){
         case 'read' :
-            let book1 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.read' : 1}})
+            let book1 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.total.total' : 1, 'num_cards.total.yet' : 1, 'num_cards.read.total' : 1, 'num_cards.read.yet' : 1}})
             break
         case 'flip-normal' :
         case 'flip-select' :
-            let book2 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.flip' : 1}})
+            let book2 = await Book.updateOne({_id : req.body.book_id},{$inc : {'num_cards.total.total' : 1, 'num_cards.total.yet' : 1, 'num_cards.flip.total' : 1, 'num_cards.flip.yet' : 1}})
             break
     }
     
