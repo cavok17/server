@@ -113,7 +113,7 @@ exports.get_cardlist = async (req, res) => {
     // 토탈 카드리스트에서의 시퀀스 정보를 생성합니다.
     for (i=0; i<cardlist_total.length; i++) {        
         cardlist_total[i].seq_in_total_list = i        
-        cardlist_total[i].former_status = null
+        // cardlist_total[i].former_status = null
     }
 
     // 불필요한 정보를 지워줍니다.
