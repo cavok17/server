@@ -196,7 +196,7 @@ exports.create_studyresult= async (req, res) => {
             single_result.total.study_hour = single_result.read.study_hour + single_result.flip.study_hour
             single_result.total.exp = single_result.read.exp + single_result.flip.exp
 
-            console.log(single_result)
+            // console.log(single_result)
 
             // 해당 세션, 북, 날짜로 스터디리절트가 생성되어 있으면 업데이트 하고 아니면 생성한다.
             let studyresult_of_book = await Study_result.findOne({session_id : req.body.session_id, book_id, study_date})
@@ -357,6 +357,7 @@ exports.create_studyresult= async (req, res) => {
     req.body.cardlist_studied.reverse()
     let dup = []
     // console.log('111',req.body.cardlist_studied)
+    
     for (i=1; i< req.body.cardlist_studied.length; i++){
         for(j=0; j<i; j++){
             if(req.body.cardlist_studied[i]._id === req.body.cardlist_studied[j]._id){
@@ -365,13 +366,16 @@ exports.create_studyresult= async (req, res) => {
             }
         }        
     }
+    // console.log('222', dup)
     dup.reverse()
     for (i=0; i<dup.length; i++){
         delete req.body.cardlist_studied[i]
     }
     
     // 카드 업데이트
+    // console.log('저장', req.body.cardlist_studied)
     for (i=0; i<req.body.cardlist_studied.length; i++){
+        console.log('이게 왜 없다고 나오냐', req.body.cardlist_studied[i])
         let card = await Card.updateOne(
             {_id : req.body.cardlist_studied[i]._id},
             {status : req.body.cardlist_studied[i].status,
@@ -387,9 +391,11 @@ exports.req_session_studyresult= async (req, res) => {
     console.log("세션 스터디 결과를 보내줍니다.");
     console.log('body', req.body);
     
-    let session = await Session.find({session_id : req.body.session_id})
+    let session = await Session.findOne({_id : req.body.session_id})
         .select('study_result')
     let study_results_by_book = await Study_result.find({session_id : req.body.session_id})
         .sort({session_id : 1})
+    console.log('session', session)
+    console.log('study_results_by_book', study_results_by_book)
     res.json({isloggedIn : true, session, study_results_by_book });
 }

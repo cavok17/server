@@ -147,9 +147,6 @@ const session_schema = new mongoose.Schema({
             before : {type : Number, default : 0},
             after : {type : Number, default : 0},
         },
-    //     session_id : {type:mongoose.ObjectId, ref:'Session'},
-    // book_id : {type:mongoose.ObjectId, ref:'Book'},
-    // study_date : {type : String, default : 0}, 
         total : {
             num_cards_change : {
                 total : {type : Number, default : 0},
