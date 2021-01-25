@@ -83,7 +83,7 @@ exports.get_cardlist = async (req, res) => {
         // console.log('filters', filters)                
         cardlist_of_singlebook = await Card            
             .find(filters)
-            .select('cardtype_name book_id index_id type status formal_status seq_in_index detail_status')                
+            .select('cardtype_name book_id index_id type status former_status seq_in_index detail_status')                
             .sort({seq_in_index : 1})
             .populate({path : 'index_id',select : 'seq'})
         // 위에서는 인덱스 내 순서로만 정렬되어 있고, 이제 인덱스 순서로도 정렬해줘야 함.
@@ -122,7 +122,7 @@ exports.get_cardlist = async (req, res) => {
         delete cardlist_total[i].index_id
     }
     session.cardlist_total = cardlist_total
-    // console.log('cardlist_total', cardlist_total)
+    console.log('cardlist_total', cardlist_total)
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
