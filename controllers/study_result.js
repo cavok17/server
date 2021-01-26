@@ -15,7 +15,7 @@ const study_result = require("../models/study_result");
 // 세션 결과를 정리합니다.
 exports.create_studyresult= async (req, res) => {    
     console.log("세션 결과를 정리합니다.");
-    // console.log('body', req.body);
+    console.log('body', req.body);
 
     // 일단 카드리스트를 받아온다규
     let cardlist_studied = req.body.cardlist_studied
@@ -31,11 +31,9 @@ exports.create_studyresult= async (req, res) => {
         .select('cardlist_total cardlist_studied study_result')
 
     // 처음 저장하면 undefined일 것임
-    if (session.cardlist_studied){
-        console.log('session.cardlist_studied', session.cardlist_studied)
+    if (session.cardlist_studied){        
         session.cardlist_studied = session.cardlist_studied.concat(cardlist_studied)
-    } else {
-        console.log('session.cardlist_studied', session.cardlist_studied)
+    } else {        
         session.cardlist_studied = cardlist_studied
     }
     
@@ -115,11 +113,9 @@ exports.create_studyresult= async (req, res) => {
             single_result.total.study_hour = single_result.read.study_hour + single_result.flip.study_hour
             single_result.total.exp_gained = single_result.read.exp_gained + single_result.flip.exp_gained
 
-            // console.log(single_result)
-
             // 해당 세션, 북, 날짜로 스터디리절트가 생성되어 있으면 업데이트 하고 아니면 생성한다.
             let studyresult_of_book = await Study_result.findOne({session_id : req.body.session_id, book_id, study_date})
-            // console.log(studyresult_of_book)
+
             if (studyresult_of_book){
                 studyresult_of_book.total.num_cards_change.yet += single_result.total.num_cards_change.yet
                 studyresult_of_book.total.num_cards_change.ing += single_result.total.num_cards_change.ing
@@ -172,16 +168,13 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.flip.study_times.diffi5 += single_result.flip.study_times.diffi5
                 studyresult_of_book.flip.study_hour += single_result.flip.study_hour
                 studyresult_of_book.flip.exp_gained += single_result.flip.exp_gained
-                // console.log('1번이냐')
+                
                 studyresult_of_book = await studyresult_of_book.save()
             } else {
                 // 없으면 single_result에 기본 정보를 생성해서 크리에이트한다.
-                // console.log(single_result)
                 single_result.session_id = req.body.session_id
                 single_result.book_id = book_id
                 single_result.study_date = study_date
-                // console.log('2번이냐')
-                // console.log(single_result)
                 studyresult_of_book = await Study_result.create(single_result)
             }
 
@@ -275,8 +268,7 @@ exports.create_studyresult= async (req, res) => {
     // 카드 정보 업데이트
         // 중복부터 제거함
     req.body.cardlist_studied.reverse()
-    let dup = []
-    // console.log('111',req.body.cardlist_studied)
+    let dup = []    
     
     for (i=1; i< req.body.cardlist_studied.length; i++){
         for(j=0; j<i; j++){
@@ -292,10 +284,8 @@ exports.create_studyresult= async (req, res) => {
         delete req.body.cardlist_studied[i]
     }
     
-    // 카드 업데이트
-    // console.log('저장', req.body.cardlist_studied)
-    for (i=0; i<req.body.cardlist_studied.length; i++){
-        // console.log('이게 왜 없다고 나오냐', req.body.cardlist_studied[i])
+    // 카드 업데이트    
+    for (i=0; i<req.body.cardlist_studied.length; i++){        
         let card = await Card.updateOne(
             {_id : req.body.cardlist_studied[i]._id},
             {status : req.body.cardlist_studied[i].status,

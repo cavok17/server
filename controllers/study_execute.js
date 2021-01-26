@@ -21,8 +21,7 @@ exports.get_cardlist = async (req, res) => {
     if (session.study_mode === 'read' && session.study_config.sort_option ==='standard'){
         // start_standard_read_mode(session)
         return
-    }
-    console.log('어이어이~')
+    }    
     // -------------------------------------- 필터 세팅 -----------------------------------------------------
     let filters = {}
 
@@ -79,8 +78,7 @@ exports.get_cardlist = async (req, res) => {
 
     // 책 단위로 카드를 받아서 통합하자
     for (i=0; i<session.booksnindexes.length; i++){
-        filters.index_id = session.booksnindexes[i].index_ids
-        // console.log('filters', filters)                
+        filters.index_id = session.booksnindexes[i].index_ids                      
         cardlist_of_singlebook = await Card            
             .find(filters)
             .select('cardtype_name book_id index_id type status former_status seq_in_index detail_status')                
@@ -91,7 +89,6 @@ exports.get_cardlist = async (req, res) => {
         // 통합 리스트를 만들기 위해 concat함
         cardlist_total = cardlist_total.concat(cardlist_of_singlebook)                
     }
-    // console.log(cardlist_total)
 
     // -------------------------------------- 소트를 적용합시다. -----------------------------------------------------
     // 원본 그대로, 복습시점 빠른 순, 랜덤
@@ -122,8 +119,7 @@ exports.get_cardlist = async (req, res) => {
         delete cardlist_total[i].seq_in_index        
         delete cardlist_total[i].index_id
     }
-    session.cardlist_total = cardlist_total
-    // console.log('cardlist_total', cardlist_total)
+    session.cardlist_total = cardlist_total    
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
@@ -202,11 +198,7 @@ exports.get_cardlist = async (req, res) => {
         book_ids.push(session.booksnindexes[i].book_id)
     }
     let level_config = await Level_config.find({book_id : book_ids})
-    // console.log(level_config)
-
-
-    // console.log('cardlist_studying', cardlist_studying)
-    // console.log(cardlist_studying)
+    
     console.log('1', cardlist_studying)
     res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }

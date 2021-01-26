@@ -592,7 +592,7 @@ exports.apply_advanced_filter = async (req, res) => {
 // 세션을 생성합니다.
 exports.create_session= async (req, res) => {
     console.log("세션을 생성합니다..");
-    // console.log('body', req.body);
+    // console.log('create_session_body', req.body);
 
     // from은 그 날짜를 그대로 쓰는데, to는 하루를 더해줘야 함
     req.body.study_config.needstudytime_filter.low = new Date(req.body.study_config.needstudytime_filter.low)

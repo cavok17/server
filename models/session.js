@@ -110,10 +110,9 @@ const study_result_schema = new mongoose.Schema({
 
 const session_schema = new mongoose.Schema({
     user_id : String,
-    // current_seq : {type : Number, default : 0},
+    status : {type : String, default : 'ing'}, //finished
     time_started : {type : Date, default : Date.now},
-    time_finished : {type : Date, default : null},
-    // booksnindexes : [booksnindexes_schema],
+    time_finished : {type : Date, default : null},    
     booksnindexes : [{    
         book_id: {type:mongoose.ObjectId, ref:'Book'},
         title : String,
