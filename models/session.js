@@ -104,7 +104,8 @@ const study_result_schema = new mongoose.Schema({
             diffi5 : {type : Number, default : 0},
         },
         study_hour : {type : Number, default : 0},
-        exp_gained : {type : Number, default : 0},  
+        exp_gained : {type : Number, default : 0},
+    }
 })
 
 const session_schema = new mongoose.Schema({
