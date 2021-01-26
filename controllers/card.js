@@ -230,30 +230,30 @@ exports.update_card = async (req, res) => {
 
     let card = await Card.findOne({_id : req.body.card_id})
 
-    let num_cards = {read : 0, flip : 0}
-    switch (card.type) {
-        case 'read' : 
-            num_cards.read -= 1
-            break
-        case 'flip-normal' : 
-        case 'flip-select' : 
-            num_cards.flip -= 1
-            break
-    }
-    switch (req.body.type) {
-        case 'read' : 
-            num_cards.read = 1
-            break
-        case 'flip-normal' : 
-        case 'flip-select' : 
-            num_cards.flip = 1
-            break
-    }
-    let book = await Book.updateOne({_id : req.body.book_id}, {$inc : {'num_cards.read' : num_cards.read, 'num_cards.flip' : num_cards.flip}})
+    // let num_cards = {read : 0, flip : 0}
+    // switch (card.type) {
+    //     case 'read' : 
+    //         num_cards.read -= 1
+    //         break
+    //     case 'flip-normal' : 
+    //     case 'flip-select' : 
+    //         num_cards.flip -= 1
+    //         break
+    // }
+    // switch (req.body.type) {
+    //     case 'read' : 
+    //         num_cards.read = 1
+    //         break
+    //     case 'flip-normal' : 
+    //     case 'flip-select' : 
+    //         num_cards.flip = 1
+    //         break
+    // }
+    // let book = await Book.updateOne({_id : req.body.book_id}, {$inc : {'num_cards.read' : num_cards.read, 'num_cards.flip' : num_cards.flip}})
 
-    card.cardtype_id = req.body.cardtype_id
-    card.type = req.body.type
-    card.parent_card_id = req.body.parent_card_id
+    // card.cardtype_id = req.body.cardtype_id
+    // card.type = req.body.type
+    // card.parent_card_id = req.body.parent_card_id
     card.contents.maker_flag = req.body.flag_of_maker
     card.contents.share = req.body.share
     card.contents.face1 = req.body.face1
