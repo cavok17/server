@@ -10,23 +10,12 @@ const Book_controller = require('../controllers/book');
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const router = express.Router();
 
-// 카테고리 리스트 보여주기
-router.get('/get-categorylist', isLoggedIn, Book_controller.get_categorylist);
 
 // 보유한 책 리스트 보여주기
 router.get('/get-booklist', isLoggedIn, Book_controller.get_booklist);
 
 // 새 책 생성하기
 router.post('/create-book', isLoggedIn, Book_controller.create_book);
-
-// 새 카테고리 생성하기
-router.post('/create-category', isLoggedIn, Book_controller.create_category);
-
-// 카테고리 삭제하기
-router.post('/delete-category', isLoggedIn, Book_controller.delete_category);
-
-// 카테고리 순서변경하기
-router.post('/change-category-order', isLoggedIn, Book_controller.change_category_order);
 
 // 책 삭제하기
 router.post('/delete-book', isLoggedIn, Book_controller.delete_book);
@@ -48,9 +37,6 @@ router.post('/change-hide-or-show', isLoggedIn, Book_controller.change_hide_or_s
 
 // 책 이름 변경하기
 router.post('/change-book-title', isLoggedIn, Book_controller.change_book_title);
-
-// 카테고리 이름 변경하기
-router.post('/change-category-name', isLoggedIn, Book_controller.change_category_name);
 
 // 카테고리 이름 변경하기
 router.post('/change-like-config', isLoggedIn, Book_controller.change_like_config);

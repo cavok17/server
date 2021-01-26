@@ -70,148 +70,10 @@ const get_write_config = async (req, res) => {
     return write_config
 }
 
-// 카테고리 리스트만 보여줍니다.
-exports.get_categorylist = async (req, res) => {    
-    console.log('categorylist 가지러 왔냐');
-    const categories = await Category
-        .find({user_id: req.session.passport.user})
-        .sort({seq : 1})
-    
-    res.json({isloggedIn : true, categories});
-};
-
 // 전체 카테고리와 책 리스트를 보여줍니다.
 exports.get_booklist = async (req, res) => {    
     console.log('책 정보 가지러 왔냐');
     
-    let categorybooklist = await get_categorybooklist(req, res)
-    let likebooklist = await get_likebooklist(req, res)
-    let write_config = await get_write_config(req, res)
-    
-    console.log(write_config)
-    res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
-};
-
-
-// 새 카테고리를 만듭니다.
-exports.create_category = async (req, res) => {    
-    console.log('category 만들어줄게');
-
-    // 기존 카테고리의 시퀀스 정보 수정해주고
-    let seq_changed_categories = await Category.updateMany(
-        {            
-            user_id : req.session.passport.user,
-            seq : {$gt : req.body.prev_category_seq}
-        },
-        {$inc : {seq : 1}}
-    );
-    
-    // 새로운 카테고리 정보 생성해주고
-    let category = await Category.create({
-        user_id : req.session.passport.user,        
-        name: req.body.new_category,
-        seq: req.body.prev_category_seq+1,
-    });
-
-    let categorybooklist = await get_categorybooklist(req, res)
-    let likebooklist = await get_likebooklist(req, res)
-    let write_config = await get_write_config(req, res)
-    
-    console.log(write_config)
-    res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
-};
-
-// 카테고리를 삭제합니다.
-exports.delete_category = async (req, res) => {    
-    console.log('category를 삭제할게');
-    console.log(req.body);
-    
-    // 목적지 카테고리로 book_ids를 옮겨주고
-    let prev_category = await Category.findOne({_id : req.body.category_id});
-    let book_ids_move_result = await Category.updateOne(
-        {_id : req.body.target_category},
-        {$push : {book_ids : prev_category.book_ids}}
-    );
-       
-    // 타겟 카테고리의 시퀀스 정보 가져오고
-    let seq_info = await get_seq_info(req.body.target_category);
-    // 기존 카테고리의 showbook 정보 가져오고 -> 타겟 카테고리의 hidebook 수정 위해
-    let num_showbook_of_prev_category = await Book.countDocuments(
-        {category_id : req.body.category_id,
-        hide_or_show : true}
-    );
-    console.log('num_showbook_of_prev_category', num_showbook_of_prev_category);
-
-    // 타겟 카테고리의 hide 책들의 시퀀스를 뒤로 더 밀어주고
-    let target_hidebook_move = await Book.updateMany(
-        {category_id : req.body.target_category,
-        hide_or_show : false},
-        {$inc : {seq_in_category : num_showbook_of_prev_category}}
-    );
-    // 기존 카테고리의 show 북들의 시퀀스를 끼워넣고
-    let pre_showbook_move = await Book.updateMany(
-        {category_id : req.body.category_id,
-        hide_or_show : true},
-        {$set : {category_id : req.body.target_category},
-        $inc : {seq_in_category : seq_info.max_seq_of_showbook + 1}}
-    );
-    // 기존 카테고리의 hide 북들의 시퀀스도 조정하고
-    let pre_hidebook_move = await Book.updateMany(
-        {category_id : req.body.category_id,
-        hide_or_show : false},
-        {$set : {category_id : req.body.target_category},
-        // $inc : {seq_in_category : seq_info.max_seq_of_hidebook + num_showbook_of_prev_category}}
-        $inc : {seq_in_category : seq_info.max_seq_of_hidebook + 1}}
-    );
-    
-    // 마지막으로 기존 카테고리를 삭제합니다.
-    let delete_result = await Category.deleteOne({_id : req.body.category_id});    
-    let seq_change_result = await Category.updateMany(
-        {user : req.session.passport.user, seq : {$gt : req.body.seq}}, 
-        {$inc : {seq : -1}});
-
-    let categorybooklist = await get_categorybooklist(req, res)
-    let likebooklist = await get_likebooklist(req, res)
-    let write_config = await get_write_config(req, res)
-    
-    console.log(write_config)
-    res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
-};
-
-// 카테고리 순서를 조정합니다.
-exports.change_category_order = async (req, res) => {    
-    console.log('category 순서 좀 조정할게');
-    
-    // 목적지 카테고리를 정의합니다.
-    let destination_category;
-    if (req.body.action === 'up'){
-        destination_category = await Category
-            .find({
-                user_id : req.session.passport.user,
-                seq : {$lt : req.body.seq}
-            })
-            .sort({seq : -1})
-            .limit(1);            
-    } else {
-        destination_category = await Category
-            .find({
-                user_id : req.session.passport.user,
-                seq : {$gt : req.body.seq}
-            })
-            .sort({seq : 1})
-            .limit(1);
-    };
-
-    // 갈아 끼웁니다.
-    let current_category_move_result = await Category.updateOne(
-        {_id : req.body.category_id},
-        {seq : destination_category[0].seq}        
-    );
-    let destination_category_move_result = await Category.updateOne(
-        {_id : destination_category[0]._id},
-        {seq : req.body.seq}        
-    );
-
     let categorybooklist = await get_categorybooklist(req, res)
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
@@ -586,23 +448,6 @@ exports.change_book_title = async(req, res) => {
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 };
 
-// 카테고리 이름을 변경합니다.
-exports.change_category_name = async(req, res) => {
-    console.log('카테고리 이름을 변경합니다.');
-    console.log(req.body);
-
-    const book = await Category.updateOne(
-        {_id : req.body.category_id},
-        {name : req.body.name}
-    );
-
-    let categorybooklist = await get_categorybooklist(req, res)
-    let likebooklist = await get_likebooklist(req, res)
-    let write_config = await get_write_config(req, res)
-    
-    console.log(write_config)
-    res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
-};
 
 exports.change_like_config = async(req, res) => {
     console.log('설정을 변경합니다.');

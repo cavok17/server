@@ -64,6 +64,7 @@ app.use(session(sessionOption))
 
 const userRouter = require('./routes/user');
 const bookRouter = require('./routes/book');
+const categoryRouter = require('./routes/category');
 const indexRouter = require('./routes/index');
 const cardtypeRouter = require('./routes/cardtype');
 const cardRouter = require('./routes/card');
@@ -76,6 +77,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/api/book', bookRouter)
+app.use('/api/category', categoryRouter)
 app.use('/api/index', indexRouter)
 app.use('/api/cardtype', cardtypeRouter)
 app.use('/api/card', cardRouter)
