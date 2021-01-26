@@ -15,10 +15,15 @@ const study_result = require("../models/study_result");
 // 세션 결과를 정리합니다.
 exports.create_studyresult= async (req, res) => {    
     console.log("세션 결과를 정리합니다.");
-    console.log('body', req.body);
+    // console.log('body', req.body);
 
     // 일단 카드리스트를 받아온다규
     let cardlist_studied = req.body.cardlist_studied
+
+    // 확인용
+    for (i=0; i<cardlist_studied.length; i++){
+        console.log(cardlist_studied[i])
+    }
 
     // 세션 받아와서 일단 저장해부러봐바
     let session = await Session
@@ -82,7 +87,7 @@ exports.create_studyresult= async (req, res) => {
                     single_result[type].study_times.total += 1                                        
                     single_result[type].study_times[cardlist_studied[i].detail_status.recent_difficulty] += 1                    
                     single_result[type].study_hour += cardlist_studied[i].detail_status.recent_study_hour
-                    single_result[type].exp_aquisition += cardlist_studied[i].detail_status.exp_aquisition
+                    single_result[type].exp_gained += cardlist_studied[i].detail_status.exp_gained
                     // recent_study_time의 최대값을 찾는다.
                     if (single_result.recent_study_time < cardlist_studied[i].detail_status.recent_study_time){
                         single_result.recent_study_time = cardlist_studied[i].detail_status.recent_study_time
@@ -108,7 +113,7 @@ exports.create_studyresult= async (req, res) => {
             single_result.total.study_times.diffi4 = single_result.read.study_times.diffi4 + single_result.flip.study_times.diffi4
             single_result.total.study_times.diffi5 = single_result.read.study_times.diffi5 + single_result.flip.study_times.diffi5
             single_result.total.study_hour = single_result.read.study_hour + single_result.flip.study_hour
-            single_result.total.exp_aquisition = single_result.read.exp_aquisition + single_result.flip.exp_aquisition
+            single_result.total.exp_gained = single_result.read.exp_gained + single_result.flip.exp_gained
 
             // console.log(single_result)
 
@@ -132,7 +137,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.total.study_times.diffi4 += single_result.total.study_times.diffi4
                 studyresult_of_book.total.study_times.diffi5 += single_result.total.study_times.diffi5
                 studyresult_of_book.total.study_hour += single_result.total.study_hour
-                studyresult_of_book.total.exp_aquisition += single_result.total.exp_aquisition
+                studyresult_of_book.total.exp_gained += single_result.total.exp_gained
                 studyresult_of_book.read.num_cards_change.yet += single_result.read.num_cards_change.yet
                 studyresult_of_book.read.num_cards_change.ing += single_result.read.num_cards_change.ing
                 studyresult_of_book.read.num_cards_change.hold += single_result.read.num_cards_change.hold
@@ -149,7 +154,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.read.study_times.diffi4 += single_result.read.study_times.diffi4
                 studyresult_of_book.read.study_times.diffi5 += single_result.read.study_times.diffi5
                 studyresult_of_book.read.study_hour += single_result.read.study_hour
-                studyresult_of_book.read.exp_aquisition += single_result.read.exp_aquisition
+                studyresult_of_book.read.exp_gained += single_result.read.exp_gained
                 studyresult_of_book.flip.num_cards_change.yet += single_result.flip.num_cards_change.yet
                 studyresult_of_book.flip.num_cards_change.ing += single_result.flip.num_cards_change.ing
                 studyresult_of_book.flip.num_cards_change.hold += single_result.flip.num_cards_change.hold
@@ -166,7 +171,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.flip.study_times.diffi4 += single_result.flip.study_times.diffi4
                 studyresult_of_book.flip.study_times.diffi5 += single_result.flip.study_times.diffi5
                 studyresult_of_book.flip.study_hour += single_result.flip.study_hour
-                studyresult_of_book.flip.exp_aquisition += single_result.flip.exp_aquisition
+                studyresult_of_book.flip.exp_gained += single_result.flip.exp_gained
                 // console.log('1번이냐')
                 studyresult_of_book = await studyresult_of_book.save()
             } else {
@@ -216,9 +221,10 @@ exports.create_studyresult= async (req, res) => {
                     'result.total.study_hour' : single_result.total.study_hour,
                     'result.read.study_hour' : single_result.read.study_hour,
                     'result.flip.study_hour' : single_result.flip.study_hour,
-                    'result.total.exp_aquisition' : single_result.total.exp_aquisition,
-                    'result.read.exp_aquisition' : single_result.read.exp_aquisition,
-                    'result.flip.exp_aquisition' : single_result.flip.exp_aquisition,
+                    // book에는 exp_stacked로 누적시킴
+                    'result.total.exp_stacked' : single_result.total.exp_gained,
+                    'result.read.exp_stacked' : single_result.read.exp_gained,
+                    'result.flip.exp_stacked' : single_result.flip.exp_gained,
                 }}, {recent_study_time : new Date(study_date)})
 
             // 마지막으로 세션 데이터를 업데이트 한다.
@@ -258,9 +264,9 @@ exports.create_studyresult= async (req, res) => {
             session.study_result.total.study_hour += single_result.total.study_hour
             session.study_result.read.study_hour += single_result.read.study_hour
             session.study_result.flip.study_hour += single_result.flip.study_hour
-            session.study_result.total.exp_aquisition += single_result.total.exp_aquisition            
-            session.study_result.read.exp_aquisition += single_result.read.exp_aquisition            
-            session.study_result.flip.exp_aquisition += single_result.flip.exp_aquisition            
+            session.study_result.total.exp_gained += single_result.total.exp_gained            
+            session.study_result.read.exp_gained += single_result.read.exp_gained            
+            session.study_result.flip.exp_gained += single_result.flip.exp_gained            
         }
     }
 

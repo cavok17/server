@@ -16,35 +16,95 @@ const cardlist_schema = new mongoose.Schema({
         current_lev_study_times : {type : Number, default : null},
         total_study_hour : {type : Number, default : null},
         recent_study_hour : {type : Number, default : null},
-        exp_aquisition  : {type : Number, default : null},
-        exp_accumulation : {type : Number, default : null},
+        exp_gained  : {type : Number, default : null},
+        exp_stacked : {type : Number, default : null},
         level : {type : Number, default : null},
     }
 })
 
 const study_result_schema = new mongoose.Schema({    
-    num_cards_studied : {
-        total : {type : Number, default : 0},
-        yet : {type : Number, default : 0},
-        ing : {type : Number, default : 0},
-        hold : {type : Number, default : 0},
-        completed : {type : Number, default : 0},
-    },
     avg_level :{
         before : {type : Number, default : 0},
         after : {type : Number, default : 0},
     },
-    study_times : {
-        total : {type : Number, default : 0},
-        diffi1 : {type : Number, default : 0},
-        diffi2 : {type : Number, default : 0},
-        diffi3 : {type : Number, default : 0},
-        diffi4 : {type : Number, default : 0},
-        diffi5 : {type : Number, default : 0},
-    },
-    study_hour : {type : Number, default : 0},
-    exp : {type : Number, default : 0},
     cards_until_today : {type : Number, default : 0},
+    total : {
+        num_cards_change : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        studied_cards : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        study_times : {
+            total : {type : Number, default : 0},
+            diffi1 : {type : Number, default : 0},
+            diffi2 : {type : Number, default : 0},
+            diffi3 : {type : Number, default : 0},
+            diffi4 : {type : Number, default : 0},
+            diffi5 : {type : Number, default : 0},
+        },
+        study_hour : {type : Number, default : 0},
+        exp_gained : {type : Number, default : 0},    
+    },
+    read : {
+        num_cards_change : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        studied_cards : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        study_times : {
+            total : {type : Number, default : 0},
+            diffi1 : {type : Number, default : 0},
+            diffi2 : {type : Number, default : 0},
+            diffi3 : {type : Number, default : 0},
+            diffi4 : {type : Number, default : 0},
+            diffi5 : {type : Number, default : 0},
+        },
+        study_hour : {type : Number, default : 0},
+        exp_gained : {type : Number, default : 0},    
+    },
+    flip : {
+        num_cards_change : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        studied_cards : {
+            total : {type : Number, default : 0},
+            yet : {type : Number, default : 0},
+            ing : {type : Number, default : 0},
+            hold : {type : Number, default : 0},
+            completed : {type : Number, default : 0},
+        },
+        study_times : {
+            total : {type : Number, default : 0},
+            diffi1 : {type : Number, default : 0},
+            diffi2 : {type : Number, default : 0},
+            diffi3 : {type : Number, default : 0},
+            diffi4 : {type : Number, default : 0},
+            diffi5 : {type : Number, default : 0},
+        },
+        study_hour : {type : Number, default : 0},
+        exp_gained : {type : Number, default : 0},  
 })
 
 const session_schema = new mongoose.Schema({
@@ -172,7 +232,7 @@ const session_schema = new mongoose.Schema({
                 diffi5 : {type : Number, default : 0},
             },
             study_hour : {type : Number, default : 0},
-            exp_aquisition : {type : Number, default : 0},    
+            exp_gained : {type : Number, default : 0},    
         },
         read : {
             num_cards_change : {
@@ -198,7 +258,7 @@ const session_schema = new mongoose.Schema({
                 diffi5 : {type : Number, default : 0},
             },
             study_hour : {type : Number, default : 0},
-            exp_aquisition : {type : Number, default : 0},    
+            exp_gained : {type : Number, default : 0},    
         },
         flip : {
             num_cards_change : {
@@ -224,7 +284,7 @@ const session_schema = new mongoose.Schema({
                 diffi5 : {type : Number, default : 0},
             },
             study_hour : {type : Number, default : 0},
-            exp_aquisition : {type : Number, default : 0},    
+            exp_gained : {type : Number, default : 0},    
         }
     },
 });

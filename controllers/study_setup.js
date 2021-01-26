@@ -130,7 +130,7 @@ exports.get_index = async (req, res) => {
                 ]
             },
         },
-        'detail_status.exp_accumulation' : 1,        
+        'detail_status.exp_stacked' : 1,        
     }
 
     let group_for_progress = {_id : {index_id : '$index_id', type : '$type_group'}, count : {$sum : 1}, progress: { $avg: "$detail_status.exp" }}
