@@ -10,7 +10,7 @@ const book_schema = new mongoose.Schema({
     category_id: {type:mongoose.ObjectId, ref:'Category'},
     title: String,
     type: String,
-    owner: String,
+    user_id: String,
     author: String,
     like: {type : Boolean, default : false},
     hide_or_show : {type : Boolean, default : true},

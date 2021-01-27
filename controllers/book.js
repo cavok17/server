@@ -59,7 +59,7 @@ const get_categorybooklist = async (req, res) => {
         .find({user_id: req.session.passport.user})
         .sort({seq : 1})
     
-    let books = await Book.find({owner: req.session.passport.user})
+    let books = await Book.find({user_id: req.session.passport.user})
         .sort({seq_in_category : 1})        
         .select('category_id title type author like hide_or_show seq_in_category seq_in_like time_created result num_cards  ')
         .populate ({path : 'category_id', select : 'name seq'})
@@ -78,7 +78,7 @@ const get_categorybooklist = async (req, res) => {
 const get_likebooklist = async (req, res) => {            
     // 즐겨찾기 리스트를 보여줍니다.    
     let likebooklist = await Book
-        .find({owner: req.session.passport.user, like : true})
+        .find({user_id: req.session.passport.user, like : true})
         .select('title seq_in_category result num_cards time_created')
         .sort({seq_in_like : 1})
         .populate({path : 'category_id', select : 'name'});        
@@ -121,7 +121,7 @@ exports.create_book =  async (req, res) => {
     let book = await Book.create({        
         title : req.body.book_title,
         type : 'self',
-        owner : req.session.passport.user,
+        user_id : req.session.passport.user,
         author : req.session.passport.user,
         category_id : req.body.category_id,
         seq_in_category : seq_info.max_seq_of_showbook + 1,
@@ -323,7 +323,7 @@ exports.apply_likebook = async(req, res) => {
     console.log(req.body);
 
     if(req.body.like == 'true'){
-        let num_like = await Book.countDocuments({owner : req.session.passport.user,like : true});
+        let num_like = await Book.countDocuments({user_id : req.session.passport.user,like : true});
         console.log('num_like', num_like);
         let book = await Book.updateOne(
             {_id : req.body.book_id},
@@ -335,9 +335,9 @@ exports.apply_likebook = async(req, res) => {
             {_id : req.body.book_id},
             {like : false, seq_in_like : null},
         );
-        let query_result = await Book.find({owner : req.session.passport.user, seq_in_like : {$gt : book.seq_in_like}});        
+        let query_result = await Book.find({user_id : req.session.passport.user, seq_in_like : {$gt : book.seq_in_like}});        
         let seq_change_result = await Book.updateMany(
-            {owner : req.session.passport.user, seq_in_like : {$gt : book.seq_in_like}},
+            {user_id : req.session.passport.user, seq_in_like : {$gt : book.seq_in_like}},
             {$inc : {seq_in_like : -1}}
         )      
     };
@@ -360,7 +360,7 @@ exports.change_likebook_order = async(req, res) => {
     if (req.body.action === 'up'){
         destination_book = await Book
             .find({                
-                owner : req.session.passport.user,
+                user_id : req.session.passport.user,
                 seq_in_like : {$lt : req.body.seq_in_like}
             })
             .sort({seq_in_like : -1})
@@ -368,7 +368,7 @@ exports.change_likebook_order = async(req, res) => {
     } else {
         destination_book = await Book
             .find({
-                owner : req.session.passport.user,
+                user_id : req.session.passport.user,
                 seq_in_like : {$gt : req.body.seq_in_like}
             })
             .sort({seq_in_like : 1})
@@ -404,7 +404,7 @@ exports.change_hide_or_show = async(req, res) => {
     if (req.body.hide_or_show == false){
         // 일단 다른 showbook의 시퀀스를 하나씩 앞으로 땡기고
         const extra_book_modi = await Book.updateMany(
-            {owner : req.session.passport.user,
+            {user_id : req.session.passport.user,
             category_id : req.body.category_id,
             // seq_in_category : {$gt : req.body.seq_in_category, $lte : seq_info.max_seq_of_showbook}},
             seq_in_category : {$gt : req.body.seq_in_category}},
@@ -414,7 +414,7 @@ exports.change_hide_or_show = async(req, res) => {
         let book = await Book.findOne({_id : req.body.book_id});
         if (book.like = true) {
             let like_book_seq_modi = await Book.updateMany(
-                {owner : req.session.passport.user, 
+                {user_id : req.session.passport.user, 
                 seq_in_like : {$gt : book.seq_in_like}},
                 {$inc : {seq_in_like : -1}}
             );
@@ -430,7 +430,7 @@ exports.change_hide_or_show = async(req, res) => {
     } else if (req.body.hide_or_show == true){
         // 일단 다른 hidebook의 시퀀스를 하나씩 뒤로 땡기고
         const extra_book_modi = await Book.updateMany(
-            {owner : req.session.passport.user,
+            {user_id : req.session.passport.user,
             category_id : req.body.category_id,
             seq_in_category : {$gt : seq_info.max_seq_of_showbook, $lt : req.body.seq_in_category}},
             {$inc : {seq_in_category : 1}}

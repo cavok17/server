@@ -39,7 +39,7 @@ exports.enter_mentoring_req = async (req, res) => {
         .populate({path : 'book_ids', select : 'title'})
     // console.log('category', category)
 
-    // let book = await Book.find({owner : req.session.passport.user, hide_or_show : {$ne : false}})
+    // let book = await Book.find({user_id : req.session.passport.user, hide_or_show : {$ne : false}})
     //     .select('category_id seq_in_category title ')
     //     .sort({seq_in_category : 1})
     // let booklist = []
@@ -52,7 +52,7 @@ exports.enter_mentoring_req = async (req, res) => {
     //     booklist.push(one_category)
     // }
 
-    // let book = await Book.find({owner : req.session.passport.user, hide_or_show : {$ne : false}})
+    // let book = await Book.find({user_id : req.session.passport.user, hide_or_show : {$ne : false}})
     //     .select('category_id seq_in_category title ')
     //     .populate({path : 'category_id', select : 'seq name'})
     //     .sort({seq_in_category : 1})
