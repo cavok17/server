@@ -22,11 +22,25 @@ const get_categorybooklist = async (req, res) => {
                 select : 'title seq_in_category result num_cards'
             }
         });
+
+    // let categorybooklist = await Category
+    //     .find({user_id: req.session.passport.user})
+    //     .sort({seq : 1})
+    
+    // let books = await Book.find({user_id: req.session.passport.user})
+    //     .sort({seq_in_category : 1})
+    //     .select('title seq_in_category result num_cards')
+    
+    // for (i=0; i<categorybooklist.length; i++) {
+    //     let book_info = books.filter((book) => book.category_id == categorybooklist._id)
+    //     categorybooklist[i].book_ids.push(book_info)
+    // }
     
     // 카테고리 내 책 순서 정렬
     for (i=0; i<categorybooklist.length; i++){
         categorybooklist[i].book_ids.sort((a,b) => a.seq_in_category-b.seq_in_category);
     };
+    console.log(categorybooklist)
     return categorybooklist
 }
 const get_likebooklist = async (req, res) => {            
@@ -87,6 +101,12 @@ exports.create_category = async (req, res) => {
 exports.delete_category = async (req, res) => {    
     console.log('category를 삭제할게');
     console.log(req.body);
+
+    // // 기존 카테고리의 북리스트
+    // let booklist = await Category.findOne({_id : req.body.category_id})
+    //     .select('book_ids')
+
+    // // 기존 카테고리의 max 시퀀스를 가져오고
     
     // 목적지 카테고리로 book_ids를 옮겨주고
     let prev_category = await Category.findOne({_id : req.body.category_id});

@@ -39,27 +39,58 @@ const get_seq_info = async (category_id) => {
 
 // 북 정보를 get하는 공용함수 입니다.
 const get_categorybooklist = async (req, res) => {        
+    // let categorybooklist = await Category
+    //     .find({user_id: req.session.passport.user})
+    //     .sort({seq : 1})
+    //     .populate({
+    //         path : 'book_ids',
+    //         populate : {
+    //             path : 'category_id',
+    //             // select : 'title seq_in_category '
+    //             select : 'title seq_in_category result num_cards'
+    //         }
+    //     });
+    // // 카테고리 내 책 순서 정렬
+    // for (i=0; i<categorybooklist.length; i++){
+    //     categorybooklist[i].book_ids.sort((a,b) => a.seq_in_category-b.seq_in_category);
+    // };
+
     let categorybooklist = await Category
         .find({user_id: req.session.passport.user})
         .sort({seq : 1})
-        .populate({
-            path : 'book_ids',
-            populate : {
-                path : 'category_id',
-                select : 'title seq_in_category result num_cards'
-            }
-        });
     
-    // 카테고리 내 책 순서 정렬
-    for (i=0; i<categorybooklist.length; i++){
-        categorybooklist[i].book_ids.sort((a,b) => a.seq_in_category-b.seq_in_category);
-    };
+    let books = await Book.find({owner: req.session.passport.user})
+        .sort({seq_in_category : 1})
+        .select('category_id title type author like hide_or_show seq_in_category seq_in_like time_created result num_cards  ')
+        console.log(books)
+    
+    for (i=0; i<categorybooklist.length; i++) {
+        let book_info = books.filter((book) => {
+            console.log(book.category_id)
+            console.log(categorybooklist[i]._id)
+            if (book.category_id == categorybooklist[i]._id){
+                console.log('같어')
+            } else{
+                console.log('달러')
+            }
+            return book.category_id == categorybooklist[i]._id
+        })
+        // for (j=0; j<books.length; j++) {
+        //     console.log(books[j].category_id)
+        // }
+        // console.log(categorybooklist[i]._id)
+        console.log(book_info)
+        // let book_info = []
+        categorybooklist[i].book_ids = book_info
+    }
+    
     return categorybooklist
 }
 const get_likebooklist = async (req, res) => {            
     // 즐겨찾기 리스트를 보여줍니다.    
     let likebooklist = await Book
         .find({owner: req.session.passport.user, like : true})
+        .select('title seq_in_category result num_cards time_created')
         .sort({seq_in_like : 1})
         .populate({path : 'category_id', select : 'name'});        
     return likebooklist
@@ -78,8 +109,9 @@ exports.get_booklist = async (req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
+    console.log(likebooklist)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
+    // res.json({isloggedIn : true, categorybooklist, });
 };
 
 // 새 책을 만듭니다.
