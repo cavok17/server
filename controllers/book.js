@@ -65,22 +65,23 @@ const get_categorybooklist = async (req, res) => {
     //     console.log(books)
     
     // for (i=0; i<categorybooklist.length; i++) {
-    //     let book_info = books.filter((book) => {
-    //         console.log(book.category_id)
-    //         console.log(categorybooklist[i]._id)
-    //         if (book.category_id == categorybooklist[i]._id){
+    //     let book_info = []
+    //     book_info = books.filter((book) => {
+    //         console.log(mongoose.Types.ObjectId(book.category_id))
+    //         console.log(mongoose.Types.ObjectId(categorybooklist[i]._id))
+    //         if (toString(book.category_id) === toString(categorybooklist[i]._id)){
     //             console.log('같어')
     //         } else{
     //             console.log('달러')
     //         }
-    //         return book.category_id == categorybooklist[i]._id
+    //         return toString(book.category_id) === toString(categorybooklist[i]._id)
     //     })
     //     // for (j=0; j<books.length; j++) {
     //     //     console.log(books[j].category_id)
     //     // }
     //     // console.log(categorybooklist[i]._id)
     //     console.log(book_info)
-    //     // let book_info = []
+        
     //     categorybooklist[i].book_ids = book_info
     // }
     

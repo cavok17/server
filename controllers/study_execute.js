@@ -111,7 +111,7 @@ exports.get_cardlist = async (req, res) => {
     for (i=0; i<cardlist_total.length; i++) {        
         cardlist_total[i].seq_in_total_list = i        
         cardlist_total[i].detail_status.session_study_times = 0
-        cardlist_total[i].detail_status.need_study_time_tmp = 0
+        cardlist_total[i].detail_status.need_study_time_tmp = null
         // cardlist_total[i].former_status = null
     }
 
