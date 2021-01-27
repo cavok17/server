@@ -305,6 +305,7 @@ exports.req_session_studyresult= async (req, res) => {
         .select('study_result')
     let study_results_by_book = await Study_result.find({session_id : req.body.session_id})
         .sort({session_id : 1})
+        .populate({path : 'book_id', select : 'title'})
     console.log('session', session)
     console.log('study_results_by_book', study_results_by_book)
     res.json({isloggedIn : true, session, study_results_by_book });

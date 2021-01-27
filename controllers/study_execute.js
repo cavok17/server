@@ -92,7 +92,7 @@ exports.get_cardlist = async (req, res) => {
 
     // -------------------------------------- 소트를 적용합시다. -----------------------------------------------------
     // 원본 그대로, 복습시점 빠른 순, 랜덤
-    switch (req.body.card_order) {
+    switch (session.study_config.sort_option) {
         case 'standard' :
             // 이미 소트를 적용해놔서 손 댈 거 없쯤
             break
