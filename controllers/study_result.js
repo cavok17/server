@@ -281,7 +281,7 @@ exports.create_studyresult= async (req, res) => {
     console.log('dup', dup)
     dup.reverse()
     for (i=0; i<dup.length; i++){
-        delete req.body.cardlist_studied[i]
+        req.body.cardlist_studied.splice(i,1)
     }
     
     // 카드 업데이트    
