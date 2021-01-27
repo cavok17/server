@@ -285,23 +285,23 @@ exports.create_studyresult= async (req, res) => {
     }
     
     // 카드 업데이트    
-    for (i=0; i<req.body.cardlist_studied.length; i++){        
-        // let card = await Card.updateOne(
-        let card = Card.updateOne(
+    for (i=0; i<req.body.cardlist_studied.length; i++){                
+        let card = await Card.updateOne(        
             {_id : req.body.cardlist_studied[i]._id},
             {status : req.body.cardlist_studied[i].status,
             detail_status : req.body.cardlist_studied[i].detail_status}
         )
         
-        // 임시로~
-        let tmp = req.body.cardlist_studied[i].detail_status.recent_study_time +'/'+ req.body.cardlist_studied[i].detail_status.recent_difficulty + '/' +req.body.cardlist_studied[i].detail_status.need_study_time
-        console.log(tmp)
-        let tmp_card = await Card.findOne({_id : req.body.cardlist_studied[i]._id})
-                .select('contents')
-        tmp_card.contents.face1[1]= tmp
-        console.log(tmp_card.contents)
-        tmp_card = await tmp_card.save()
-        console.log(tmp_card.contents)
+        // // 임시로~
+        // let tmp = req.body.cardlist_studied[i].detail_status.recent_study_time +'/'+ req.body.cardlist_studied[i].detail_status.recent_difficulty + '/' +req.body.cardlist_studied[i].detail_status.need_study_time       
+        
+        // let tmp_card = await Card.findOne({_id : req.body.cardlist_studied[i]._id})
+        //         .select('contents status detail_status')
+        // tmp_card.contents.face1[1]= tmp
+        // tmp_card.status = req.body.cardlist_studied[i].status,
+        // tmp_card.detail_status = req.body.cardlist_studied[i].detail_status        
+        // tmp_card = await tmp_card.save()
+        // console.log(tmp_card.contents)
     }
 
     res.json({isloggedIn : true, msg : '성공적'});

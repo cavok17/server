@@ -134,7 +134,7 @@ exports.create_book =  async (req, res) => {
             name : '읽기-기본',
             num_of_row : {
                 maker_flag : 1,                
-                face1 : 2,                
+                face1 : 1,                
             },
             nick_of_row : {                
                 face1 : ['본문'],                
@@ -147,7 +147,7 @@ exports.create_book =  async (req, res) => {
             name : '뒤집기-기본',
             num_of_row : {
                 maker_flag : 1,
-                face1 : 2,
+                face1 : 1,
                 face2 : 2,                
             },
             nick_of_row : {                
