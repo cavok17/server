@@ -98,6 +98,17 @@ exports.get_cardlist = async (req, res) => {
             break
         case 'time' :
             cardlist_total.sort((a,b) => a.detail_status.need_study_time - b.detail_status.need_study_time)
+            let not_null
+            for (i=0; i<cardlist_total.length; i++){
+                if(cardlist_total[i].detail_status.need_study_time != null){
+                    not_null = i
+                    break
+                }
+            }
+            if (not_null>0){
+                let sliced_cardlist = cardlist_total.splice(0,not_null)
+                cardlist_total = cardlist_total.concat(sliced_cardlist)
+            }
             break
         case 'random' :            
             for (let i = cardlist_total.length - 1; i > 0; i--) {
