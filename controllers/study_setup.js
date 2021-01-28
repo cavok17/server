@@ -181,11 +181,15 @@ exports.get_index = async (req, res) => {
 // ********************************************************************************************************************************
 const get_num_cards_of_index = async (indexes, filter) => {    
     // 현재는 복습 필요시점이 시간으로 되어 있는데, 그룹핑을 해줘야 해요.
-    let current_time = Date.now()
+    // let current_time = Date.now()
+    let current_time = new Date()
     let tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate()+1)
-    tomorrow.setHours(0,0,0,0)    
-    tomorrow = tomorrow.getTime()
+    tomorrow.setHours(0,0,0,0)
+    console.log(tomorrow)
+    // tomorrow = tomorrow.getTime()
+    // console.log(tomorrow)
+    
     
     let project = {
         index_id : 1,
@@ -255,7 +259,7 @@ const get_num_cards_of_index = async (indexes, filter) => {
         {$lookup : lookup}
     ])    
     num_cards_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
-    // console.log('num_cards_of_index', num_cards_of_index)
+    console.log('num_cards_of_index', num_cards_of_index)
     
     
     // 인덱스에 카드 갯수 정보를 추가하고

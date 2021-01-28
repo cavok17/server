@@ -79,7 +79,7 @@ const get_likebooklist = async (req, res) => {
     // 즐겨찾기 리스트를 보여줍니다.    
     let likebooklist = await Book
         .find({user_id: req.session.passport.user, like : true})
-        .select('title seq_in_category result num_cards time_created')
+        .select('category_id title type author like hide_or_show seq_in_category seq_in_like time_created result num_cards')
         .sort({seq_in_like : 1})
         .populate({path : 'category_id', select : 'name'});        
     return likebooklist
