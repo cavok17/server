@@ -33,6 +33,7 @@ const cardschema = new mongoose.Schema({
   former_status : {type : String, default : null}, 
   time_created : {type : Date, default : Date.now},
   detail_status : {
+    status_in_session : {type : String, default : null},
     recent_study_time : {type : Date, default : null},
     need_study_time: {type : Date, default : null},
     need_study_time_tmp: {type : Date, default : null},
