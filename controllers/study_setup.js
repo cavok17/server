@@ -183,13 +183,11 @@ const get_num_cards_of_index = async (indexes, filter) => {
     // 현재는 복습 필요시점이 시간으로 되어 있는데, 그룹핑을 해줘야 해요.
     // let current_time = Date.now()
     let current_time = new Date()
+    console.log('current_time', current_time)
     let tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate()+1)
     tomorrow.setHours(0,0,0,0)
-    console.log(tomorrow)
-    // tomorrow = tomorrow.getTime()
-    // console.log(tomorrow)
-    
+    console.log('tomorrow', tomorrow)
     
     let project = {
         index_id : 1,
@@ -217,7 +215,7 @@ const get_num_cards_of_index = async (indexes, filter) => {
         // need_study_time_by_milli : {$toDecimal : '$need_study_time'} ,
         book_id : 1,
         'detail_status.exp' : 1,
-        // body_id_body : {$toObjectId : req.body.book_id},        
+        // body_id_body : {$toObjectId : req.body.book_id},                
         need_study_time_group : {
             $switch : {
                 branches : [
@@ -225,14 +223,14 @@ const get_num_cards_of_index = async (indexes, filter) => {
                         case : { $eq :['$detail_status.need_study_time', null]},
                         then : 'not_studying'
                     },                    {
-                        case : { $lt :[{$toDecimal : '$detail_status.need_study_time'}, current_time]},
+                        case : { $lt :['$detail_status.need_study_time', current_time]},
                         then : 'until_now'
                     },{
-                        case : {$and : [{$gte : [{$toDecimal : '$detail_status.need_study_time'}, current_time]}, {$lt : [{$toDecimal : '$need_study_time'}, tomorrow]}]},
+                        case : {$and : [{$gte : ['$detail_status.need_study_time', current_time]}, {$lte : ['$detail_status.need_study_time', tomorrow]}]},
                         // case : { $lt :[{$toDecimal : '$detail_status.need_study_time'}, tomorrow]},
                         then : 'until_today'
                     },{
-                        case : { $gt : [{$toDecimal : '$detail_status.need_study_time'}, tomorrow]},
+                        case : { $gt : ['$detail_status.need_study_time', tomorrow]},
                         then : 'after_tomorrow'
                     }
                 ],
