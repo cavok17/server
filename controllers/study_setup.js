@@ -106,6 +106,7 @@ exports.get_index = async (req, res) => {
     let num_cards_of_book = {
         total : {
             progress : 0,
+            exp : 0,
             total : 0,
             yet : 0,
             ing : {
@@ -120,6 +121,7 @@ exports.get_index = async (req, res) => {
         },
         read : {
             progress : 0,
+            exp : 0,
             total : 0,
             yet : 0,
             ing : {
@@ -134,6 +136,7 @@ exports.get_index = async (req, res) => {
         },
         flip : {
             progress : 0,
+            exp : 0,
             total : 0,
             yet : 0,
             ing : {
@@ -149,7 +152,7 @@ exports.get_index = async (req, res) => {
     }
 
     for (i=0; i<indexes.length; i++){
-        num_cards_of_book.total.progress += indexes[i].num_cards.total.progress
+        num_cards_of_book.total.exp += indexes[i].num_cards.total.progress * indexes[i].num_cards.total.total        
         num_cards_of_book.total.total += indexes[i].num_cards.total.total
         num_cards_of_book.total.yet += indexes[i].num_cards.total.yet
         num_cards_of_book.total.ing.not_studying += indexes[i].num_cards.total.ing.not_studying
@@ -160,7 +163,7 @@ exports.get_index = async (req, res) => {
         num_cards_of_book.total.ing.hold += indexes[i].num_cards.total.hold
         num_cards_of_book.total.ing.completed += indexes[i].num_cards.total.completed
 
-        num_cards_of_book.read.progress += indexes[i].num_cards.read.progress
+        num_cards_of_book.read.exp += indexes[i].num_cards.read.progress * indexes[i].num_cards.read.total
         num_cards_of_book.read.total += indexes[i].num_cards.read.total
         num_cards_of_book.read.yet += indexes[i].num_cards.read.yet
         num_cards_of_book.read.ing.not_studying += indexes[i].num_cards.read.ing.not_studying
@@ -171,7 +174,7 @@ exports.get_index = async (req, res) => {
         num_cards_of_book.read.ing.hold += indexes[i].num_cards.read.hold
         num_cards_of_book.read.ing.completed += indexes[i].num_cards.read.completed
 
-        num_cards_of_book.flip.progress += indexes[i].num_cards.flip.progress
+        num_cards_of_book.flip.exp += indexes[i].num_cards.flip.progress * indexes[i].num_cards.flip.total        
         num_cards_of_book.flip.total += indexes[i].num_cards.flip.total
         num_cards_of_book.flip.yet += indexes[i].num_cards.flip.yet
         num_cards_of_book.flip.ing.not_studying += indexes[i].num_cards.flip.ing.not_studying
@@ -182,6 +185,11 @@ exports.get_index = async (req, res) => {
         num_cards_of_book.flip.ing.hold += indexes[i].num_cards.flip.hold
         num_cards_of_book.flip.ing.completed += indexes[i].num_cards.flip.completed
     }
+
+    num_cards_of_book.total.progress += num_cards_of_book.total.exp / num_cards_of_book.total.total
+    num_cards_of_book.read.progress += num_cards_of_book.read.exp / num_cards_of_book.read.total
+    num_cards_of_book.flip.progress += num_cards_of_book.flip.exp / num_cards_of_book.flip.total
+    // console.log(num_cards_of_book)
     
 // ----------------------------- 프로그레스 --------------------------------------------------------    
     filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'flip-select']}}
@@ -243,6 +251,7 @@ exports.get_index = async (req, res) => {
     // 싱글북인포에 인덱스 정보를 넣어준다.
     let single_book_info = {
         book_id : req.body.selected_books.book_id,
+        num_cards : num_cards_of_book,
         title : req.body.selected_books.title,
         index_info : indexes
     }
