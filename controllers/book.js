@@ -56,7 +56,7 @@ const get_categorybooklist = async (req, res) => {
         })
         categorybooklist[i].book_ids = book_info
     }
-    // console.log(categorybooklist)
+    console.log(categorybooklist)
     return categorybooklist
 }
 const get_likebooklist = async (req, res) => {            

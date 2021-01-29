@@ -84,10 +84,6 @@ exports.get_index = async (req, res) => {
         .select('name level seq num_cards')
         .sort({seq : 1})
     
-    // for (i=0; i<indexes.length; i++){
-    //     console.log(indexes[i].num_cards)
-    // }
-
     // 인덱스의 시퀀스가 정상적인지 확인하고 정상적이지 않으면 수정해준다.
     // 뒤쪽에서 시퀀스 넘버로 어레이를 매니지 하니깐, 순서가 맞아야 한다.
     let index_seq_modi_need = 'no'
@@ -106,8 +102,87 @@ exports.get_index = async (req, res) => {
 
     indexes = await get_num_cards_of_index(indexes, filter)
 
-    // console.log('indexes', indexes)
+    // 일단 선언을 하시구요. 그 다음에 포문을 돌리자
+    let num_cards_of_book = {
+        total : {
+            progress : 0,
+            total : 0,
+            yet : 0,
+            ing : {
+                not_studying : 0,
+                until_now : 0,
+                until_today : 0,
+                after_tomorrow : 0,
+                total : 0,
+            },
+            hold : 0,
+            completed : 0,
+        },
+        read : {
+            progress : 0,
+            total : 0,
+            yet : 0,
+            ing : {
+                not_studying : 0,
+                until_now : 0,
+                until_today : 0,
+                after_tomorrow : 0,
+                total : 0,
+            },
+            hold : 0,
+            completed : 0,
+        },
+        flip : {
+            progress : 0,
+            total : 0,
+            yet : 0,
+            ing : {
+                not_studying : 0,
+                until_now : 0,
+                until_today : 0,
+                after_tomorrow : 0,
+                total : 0,
+            },
+            hold : 0,
+            completed : 0,
+        },
+    }
 
+    for (i=0; i<indexes.length; i++){
+        num_cards_of_book.total.progress += indexes[i].num_cards.total.progress
+        num_cards_of_book.total.total += indexes[i].num_cards.total.total
+        num_cards_of_book.total.yet += indexes[i].num_cards.total.yet
+        num_cards_of_book.total.ing.not_studying += indexes[i].num_cards.total.ing.not_studying
+        num_cards_of_book.total.ing.until_now += indexes[i].num_cards.total.ing.until_now
+        num_cards_of_book.total.ing.until_today += indexes[i].num_cards.total.ing.until_today
+        num_cards_of_book.total.ing.after_tomorrow += indexes[i].num_cards.total.ing.after_tomorrow
+        num_cards_of_book.total.ing.total += indexes[i].num_cards.total.ing.total
+        num_cards_of_book.total.ing.hold += indexes[i].num_cards.total.hold
+        num_cards_of_book.total.ing.completed += indexes[i].num_cards.total.completed
+
+        num_cards_of_book.read.progress += indexes[i].num_cards.read.progress
+        num_cards_of_book.read.total += indexes[i].num_cards.read.total
+        num_cards_of_book.read.yet += indexes[i].num_cards.read.yet
+        num_cards_of_book.read.ing.not_studying += indexes[i].num_cards.read.ing.not_studying
+        num_cards_of_book.read.ing.until_now += indexes[i].num_cards.read.ing.until_now
+        num_cards_of_book.read.ing.until_today += indexes[i].num_cards.read.ing.until_today
+        num_cards_of_book.read.ing.after_tomorrow += indexes[i].num_cards.read.ing.after_tomorrow
+        num_cards_of_book.read.ing.total += indexes[i].num_cards.read.ing.total
+        num_cards_of_book.read.ing.hold += indexes[i].num_cards.read.hold
+        num_cards_of_book.read.ing.completed += indexes[i].num_cards.read.completed
+
+        num_cards_of_book.flip.progress += indexes[i].num_cards.flip.progress
+        num_cards_of_book.flip.total += indexes[i].num_cards.flip.total
+        num_cards_of_book.flip.yet += indexes[i].num_cards.flip.yet
+        num_cards_of_book.flip.ing.not_studying += indexes[i].num_cards.flip.ing.not_studying
+        num_cards_of_book.flip.ing.until_now += indexes[i].num_cards.flip.ing.until_now
+        num_cards_of_book.flip.ing.until_today += indexes[i].num_cards.flip.ing.until_today
+        num_cards_of_book.flip.ing.after_tomorrow += indexes[i].num_cards.flip.ing.after_tomorrow
+        num_cards_of_book.flip.ing.total += indexes[i].num_cards.flip.ing.total
+        num_cards_of_book.flip.ing.hold += indexes[i].num_cards.flip.hold
+        num_cards_of_book.flip.ing.completed += indexes[i].num_cards.flip.completed
+    }
+    
 // ----------------------------- 프로그레스 --------------------------------------------------------    
     filter = {book_id : converted_book_id, type : {$in : ['read', 'flip-normal', 'flip-select']}}
     let project_for_progress = {
@@ -257,7 +332,7 @@ const get_num_cards_of_index = async (indexes, filter) => {
         {$lookup : lookup}
     ])    
     num_cards_of_index.sort((a,b)=> a.index_info.seq - b.index_info.seq)
-    console.log('num_cards_of_index', num_cards_of_index)
+    // console.log('num_cards_of_index', num_cards_of_index)
     
     
     // 인덱스에 카드 갯수 정보를 추가하고
