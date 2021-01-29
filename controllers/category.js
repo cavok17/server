@@ -9,44 +9,61 @@ const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const Level_config = require('../models/level_config');
 const category = require("../models/category");
+const book = require("../models/book");
 
-// 북 정보를 get하는 공용함수 입니다.
+// 시퀀스 정보를 전달하는 공용함수입니다.
+const get_seq_info = async (category_id) => {        
+    let max_seq_showbook = await Book
+        .find({category_id : category_id, hide_or_show : true})
+        .sort({seq_in_category : -1})
+        .limit(1);
+    let max_seq_of_showbook;
+    if (max_seq_showbook.length === 0){
+        max_seq_of_showbook = -1;
+    } else {
+        max_seq_of_showbook = max_seq_showbook[0].seq_in_category;
+    };
+
+    let max_seq_hidebook= await Book
+        .find({category_id : category_id, hide_or_show : false})
+        .sort({seq_in_category : -1})
+        .limit(1);
+    let max_seq_of_hidebook;
+    if (max_seq_hidebook.length === 0){
+        max_seq_of_hidebook = max_seq_of_showbook;
+    } else {
+        max_seq_of_hidebook = max_seq_hidebook[0].seq_in_category;
+    };
+
+    return {max_seq_of_showbook, max_seq_of_hidebook}
+};
+
 const get_categorybooklist = async (req, res) => {        
     let categorybooklist = await Category
         .find({user_id: req.session.passport.user})
         .sort({seq : 1})
-        .populate({
-            path : 'book_ids',
-            populate : {
-                path : 'category_id',
-                select : 'title seq_in_category result num_cards'
-            }
-        });
-
-    // let categorybooklist = await Category
-    //     .find({user_id: req.session.passport.user})
-    //     .sort({seq : 1})
     
-    // let books = await Book.find({user_id: req.session.passport.user})
-    //     .sort({seq_in_category : 1})
-    //     .select('title seq_in_category result num_cards')
+    let books = await Book.find({user_id: req.session.passport.user})
+        .sort({seq_in_category : 1})        
+        .select('category_id title type author like hide_or_show seq_in_category seq_in_like time_created result num_cards  ')
+        .populate ({path : 'category_id', select : 'name seq'})
+    // console.log(books)
     
-    // for (i=0; i<categorybooklist.length; i++) {
-    //     let book_info = books.filter((book) => book.category_id == categorybooklist._id)
-    //     categorybooklist[i].book_ids.push(book_info)
-    // }
-    
-    // 카테고리 내 책 순서 정렬
-    for (i=0; i<categorybooklist.length; i++){
-        categorybooklist[i].book_ids.sort((a,b) => a.seq_in_category-b.seq_in_category);
-    };
-    console.log(categorybooklist)
+    for (i=0; i<categorybooklist.length; i++) {
+        let book_info = []
+        book_info = books.filter((book) => {
+            return book.category_id._id.toString() === categorybooklist[i]._id.toString()
+        })
+        categorybooklist[i].book_ids = book_info
+    }
+    // console.log(categorybooklist)
     return categorybooklist
 }
 const get_likebooklist = async (req, res) => {            
     // 즐겨찾기 리스트를 보여줍니다.    
     let likebooklist = await Book
         .find({user_id: req.session.passport.user, like : true})
+        .select('category_id title type author like hide_or_show seq_in_category seq_in_like time_created result num_cards')
         .sort({seq_in_like : 1})
         .populate({path : 'category_id', select : 'name'});        
     return likebooklist
@@ -102,19 +119,24 @@ exports.delete_category = async (req, res) => {
     console.log('category를 삭제할게');
     console.log(req.body);
 
-    // // 기존 카테고리의 북리스트
-    // let booklist = await Category.findOne({_id : req.body.category_id})
-    //     .select('book_ids')
+    // book들의 category_in_sequence 좀 점검하자
+    let prev_books = await Book.find({_id : req.body.category_id})
+        .sort({seq_in_category : 1})
+        .select('seq_in_category')
+    for (i=0; i<prev_books.length; i++){
+        if (prev_books[i].seq_in_category != i){
+            let seq_change = await Book.updateOne({_id : prev_books[i]._id},{seq_in_category : i})
+        }
+    }
+    let target_books = await Book.find({_id : req.body.target_category})
+        .sort({seq_in_category: 1})
+        .select('seq_in_category')
+    for (i=0; i<target_books.length; i++){
+        if (target_books[i].seq_in_category != i){
+            let seq_change = await Book.updateOne({_id : target_books[i]._id},{seq_in_category : i})
+        }
+    }
 
-    // // 기존 카테고리의 max 시퀀스를 가져오고
-    
-    // 목적지 카테고리로 book_ids를 옮겨주고
-    let prev_category = await Category.findOne({_id : req.body.category_id});
-    let book_ids_move_result = await Category.updateOne(
-        {_id : req.body.target_category},
-        {$push : {book_ids : prev_category.book_ids}}
-    );
-       
     // 타겟 카테고리의 시퀀스 정보 가져오고
     let seq_info = await get_seq_info(req.body.target_category);
     // 기존 카테고리의 showbook 정보 가져오고 -> 타겟 카테고리의 hidebook 수정 위해
@@ -122,7 +144,7 @@ exports.delete_category = async (req, res) => {
         {category_id : req.body.category_id,
         hide_or_show : true}
     );
-    console.log('num_showbook_of_prev_category', num_showbook_of_prev_category);
+    // console.log('num_showbook_of_prev_category', num_showbook_of_prev_category);
 
     // 타겟 카테고리의 hide 책들의 시퀀스를 뒤로 더 밀어주고
     let target_hidebook_move = await Book.updateMany(
@@ -148,6 +170,7 @@ exports.delete_category = async (req, res) => {
     
     // 마지막으로 기존 카테고리를 삭제합니다.
     let delete_result = await Category.deleteOne({_id : req.body.category_id});    
+    // 다른 카테고리의 시퀀스 정보도 땡겨주고요.
     let seq_change_result = await Category.updateMany(
         {user : req.session.passport.user, seq : {$gt : req.body.seq}}, 
         {$inc : {seq : -1}});

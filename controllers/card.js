@@ -10,7 +10,6 @@ const User = require('../models/user');
 const Book = require('../models/book'); 
 const Card = require('../models/card');
 const Card_external = require('../models/card_external');
-const Content = require('../models/content');
 const Index = require('../models/index');
 const Cardtype = require('../models/cardtype');
 

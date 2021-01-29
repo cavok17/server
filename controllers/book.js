@@ -24,9 +24,9 @@ const get_seq_info = async (category_id) => {
     };
 
     let max_seq_hidebook= await Book
-    .find({category_id : category_id, hide_or_show : false})
-    .sort({seq_in_category : -1})
-    .limit(1);
+        .find({category_id : category_id, hide_or_show : false})
+        .sort({seq_in_category : -1})
+        .limit(1);
     let max_seq_of_hidebook;
     if (max_seq_hidebook.length === 0){
         max_seq_of_hidebook = max_seq_of_showbook;
@@ -39,22 +39,6 @@ const get_seq_info = async (category_id) => {
 
 // 북 정보를 get하는 공용함수 입니다.
 const get_categorybooklist = async (req, res) => {        
-    // let categorybooklist = await Category
-    //     .find({user_id: req.session.passport.user})
-    //     .sort({seq : 1})
-    //     .populate({
-    //         path : 'book_ids',
-    //         populate : {
-    //             path : 'category_id',
-    //             // select : 'title seq_in_category '
-    //             select : 'title seq_in_category result num_cards'
-    //         }
-    //     });
-    // // 카테고리 내 책 순서 정렬
-    // for (i=0; i<categorybooklist.length; i++){
-    //     categorybooklist[i].book_ids.sort((a,b) => a.seq_in_category-b.seq_in_category);
-    // };
-
     let categorybooklist = await Category
         .find({user_id: req.session.passport.user})
         .sort({seq : 1})
@@ -63,7 +47,7 @@ const get_categorybooklist = async (req, res) => {
         .sort({seq_in_category : 1})        
         .select('category_id title type author like hide_or_show seq_in_category seq_in_like time_created result num_cards  ')
         .populate ({path : 'category_id', select : 'name seq'})
-    console.log(books)
+    // console.log(books)
     
     for (i=0; i<categorybooklist.length; i++) {
         let book_info = []
@@ -72,7 +56,7 @@ const get_categorybooklist = async (req, res) => {
         })
         categorybooklist[i].book_ids = book_info
     }
-    console.log(categorybooklist)
+    // console.log(categorybooklist)
     return categorybooklist
 }
 const get_likebooklist = async (req, res) => {            
@@ -98,9 +82,7 @@ exports.get_booklist = async (req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(likebooklist)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
-    // res.json({isloggedIn : true, categorybooklist, });
 };
 
 // 새 책을 만듭니다.
@@ -165,13 +147,7 @@ exports.create_book =  async (req, res) => {
         seq : 0,
         name : '기본',        
     });
-    
-    // 카테고리에 책 정보를 추가하고
-    let category = await Category.updateOne(
-        {_id : req.body.category_id},
-        {$push : {book_ids : book._id}}
-    );
-    
+        
     // 학습설정도 만들고
     let level_config = await Level_config.create({        
         book_id : book._id,
@@ -186,16 +162,11 @@ exports.delete_book =  async (req, res) => {
     console.log(req.body);
     
     let book = await Book.findOne({_id : req.body.book_id})
-    // 카드를 삭제 하고
+    // 인덱스, 카드타입, 스터디_리절트, 카드, 멘토링를 삭제 하고
     
     // 책을 삭제 하고    
     let delete_result = await Book.deleteOne({_id : req.body.book_id});        
 
-    // 카테고리 내의 책 정보를 수정하고
-    let category = await Category.updateOne(
-        {_id : req.body.category_id},
-        {$pull : {books : req.body.book_id}}
-    );
 
     // 나머지 책들의 카테고리 내 시퀀스도 변경해주고
     let seq_changed_books = await Book.updateMany(
@@ -210,10 +181,10 @@ exports.delete_book =  async (req, res) => {
         
     // 즐겨찾기 시퀀스도 수정해주고
     if (book.like === true){
-        let like_changed_books = Book.updateMany(
+        let like_changed_books = await Book.updateMany(
             {user_id : req.session.passport.user,
             seq_in_like : {$gte : book.seq_in_like}},
-            {$inc : {seq_in_like : 1}},
+            {$inc : {seq_in_like : -1}},
         );
     };
 
@@ -221,7 +192,6 @@ exports.delete_book =  async (req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 };
 
@@ -229,20 +199,7 @@ exports.delete_book =  async (req, res) => {
 exports.move_book_between_category = async(req, res) => {
     console.log('책의 카테고리를 바꿔줄게');
     console.log(req.body);
-    
-    // // 기존 카테고리에서 책 정보 삭제하고    
-    let prev_category_update_result = await Category.updateOne(
-        {_id : req.body.prev_category_id},
-        {$pull : {book_ids : req.body.book_id}}
-    );
-        
-    // 타겟 카테고리에 책 정보 생성하고
-    // let target_category = await Category.findOne({_id : req.body.target_category_id});
-    let target_category_update_result = await Category.updateOne(
-        {_id : req.body.target_category_id},
-        {$push : {book_ids : req.body.book_id}}
-    );    
-    
+
     // target category를 받아서 book의 카테고리 정보를 변경하고
     let seq_info = await get_seq_info(req.body.target_category_id);
     console.log('seq_info', seq_info);
@@ -271,7 +228,6 @@ exports.move_book_between_category = async(req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});  
 };
 
@@ -290,7 +246,7 @@ exports.change_book_order = async(req, res) => {
             })
             .sort({seq_in_category : -1})
             .limit(1);            
-    } else {
+    } else if (req.body.action === 'down'){
         destination_book = await Book
             .find({
                 category_id : req.body.category_id,
@@ -313,7 +269,6 @@ exports.change_book_order = async(req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 };
 
@@ -323,19 +278,24 @@ exports.apply_likebook = async(req, res) => {
     console.log(req.body);
 
     if(req.body.like == 'true'){
-        let num_like = await Book.countDocuments({user_id : req.session.passport.user,like : true});
-        console.log('num_like', num_like);
+        // let num_like = await Book.countDocuments({user_id : req.session.passport.user,like : true});
+        let max_seq_book = await Book
+            .find({user_id : req.session.passport.user,like : true})
+            .sort({seq_in_like : -1})
+            .limit(1);
+
         let book = await Book.updateOne(
             {_id : req.body.book_id},
-            {like : true, seq_in_like : num_like},
+            {like : true, seq_in_like : max_seq_book.seq_in_like + 1},
         );        
     } else {        
         let book = await Book.findOne({_id : req.body.book_id});
+        // 해당 책의 like 정보를 수정하고
         let book_update_result = await Book.updateOne(
             {_id : req.body.book_id},
             {like : false, seq_in_like : null},
         );
-        let query_result = await Book.find({user_id : req.session.passport.user, seq_in_like : {$gt : book.seq_in_like}});        
+        // like 시퀀스가 더 컸던 놈들을 앞으로 땡겨준다.
         let seq_change_result = await Book.updateMany(
             {user_id : req.session.passport.user, seq_in_like : {$gt : book.seq_in_like}},
             {$inc : {seq_in_like : -1}}
@@ -346,7 +306,6 @@ exports.apply_likebook = async(req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 
 };
@@ -388,7 +347,6 @@ exports.change_likebook_order = async(req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 
 };
@@ -465,7 +423,6 @@ exports.change_book_title = async(req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 };
 
@@ -484,7 +441,6 @@ exports.change_like_config = async(req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 };
 
@@ -502,7 +458,6 @@ exports.change_hide_config = async(req, res) => {
     let likebooklist = await get_likebooklist(req, res)
     let write_config = await get_write_config(req, res)
     
-    console.log(write_config)
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 };
 
