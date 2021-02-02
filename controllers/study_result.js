@@ -20,33 +20,29 @@ exports.create_studyresult= async (req, res) => {
     // 일단 카드리스트를 받아온다규
     let cardlist_studied = req.body.cardlist_studied
 
-    // 확인용
-    for (i=0; i<cardlist_studied.length; i++){
-        console.log(cardlist_studied[i])
-    }
-
-    // 세션 받아와서 일단 저장해부러봐바
+    // 세션을 받아오고... 카드리스트 스터디드나 토탈은 저장할 필요가 있는지 검토 필요혀요
     let session = await Session
         .findOne({_id : req.body.session_id})
         .select('cardlist_total cardlist_studied study_result')
 
-    // 처음 저장하면 undefined일 것임
+    // 카드리스트 스터디를 저장인지 업데이트인지 보고.. 처음 저장하면 undefined일 것임
     if (session.cardlist_studied){        
         session.cardlist_studied = session.cardlist_studied.concat(cardlist_studied)
     } else {        
         session.cardlist_studied = cardlist_studied
     }
     
-    // 시간 데이터를 날짜 데이터로 보정
+// -----------------------카드리스트 스터디드 편집 ---------------------------------
+    // 데이트를 생성해줍시다.
     // Date로 하니까 중복 제거가 안 됨. 그래서 스트링으로 바꿈
     for (i=0; i<cardlist_studied.length; i++){
         cardlist_studied[i].detail_status.recent_study_time = new Date(cardlist_studied[i].detail_status.recent_study_time)
         cardlist_studied[i].detail_status.recent_study_date = new Date(cardlist_studied[i].detail_status.recent_study_time)
         cardlist_studied[i].detail_status.recent_study_date.setHours(0,0,0,0)
-        cardlist_studied[i].detail_status.recent_study_date = cardlist_studied[i].detail_status.recent_study_date.toString()        
+        cardlist_studied[i].detail_status.recent_study_date = cardlist_studied[i].detail_status.recent_study_date.toString()
     }
 
-    // 책 종류와 날짜 종류를 발라냄
+    // 책과 날짜의 고유값을 꺼내고
     let book_ids = cardlist_studied.map((cardlist) => cardlist.book_id)
     book_ids = new Set(book_ids)
     book_ids = [...book_ids]
@@ -54,8 +50,8 @@ exports.create_studyresult= async (req, res) => {
     study_dates = new Set(study_dates)
     study_dates = [...study_dates]
     
-    console.log('book_ids', book_ids)
-    console.log('study_dates', study_dates)
+    // console.log('book_ids', book_ids)
+    // console.log('study_dates', study_dates)
 
     // 책 및 날짜 단위로 데이터를 추출하여 저장함
     for (book_id of book_ids){
@@ -74,7 +70,7 @@ exports.create_studyresult= async (req, res) => {
                             type = 'flip'
                             break                        
                     }                    
-                    // num_cards를 수정한다.
+                    // status 기준으로 num_cards를 집계한다.
                     single_result[type].num_cards_change[cardlist_studied[i].former_status] -= 1
                     single_result[type].num_cards_change[cardlist_studied[i].status] += 1
                     // 세션 스터디 타임즈가 1인 경우에만 스터디_카드스가 올라간다.
@@ -82,9 +78,12 @@ exports.create_studyresult= async (req, res) => {
                         single_result[type].studied_cards.total +=1
                         single_result[type].studied_cards[cardlist_studied[i].former_status] +=1
                     }
+                    // 학습 횟수를 집계한다.
                     single_result[type].study_times.total += 1                                        
                     single_result[type].study_times[cardlist_studied[i].detail_status.recent_difficulty] += 1                    
+                    // 학습 시간을 집계하고
                     single_result[type].study_hour += cardlist_studied[i].detail_status.recent_study_hour
+                    // 경험치도 집계하고
                     single_result[type].exp_gained += cardlist_studied[i].detail_status.exp_gained
                     // recent_study_time의 최대값을 찾는다.
                     if (single_result.recent_study_time < cardlist_studied[i].detail_status.recent_study_time){
