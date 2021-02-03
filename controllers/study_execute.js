@@ -216,6 +216,36 @@ exports.get_cardlist = async (req, res) => {
     res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }
 
+exports.change_status_to_ing = async (req, res) => {
+    console.log("학습 보류 및 완료를 학습중으로 돌립니다.~");
+    console.log(req.body);
+
+    // 세션 정보를 수정합니다.
+    // 해당 카드 정보를 빼서 카드리스트 스터딩으로 옮기고 싶은데. 위치는 이미 내보낸 녀석 바로 뒤에
+    let session = await Session.findOne({_id : req.body.session_id})
+        .select('num_cards cardlist_sapa')
+
+    // 세파에서 카드 이동
+    let prev_status = req.body.prev_status
+    let later_status = req.body.later_status
+    let prev_position = session.cardlist_sepa[prev_status].findIndex((cardlist) => cardlist._id == req.body.card_id)
+    let move_card = session.cardlist_sepa[prev_status].splice(prev_position,1)
+    session.cardlist_sepa[later_status].splice(session.num_cards[later_status].selected,0,move_card)
+
+    // 카드 갯수를 수정해준다.
+    session.num_cards[prev_status].total -= 1
+    session.num_cards[prev_status].selected -= 1
+    session.num_cards[later_status].total += 1
+    session.num_cards[later_status].selected += 1
+
+    // 세션을 저장해주고
+    session = session.save()
+
+    // 카드 갯수 정보를 다시 보냅니다.
+    res.json({isloggedIn : true, num_cards : session.num_cards});
+
+}
+
 
 exports.get_studying_cards = async (req, res) => {
     console.log("카드 받으셔요~");

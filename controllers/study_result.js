@@ -23,7 +23,7 @@ exports.create_studyresult= async (req, res) => {
     // 세션을 받아오고... 카드리스트 스터디드나 토탈은 저장할 필요가 있는지 검토 필요혀요
     let session = await Session
         .findOne({_id : req.body.session_id})
-        .select('cardlist_total cardlist_studied study_result')
+        .select('num_cards cardlist_total cardlist_studied study_result')
 
     // 카드리스트 스터디를 저장인지 업데이트인지 보고.. 처음 저장하면 undefined일 것임
     if (session.cardlist_studied){        
@@ -60,6 +60,54 @@ exports.create_studyresult= async (req, res) => {
             let single_result = new Study_result            
             for(i=0; i<cardlist_studied.length; i++){ 
                 if (cardlist_studied[i].book_id == book_id && cardlist_studied[i].detail_status.recent_study_date == study_date ){                
+                    
+                    // 일단 hold나 completed로 날라오면 for문을 skip하자고
+                    if(cardlist_studied.status === 'hold' || cardlist_studied.status === 'completed' ){
+                        // 일단 해당 카드를 지우자. yet인지, ing인지는 모르겠다.
+                        let yet_remove = await Session.updateOne({_id : req.body.session_},
+                            {$pull : {'cardlist_sepa.yet' : {_id : cardlist_studied._id }}})
+                        let ing_remove = await Session.updateOne({_id : req.body.session_},
+                            {$pull : {'cardlist_sepa.ing' : {_id : cardlist_studied._id }}})
+                        // 카드 갯수 수정해주고
+                        if (yet_remove.count ===1){
+                            session.num_cards.yet.total -= 1
+                            session.num_cards.yet.selected -= 1
+                        } else if (ing_remove.count ===1){
+                            session.num_cards.ing.total -= 1
+                            session.num_cards.ing.selected -= 1
+                        }
+                        // 그리고 받은 정보를 끼워넣고 카드 갯수를 수정해주자
+                        switch(cardlist_studied.status){
+                            case 'hold' :
+                                let hold_add = await Session.updateOne({_id : req.body.session_},
+                                    {
+                                        $push : {
+                                            'cardlist_sepa.hold' : {
+                                                $each : cardlist_studied[i],
+                                                $position : session.num_cards.hold.selected
+                                            }
+                                        }
+                                    })
+                                session.num_cards.hold.total += 1
+                                session.num_cards.hold.selected += 1
+                                break;
+                            case 'completed' :
+                                let hold_add = await Session.updateOne({_id : req.body.session_},
+                                    {
+                                        $push : {
+                                            'cardlist_sepa.completed' : {
+                                                $each : cardlist_studied[i],
+                                                $position : session.num_cards.completed.selected
+                                            }
+                                        }
+                                    })
+                                session.num_cards.completed.total += 1
+                                session.num_cards.completed.selected += 1
+                                break;
+                        }                        
+                        continue;
+                    }
+                    
                     let type
                     switch (cardlist_studied[i].type){
                         case 'read' :
