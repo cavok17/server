@@ -130,7 +130,7 @@ exports.get_cardlist = async (req, res) => {
     // 불필요한 정보를 지워줍니다.
     for (i=0; i<cardlist_total.length; i++){
         delete cardlist_total[i].seq_in_index        
-        delete cardlist_total[i].index_id
+        // delete cardlist_total[i].index_id
     }
     session.cardlist_total = cardlist_total    
 
@@ -216,30 +216,119 @@ exports.get_cardlist = async (req, res) => {
     res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }
 
+exports.continue_session = async (req, res) => {
+    console.log("기존에 진행했던 session을 이어합니다.");
+    console.log(req.body);
+
+    // 세션을 가져오고
+    let session = await Session.findOne({_id : req.body.session_id})
+        .select('num_cards cardlist_total cardlist_studied')
+    
+    // diffi5인 카드를 발라내야 함. 그래가지고 어떡할 건데
+    let diffi5_cards = session.cardlist_studied.filter((card) => card.detail_status.recent_difficulty == 'diffi5')
+    // 
+    for (i=0; i<cardlist_total.length; i++){
+        let diffi5_yeobu = diffi5_cards.findIndex((card) => card._id == cardlist_total._id[i])
+        if (diffi5_yeobu > -1){
+            cardlist_total[i].diffi5 = '1yes'
+        } else if (diffi5_yeobu === -1){
+            cardlist_total[i].diffi5 = '2no'
+        }
+    }
+
+    cardlist_total.sort((a,b) => a.diffi5 - b.diffi5)
+    
+    
+    
+    // 일치하는 것은 숫자만 세서 넘 카드에 한번 더 넣고
+    // 일치하는 녀석은 다시 다운받아서 하긴 하는데...
+    // 문제는 total을 그냥 날리면 또 이어할 때 문제가 돼
+    // 그니깐 발라낼 때 신중하게
+    // 넘카드스 같은 거가 문제여
+
+
+}
+
+// 학습 보류 및 완료를 학습중으로 돌립니다
 exports.change_status_to_ing = async (req, res) => {
     console.log("학습 보류 및 완료를 학습중으로 돌립니다.~");
     console.log(req.body);
 
-    // 세션 정보를 수정합니다.
-    // 해당 카드 정보를 빼서 카드리스트 스터딩으로 옮기고 싶은데. 위치는 이미 내보낸 녀석 바로 뒤에
+    let prev_status
+
+    // 먼저 hold에서 삭제를 시도해보고
+    let sepa_hold_change = await Session.updateOne(
+        {_id : req.body.session_id},
+        {$pull : {'cardlist_sepa.hold' : {_id : req.body.card_id }}}
+    )
+    
+    // hold에서 삭제 됐으면, 기존 상태는 hold이고 아니면 completed에서 삭제 시도한다.
+    if (sepa_hold_change.modifiedCount === 1){
+        prev_status = 'hold'
+    } else if (sepa_hold_change.modifiedCount === 0){
+        let sepa_completed_change = await Session.updateOne(
+            {_id : req.body.session_id},
+            {$pull : {'cardlist_sepa.completed' : {_id : req.body.card.card_id }}}
+        )
+    }
+
+    // completed에서 삭제 됐으면, 기존 상태는 completed이고 그냥 끝낸다.
+    if (sepa_completed_change.modifiedCount === 1){
+        prev_status = 'completed'
+    } else {
+        return
+    }
+
+    // ing에 추가, 카드 갯수 수정, total 수정
+    if(prev_status = 'hold'){        
+        let sepa_change = await Session.updateOne(
+            {_id : req.body.session_id},
+            {
+                $push : {
+                    'cardlist_sepa.ing' : {
+                        $each : [req.body.card],
+                        $position : session.num_cards.ing.selected
+                    },
+                },
+                $inc : {
+                    'num_cards.hold.total' : -1,
+                    'num_cards.hold.selected' : -1,
+                    'num_cards.ing.total' : 1,
+                    'num_cards.ing.selected' : 1,
+                }
+            }
+        )
+        let total_change = await Session.updateOne(
+            {_id : req.body.session_id, 'cardlist_total._id' : req.body.card._id},
+            {'cardlist_total.$.status' : 'ing'}
+        )
+        
+    } else if (prev_status = 'completed'){
+        let sepa_change = await Session.updateOne(
+            {_id : req.body.session_id},
+            {
+                $push : {
+                    'cardlist_sepa.ing' : {
+                        $each : [req.body.card],
+                        $position : session.num_cards.ing.selected
+                    },
+                },
+                $inc : {
+                    'num_cards.completed.total' : -1, // 위랑 여기만 다름
+                    'num_cards.completed.selected' : -1, // 위랑 여기만 다름
+                    'num_cards.ing.total' : 1, 
+                    'num_cards.ing.selected' : 1,
+                }
+            }
+        )
+        let total_change = await Session.updateOne(
+            {_id : req.body.session_id, 'cardlist_total._id' : req.body.card._id},
+            {'cardlist_total.$.status' : 'ing'}
+        )
+    }
+
     let session = await Session.findOne({_id : req.body.session_id})
-        .select('num_cards cardlist_sapa')
-
-    // 세파에서 카드 이동
-    let prev_status = req.body.prev_status
-    let later_status = req.body.later_status
-    let prev_position = session.cardlist_sepa[prev_status].findIndex((cardlist) => cardlist._id == req.body.card_id)
-    let move_card = session.cardlist_sepa[prev_status].splice(prev_position,1)
-    session.cardlist_sepa[later_status].splice(session.num_cards[later_status].selected,0,move_card)
-
-    // 카드 갯수를 수정해준다.
-    session.num_cards[prev_status].total -= 1
-    session.num_cards[prev_status].selected -= 1
-    session.num_cards[later_status].total += 1
-    session.num_cards[later_status].selected += 1
-
-    // 세션을 저장해주고
-    session = session.save()
+        .select('num_cards')
 
     // 카드 갯수 정보를 다시 보냅니다.
     res.json({isloggedIn : true, num_cards : session.num_cards});
