@@ -132,7 +132,7 @@ exports.get_cardlist = async (req, res) => {
         delete cardlist_total[i].seq_in_index        
         // delete cardlist_total[i].index_id
     }
-    session.cardlist_total = cardlist_total    
+    session.cardlist_total = cardlist_total
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
@@ -224,15 +224,15 @@ exports.continue_session = async (req, res) => {
     let session = await Session.findOne({_id : req.body.session_id})
         .select('num_cards cardlist_total cardlist_studied')
     
-    // diffi5인 카드를 발라내야 함. 그래가지고 어떡할 건데
-    let diffi5_cards = session.cardlist_studied.filter((card) => card.detail_status.recent_difficulty == 'diffi5')
+    // session_in_status가 off인 카드를 발라내야 함. 그래가지고 어떡할 건데
+    let off_cards = session.cardlist_studied.filter((card) => card.detail_status.session_in_status == 'off')
     // 
     for (i=0; i<cardlist_total.length; i++){
-        let diffi5_yeobu = diffi5_cards.findIndex((card) => card._id == cardlist_total._id[i])
-        if (diffi5_yeobu > -1){
-            cardlist_total[i].diffi5 = '1yes'
-        } else if (diffi5_yeobu === -1){
-            cardlist_total[i].diffi5 = '2no'
+        if (cardlist_total[i].session_in_status ==='on'){
+            let off_yeobu = off_cards.findIndex((off_card) => off_card._id == cardlist_total._id[i])
+            if (off_yeobu > -1){
+                cardlist_total[i].session_in_status = 'off'
+            }
         }
     }
 

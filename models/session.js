@@ -8,6 +8,7 @@ const cardlist_schema = new mongoose.Schema({
     former_status : {type : String, default : null}, 
     type : {type : String, default : null},
     detail_status : {
+        status_in_session : {type : String, default : null},
         recent_study_time : {type : Date, default : null},
         need_study_time: {type : Date, default : null},
         recent_difficulty : {type : String, default : null},
@@ -195,7 +196,12 @@ const session_schema = new mongoose.Schema({
         writer_group : {type : Boolean, default : null},
         writer_value : {type : [String], default : null},
     },    
-    cardlist_total : [cardlist_schema],
+    cardlist_total : [{
+        _id : {type:mongoose.ObjectId, ref:'Card'},
+        seq_in_total : {type : Number},
+        status : {type : String},
+        status_in_session : {type : String, default : null},
+    }],
     cardlist_studied : [cardlist_schema],
     cardlist_sepa : {
         yet : [cardlist_schema],
