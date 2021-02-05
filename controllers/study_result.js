@@ -67,7 +67,7 @@ exports.create_studyresult= async (req, res) => {
                     // 이거는 학습 결과가 아니거든
                     // 데이터 구조만 정리해주고, for문을 skip하자고
                     if((cardlist_studied[i].status === 'hold' || cardlist_studied[i].status === 'completed') && (cardlist_studied[i].former_status === 'yet' || cardlist_studied[i].former_status === 'ing')){
-                        let prev_status
+                        let prev_status = null
                         // 먼저 yet에서 삭제를 시도해보고
                         let sepa_yet_change = await Session.updateOne(
                             {_id : req.body.session_id},
@@ -87,100 +87,98 @@ exports.create_studyresult= async (req, res) => {
                         // ing에서 삭제 됐으면, 기존 상태는 ing이고 그것도 아니면 그냥 끝낸다.
                         if (sepa_ing_change.modifiedCount === 1){
                             prev_status = 'ing'
-                        } else {
-                            continue
-                        }
+                        } 
 
-                        // hold, completed에 카드 추가, 카드 갯수 수정, total 수정
-                        if(cardlist_studied[i].status === 'hold'){
-                            if(prev_status = 'yet'){        
-                                let sepa_change = await Session.updateOne(
-                                    {_id : req.body.session_id},
-                                    {
-                                        $push : {
-                                            'cardlist_sepa.hold' : {
-                                                $each : [cardlist_studied[i]],
-                                                $position : session.num_cards.hold.selected
+                        if (prev_status != null){
+                            // hold, completed에 카드 추가, 카드 갯수 수정, total 수정
+                            if(cardlist_studied[i].status === 'hold'){
+                                if(prev_status = 'yet'){        
+                                    let sepa_change = await Session.updateOne(
+                                        {_id : req.body.session_id},
+                                        {
+                                            $push : {
+                                                'cardlist_sepa.hold' : {
+                                                    $each : [cardlist_studied[i]],
+                                                    $position : session.num_cards.hold.selected
+                                                },
                                             },
-                                        },
-                                        $inc : {
-                                            'num_cards.yet.total' : -1,
-                                            'num_cards.yet.selected' : -1,
-                                            'num_cards.hold.total' : 1,
-                                            'num_cards.hold.selected' : 1,
+                                            $inc : {
+                                                'num_cards.yet.total' : -1,
+                                                'num_cards.yet.selected' : -1,
+                                                'num_cards.hold.total' : 1,
+                                                'num_cards.hold.selected' : 1,
+                                            }
                                         }
-                                    }
-                                )
-                            } else if (prev_status = 'ing'){
-                                let sepa_change = await Session.updateOne(
-                                    {_id : req.body.session_id},
-                                    {
-                                        $push : {
-                                            'cardlist_sepa.hold' : {
-                                                $each : [cardlist_studied[i]],
-                                                $position : session.num_cards.hold.selected
+                                    )
+                                } else if (prev_status = 'ing'){
+                                    let sepa_change = await Session.updateOne(
+                                        {_id : req.body.session_id},
+                                        {
+                                            $push : {
+                                                'cardlist_sepa.hold' : {
+                                                    $each : [cardlist_studied[i]],
+                                                    $position : session.num_cards.hold.selected
+                                                },
                                             },
-                                        },
-                                        $inc : {
-                                            'num_cards.ing.total' : -1,
-                                            'num_cards.ing.selected' : -1,
-                                            'num_cards.hold.total' : 1,
-                                            'num_cards.hold.selected' : 1,
+                                            $inc : {
+                                                'num_cards.ing.total' : -1,
+                                                'num_cards.ing.selected' : -1,
+                                                'num_cards.hold.total' : 1,
+                                                'num_cards.hold.selected' : 1,
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
+                                // // 카드리스트 토탈 수정
+                                // let total_change = await Session.updateOne(
+                                //     {_id : req.body.session_id, 'cardlist_total._id' : cardlist_studied[i]._id},
+                                //     {'cardlist_total.$.status' : 'hold'}
+                                // )
+                            } else if (cardlist_studied[i].status === 'completed'){
+                                if(prev_status = 'yet'){        
+                                    let sepa_change = await Session.updateOne(
+                                        {_id : req.body.session_id},
+                                        {
+                                            $push : {
+                                                'cardlist_sepa.completed' : {
+                                                    $each : [cardlist_studied[i]],
+                                                    $position : session.num_cards.completed.selected
+                                                },
+                                            },
+                                            $inc : {
+                                                'num_cards.yet.total' : -1,
+                                                'num_cards.yet.selected' : -1,
+                                                'num_cards.completed.total' : 1,
+                                                'num_cards.completed.selected' : 1,
+                                            }
+                                        }
+                                    )
+                                } else if (prev_status = 'ing'){
+                                    let sepa_change = await Session.updateOne(
+                                        {_id : req.body.session_id},
+                                        {
+                                            $push : {
+                                                'cardlist_sepa.completed' : {
+                                                    $each : [cardlist_studied[i]],
+                                                    $position : session.num_cards.completed.selected
+                                                },
+                                            },
+                                            $inc : {
+                                                'num_cards.ing.total' : -1,
+                                                'num_cards.ing.selected' : -1,
+                                                'num_cards.completed.total' : 1,
+                                                'num_cards.completed.selected' : 1,
+                                            }
+                                        }
+                                    )
+                                }
+                                // // 카드리스트 토탈 수정
+                                // let total_change = await Session.updateOne(
+                                //     {_id : req.body.session_id, 'cardlist_total._id' : cardlist_studied[i]._id},
+                                //     {'cardlist_total.$.status' : 'completed'}
+                                // )
                             }
-                            // 카드리스트 토탈 수정
-                            let total_change = await Session.updateOne(
-                                {_id : req.body.session_id, 'cardlist_total._id' : cardlist_studied[i]._id},
-                                {'cardlist_total.$.status' : 'hold'}
-                            )
-                        } else if (cardlist_studied[i].status === 'completed'){
-                            if(prev_status = 'yet'){        
-                                let sepa_change = await Session.updateOne(
-                                    {_id : req.body.session_id},
-                                    {
-                                        $push : {
-                                            'cardlist_sepa.completed' : {
-                                                $each : [cardlist_studied[i]],
-                                                $position : session.num_cards.completed.selected
-                                            },
-                                        },
-                                        $inc : {
-                                            'num_cards.yet.total' : -1,
-                                            'num_cards.yet.selected' : -1,
-                                            'num_cards.completed.total' : 1,
-                                            'num_cards.completed.selected' : 1,
-                                        }
-                                    }
-                                )
-                            } else if (prev_status = 'ing'){
-                                let sepa_change = await Session.updateOne(
-                                    {_id : req.body.session_id},
-                                    {
-                                        $push : {
-                                            'cardlist_sepa.completed' : {
-                                                $each : [cardlist_studied[i]],
-                                                $position : session.num_cards.completed.selected
-                                            },
-                                        },
-                                        $inc : {
-                                            'num_cards.ing.total' : -1,
-                                            'num_cards.ing.selected' : -1,
-                                            'num_cards.completed.total' : 1,
-                                            'num_cards.completed.selected' : 1,
-                                        }
-                                    }
-                                )
-                            }
-                            // 카드리스트 토탈 수정
-                            let total_change = await Session.updateOne(
-                                {_id : req.body.session_id, 'cardlist_total._id' : cardlist_studied[i]._id},
-                                {'cardlist_total.$.status' : 'completed'}
-                            )
-                        }
-                            
-                        continue;
+                        }                        
                     }
                     
                     let type
@@ -232,6 +230,7 @@ exports.create_studyresult= async (req, res) => {
             single_result.total.study_times.diffi3 = single_result.read.study_times.diffi3 + single_result.flip.study_times.diffi3
             single_result.total.study_times.diffi4 = single_result.read.study_times.diffi4 + single_result.flip.study_times.diffi4
             single_result.total.study_times.diffi5 = single_result.read.study_times.diffi5 + single_result.flip.study_times.diffi5
+            single_result.total.study_times.pass = single_result.read.study_times.pass + single_result.flip.study_times.pass
             single_result.total.study_hour = single_result.read.study_hour + single_result.flip.study_hour
             single_result.total.exp_gained = single_result.read.exp_gained + single_result.flip.exp_gained
 
@@ -254,6 +253,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.total.study_times.diffi3 += single_result.total.study_times.diffi3
                 studyresult_of_book.total.study_times.diffi4 += single_result.total.study_times.diffi4
                 studyresult_of_book.total.study_times.diffi5 += single_result.total.study_times.diffi5
+                studyresult_of_book.total.study_times.pass += single_result.total.study_times.pass
                 studyresult_of_book.total.study_hour += single_result.total.study_hour
                 studyresult_of_book.total.exp_gained += single_result.total.exp_gained
                 studyresult_of_book.read.num_cards_change.yet += single_result.read.num_cards_change.yet
@@ -271,6 +271,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.read.study_times.diffi3 += single_result.read.study_times.diffi3
                 studyresult_of_book.read.study_times.diffi4 += single_result.read.study_times.diffi4
                 studyresult_of_book.read.study_times.diffi5 += single_result.read.study_times.diffi5
+                studyresult_of_book.read.study_times.pass += single_result.read.study_times.pass
                 studyresult_of_book.read.study_hour += single_result.read.study_hour
                 studyresult_of_book.read.exp_gained += single_result.read.exp_gained
                 studyresult_of_book.flip.num_cards_change.yet += single_result.flip.num_cards_change.yet
@@ -288,6 +289,7 @@ exports.create_studyresult= async (req, res) => {
                 studyresult_of_book.flip.study_times.diffi3 += single_result.flip.study_times.diffi3
                 studyresult_of_book.flip.study_times.diffi4 += single_result.flip.study_times.diffi4
                 studyresult_of_book.flip.study_times.diffi5 += single_result.flip.study_times.diffi5
+                studyresult_of_book.flip.study_times.pass += single_result.flip.study_times.pass
                 studyresult_of_book.flip.study_hour += single_result.flip.study_hour
                 studyresult_of_book.flip.exp_gained += single_result.flip.exp_gained
                 
@@ -321,18 +323,21 @@ exports.create_studyresult= async (req, res) => {
                     'result.total.study_times.diff3' : single_result.total.study_times.diff3,
                     'result.total.study_times.diff4' : single_result.total.study_times.diff4,
                     'result.total.study_times.diff5' : single_result.total.study_times.diff5,
+                    'result.total.study_times.pass' : single_result.total.study_times.pass,
                     'result.read.study_times.total' : single_result.read.study_times.total,
                     'result.read.study_times.diff1' : single_result.read.study_times.diff1,
                     'result.read.study_times.diff2' : single_result.read.study_times.diff2,
                     'result.read.study_times.diff3' : single_result.read.study_times.diff3,
                     'result.read.study_times.diff4' : single_result.read.study_times.diff4,
                     'result.read.study_times.diff5' : single_result.read.study_times.diff5,
+                    'result.read.study_times.pass' : single_result.read.study_times.pass,
                     'result.flip.study_times.total' : single_result.flip.study_times.total,
                     'result.flip.study_times.diff1' : single_result.flip.study_times.diff1,
                     'result.flip.study_times.diff2' : single_result.flip.study_times.diff2,
                     'result.flip.study_times.diff3' : single_result.flip.study_times.diff3,
                     'result.flip.study_times.diff4' : single_result.flip.study_times.diff4,
                     'result.flip.study_times.diff5' : single_result.flip.study_times.diff5,
+                    'result.flip.study_times.pass' : single_result.flip.study_times.pass,
                     'result.total.study_hour' : single_result.total.study_hour,
                     'result.read.study_hour' : single_result.read.study_hour,
                     'result.flip.study_hour' : single_result.flip.study_hour,
@@ -364,18 +369,21 @@ exports.create_studyresult= async (req, res) => {
             session.study_result.total.study_times.diffi3 += single_result.total.study_times.diffi3
             session.study_result.total.study_times.diffi4 += single_result.total.study_times.diffi4
             session.study_result.total.study_times.diffi5 += single_result.total.study_times.diffi5
+            session.study_result.total.study_times.pass += single_result.total.study_times.pass
             session.study_result.read.study_times.total += single_result.read.study_times.total
             session.study_result.read.study_times.diffi1 += single_result.read.study_times.diffi1
             session.study_result.read.study_times.diffi2 += single_result.read.study_times.diffi2
             session.study_result.read.study_times.diffi3 += single_result.read.study_times.diffi3
             session.study_result.read.study_times.diffi4 += single_result.read.study_times.diffi4
             session.study_result.read.study_times.diffi5 += single_result.read.study_times.diffi5
+            session.study_result.read.study_times.pass += single_result.read.study_times.pass
             session.study_result.flip.study_times.total += single_result.flip.study_times.total
             session.study_result.flip.study_times.diffi1 += single_result.flip.study_times.diffi1
             session.study_result.flip.study_times.diffi2 += single_result.flip.study_times.diffi2
             session.study_result.flip.study_times.diffi3 += single_result.flip.study_times.diffi3
             session.study_result.flip.study_times.diffi4 += single_result.flip.study_times.diffi4
             session.study_result.flip.study_times.diffi5 += single_result.flip.study_times.diffi5
+            session.study_result.flip.study_times.pass += single_result.flip.study_times.pass
             session.study_result.total.study_hour += single_result.total.study_hour
             session.study_result.read.study_hour += single_result.read.study_hour
             session.study_result.flip.study_hour += single_result.flip.study_hour
