@@ -121,9 +121,9 @@ exports.get_cardlist = async (req, res) => {
     // 토탈 카드리스트에서의 시퀀스 정보를 생성합니다.
     for (i=0; i<cardlist_total.length; i++) {        
         cardlist_total[i].seq_in_total_list = i        
-        cardlist_total[i].detail_status.session_study_times = 0
-        cardlist_total[i].detail_status.need_study_time_tmp = null
-        cardlist_total[i].detail_status.status_in_session = 'on'
+        // cardlist_total[i].detail_status.session_study_times = 0
+        // cardlist_total[i].detail_status.need_study_time_tmp = null
+        // cardlist_total[i].detail_status.status_in_session = 'on'
         // cardlist_total[i].former_status = null
     }
 
@@ -132,7 +132,7 @@ exports.get_cardlist = async (req, res) => {
         delete cardlist_total[i].seq_in_index        
         // delete cardlist_total[i].index_id
     }
-    session.cardlist_total = cardlist_total
+    // session.cardlist_total = cardlist_total
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
@@ -166,15 +166,15 @@ exports.get_cardlist = async (req, res) => {
     let cardlist_studying_completed = []
 
     if (session.study_config.num_cards.on_off === 'on'){
-        cardlist_studying_yet = cardlist_sepa.yet.slice(0, session.study_config.num_cards.yet)
-        cardlist_studying_ing = cardlist_sepa.ing.slice(0, session.study_config.num_cards.ing)
-        cardlist_studying_hold = cardlist_sepa.hold.slice(0, session.study_config.num_cards.hold)
-        cardlist_studying_completed = cardlist_sepa.completed.slice(0, session.study_config.num_cards.completed)
+        cardlist_studying_yet = session.cardlist_sepa.yet.slice(0, session.study_config.num_cards.yet)
+        cardlist_studying_ing = session.cardlist_sepa.ing.slice(0, session.study_config.num_cards.ing)
+        cardlist_studying_hold = session.cardlist_sepa.hold.slice(0, session.study_config.num_cards.hold)
+        cardlist_studying_completed = session.cardlist_sepa.completed.slice(0, session.study_config.num_cards.completed)
     } else {
-        cardlist_studying_yet = cardlist_sepa.yet
-        cardlist_studying_ing = cardlist_sepa.ing
-        cardlist_studying_hold = cardlist_sepa.hold
-        cardlist_studying_completed = cardlist_sepa.completed
+        cardlist_studying_yet = session.cardlist_sepa.yet
+        cardlist_studying_ing = session.cardlist_sepa.ing
+        cardlist_studying_hold = session.cardlist_sepa.hold
+        cardlist_studying_completed = session.cardlist_sepa.completed
     }
 
     cardlist_studying = cardlist_studying.concat(cardlist_studying_yet, cardlist_studying_ing, cardlist_studying_hold, cardlist_studying_completed)
@@ -185,19 +185,6 @@ exports.get_cardlist = async (req, res) => {
     session.num_cards.ing.selected = cardlist_studying_ing.length
     session.num_cards.hold.selected = cardlist_studying_hold.length
     session.num_cards.completed.selected = cardlist_studying_completed.length
-    
-
-    // // 정보가 필요하면 넣어
-    // let now = new Date()       
-    // for (i=0; i<cardlist_studying.length; i++){        
-    //     if (cardlist_studying[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
-    //         // cardlist_studying[i].detail_status.need_study_time = now
-    //         cardlist_studying[i].detail_status.need_study_time = now.toString()
-    //         // ardlist_studying[i].detail_status.need_study_time = now.toISOString()
-            
-    //     }
-    //     cardlist_studying[i].detail_status.session_study_times = 0
-    // }
 
     // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying

@@ -66,7 +66,7 @@ exports.create_studyresult= async (req, res) => {
                     // 문제는 hold나 completed로 날라오는 거,
                     // 이거는 학습 결과가 아니거든
                     // 데이터 구조만 정리해주고, for문을 skip하자고
-                    if(cardlist_studied[i].status === 'hold' || cardlist_studied[i].status === 'completed' ){
+                    if((cardlist_studied[i].status === 'hold' || cardlist_studied[i].status === 'completed') && (cardlist_studied[i].former_status === 'yet' || cardlist_studied[i].former_status === 'ing')){
                         let prev_status
                         // 먼저 yet에서 삭제를 시도해보고
                         let sepa_yet_change = await Session.updateOne(
