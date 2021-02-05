@@ -115,7 +115,7 @@ exports.get_cardlist = async (req, res) => {
                 let j = Math.floor(Math.random() * (i + 1)); // 무작위 인덱스(0 이상 i 미만)  
                 [cardlist_total[i], cardlist_total[j]] = [cardlist_total[j], cardlist_total[i]];
               }
-            break
+            break            
     }
 
     // 토탈 카드리스트에서의 시퀀스 정보를 생성합니다.
@@ -216,37 +216,94 @@ exports.get_cardlist = async (req, res) => {
     res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }
 
-exports.continue_session = async (req, res) => {
+exports.get_cardlist_continue = async (req, res) => {
     console.log("기존에 진행했던 session을 이어합니다.");
     console.log(req.body);
 
     // 세션을 가져오고
     let session = await Session.findOne({_id : req.body.session_id})
-        .select('num_cards cardlist_total cardlist_studied')
-    
-    // session_in_status가 off인 카드를 발라내야 함. 그래가지고 어떡할 건데
-    let off_cards = session.cardlist_studied.filter((card) => card.detail_status.session_in_status == 'off')
-    // 
-    for (i=0; i<cardlist_total.length; i++){
-        if (cardlist_total[i].session_in_status ==='on'){
-            let off_yeobu = off_cards.findIndex((off_card) => off_card._id == cardlist_total._id[i])
-            if (off_yeobu > -1){
-                cardlist_total[i].session_in_status = 'off'
+        .select('num_cards cardlist_sepa cardlist_studied')
+
+    // cardlist_studied의 중복 제거
+    // 나중에는 cardlist_studied에 신규 여부를 관리할 거야. 그 때 반영해줘.
+    // 근데 카드리스트 스터디드가 심플해진다면, 중복 제거하는 작업이 오히려 번거로워질 수도 있겠다.
+    session.cardlist_studied.reverse()
+    let dup = []
+    for (i=0; i<session.cardlist_studied.length; i++){
+        for (j=0; j<i; j++){
+            if (session.cardlist_studied[i]._id == session.cardlist_studied[j]._id){
+                dup.push(i)
+                break;
             }
         }
     }
+    dup.reverse()
+    for (i=0; i<dup.length; i++){
+        cardlist_studied.splice(dup[i],1)
+    }
+    session.cardlist_studied.reverse()
 
-    cardlist_total.sort((a,b) => a.diffi5 - b.diffi5)
-    
-    
-    
-    // 일치하는 것은 숫자만 세서 넘 카드에 한번 더 넣고
-    // 일치하는 녀석은 다시 다운받아서 하긴 하는데...
-    // 문제는 total을 그냥 날리면 또 이어할 때 문제가 돼
-    // 그니깐 발라낼 때 신중하게
-    // 넘카드스 같은 거가 문제여
+    for (status of ['yet', 'ing', 'hold', 'completed']){
+        // cardlist_sepa에 status_in_session을 업데이트 하고        
+        for (i=0; i<cardlist_sepa[status].length; i++){
+            if (cardlist_sepa[status][i].detail_status.status_in_session === 'on'){
+                // on인 녀석이 카드리스트 스터디드 어디에 있는지 찾아야 해요
+                let position = session.cardlist_studied.findIndex(cardlist => cardlist._id == cardlist_sepa[status][i]._id)
+                cardlist_sepa[status][i] = session.cardlist_studied[position]
+            }
+        }
 
+        // on하고 off를 분리했다가 다시 붙히자. 이게 일종의 필터 기능이 되어버려. off -> on 중에 학습한 거 -> on 중에 학습 안 한거
+        let on_cards = cardlist_sepa[status].filter(card => card.detail_status.status_in_session === 'on')
+        session.num_cards[status].selected = on_card.length
+        let off_cards = cardlist_sepa[status].filter(card => card.detail_status.status_in_session === 'off')
+        session.cardlist_sepa[status] = on_cards.concat(off_cards)
+    }
+    
+// -------------------------------------- 스터딩 -----------------------------------------------------
+    // 다시 하나로 묶어서 정리해주고 cardlist_studying으로 만들어준다.
+    let cardlist_studying = []
+    let cardlist_studying_yet = []
+    let cardlist_studying_ing = []
+    let cardlist_studying_hold = []
+    let cardlist_studying_completed = []
 
+    if (session.study_config.num_cards.on_off === 'on'){
+        cardlist_studying_yet = cardlist_sepa.yet.slice(session.num_cards.yet.selected, session.study_config.num_cards.yet)
+        cardlist_studying_ing = cardlist_sepa.ing.slice(session.num_cards.yet.selected, session.study_config.num_cards.ing)
+        cardlist_studying_hold = cardlist_sepa.hold.slice(session.num_cards.yet.selected, session.study_config.num_cards.hold)
+        cardlist_studying_completed = cardlist_sepa.completed.slice(session.num_cards.yet.selected, session.study_config.num_cards.completed)
+    } else {
+        cardlist_studying_yet = cardlist_sepa.yet.slice(session.num_cards.yet.selected, 1000000)
+        cardlist_studying_ing = cardlist_sepa.ing.slice(session.num_cards.yet.selected, 1000000)
+        cardlist_studying_hold = cardlist_sepa.hold.slice(session.num_cards.yet.selected, 1000000)
+        cardlist_studying_completed = cardlist_sepa.completed.slice(session.num_cards.yet.selected, 1000000)
+    }
+
+    cardlist_studying = cardlist_studying.concat(cardlist_studying_yet, cardlist_studying_ing, cardlist_studying_hold, cardlist_studying_completed)
+    
+
+    // 사용한 카드가 몇 장인지 업데이트 해주자
+    session.num_cards.yet.selected += cardlist_studying_yet.length
+    session.num_cards.ing.selected += cardlist_studying_ing.length
+    session.num_cards.hold.selected += cardlist_studying_hold.length
+    session.num_cards.completed.selected += cardlist_studying_completed.length
+
+    // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
+    cardlist_studying
+        .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
+    
+    session = await session.save()
+
+    // 학습 설정도 받아주시고요
+    let book_ids = []
+    for (i=0; i<session.booksnindexes.length; i++){
+        book_ids.push(session.booksnindexes[i].book_id)
+    }
+    let level_config = await Level_config.find({book_id : book_ids})
+    
+    console.log('1', cardlist_studying)
+    res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }
 
 // 학습 보류 및 완료를 학습중으로 돌립니다
