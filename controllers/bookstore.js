@@ -40,6 +40,7 @@ exports.show_sellbooklist = async (req, res) => {
     console.log(req.body);
 
     let sellbooklist = await Sellbook_candidate.find({})
+    console.log(sellbooklist)
 
     res.json({isloggedIn : true, sellbooklist});
 }
