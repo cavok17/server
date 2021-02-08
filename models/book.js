@@ -100,6 +100,10 @@ const book_schema = new mongoose.Schema({
         recent_modify_time : {type : Date, default : 0},
         recent_study_time : {type : Date, default : 0},
     },
+    num_cards_by_status : {
+        read : {type : Number, default : 0},
+        flip : {type : Number, default : 0},
+    },
     num_cards : {
         total : {
             total : {type : Number, default : 0},

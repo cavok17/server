@@ -72,6 +72,7 @@ const study_setupRouter = require('./routes/study_setup');
 const study_executeRouter = require('./routes/study_execute');
 const study_resultRouter = require('./routes/study_result');
 const mentoringRouter = require('./routes/mentoring');
+const bookstoreRouter = require('./routes/bookstore');
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -86,6 +87,7 @@ app.use('/api/studyexecute',study_executeRouter);
 app.use('/api/studyresult',study_resultRouter);
 app.use('/api/user', userRouter);
 app.use('/api/mentoring', mentoringRouter);
+app.use('/api/bookstore', bookstoreRouter);
 
 const connect = mongoose.connect(process.env.mongoURI,{
     useNewUrlParser: true, 
