@@ -10,6 +10,7 @@ const Cardtype = require('../models/cardtype');
 const Candibook = require('../models/candibook');
 const Sellbook = require('../models/sellbook');
 const Contents_tong = require('../models/contents_tong');
+const category = require("../models/category");
 
 
 
@@ -155,7 +156,23 @@ exports.add_sellbook = async (req, res) => {
     console.log("구매한 책을 내 책 리스트에 추가합니다..");
     console.log(req.body);
 
-    let candibook = await Candibook.findOne({_id : req.body.candi_id})
+    let sellbook = await Sellbook.findOne({_id : req.body.sellbook_id})
+    let categories = await category.find({user_id : req.session.passport.user_id})
+    let undesignated_category_position = categories.findIndex(category => category.name === '미지정')
+
+    // 일단 book을 생성하자
+    let book = new Book
+    book.category_id = categories[undesignated_category_position]._id
+    book.title = sellbook.book_info.title
+    book.type = 'buy'
+    book.user_id = req.session.passport.user_id
+    book.author //요거... candi 만들 때 author로 바꿔줘야 함
+    book.seq_in_category //요거 만들라믄 책 갯수 세야겠네
+    book.sellbook_id = sellbook._id
+
+    // 카드타입을 저장하고 매퍼만들어서 수정하고
+    // 인덱스 만들어서 매퍼만들어서 수정한다.
+
 
     // 인덱스를 만들어야겠네
     let index_set = await Index.insertMany(candibook.index_set)
