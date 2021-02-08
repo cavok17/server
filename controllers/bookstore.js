@@ -7,7 +7,7 @@ const Card = require('../models/card');
 const Card_external = require('../models/card_external');
 const Index = require('../models/index');
 const Cardtype = require('../models/cardtype');
-const Sellbook_candidate = require('../models/sellbook_candidate');
+const Candibook = require('../models/candibook');
 
 
 
@@ -18,7 +18,7 @@ exports.req_book_sell = async (req, res) => {
 
     let book_info = await Book.findOne({_id : req.body.book_id.book_id})
 
-    let new_book_candidate = await Sellbook_candidate.create({
+    let candibook = await Candibook.create({
         book_id : book_info._id,
         user_id : book_info.user_id,
         title : book_info.title,
@@ -35,16 +35,15 @@ exports.req_book_sell = async (req, res) => {
 };
 
 // 판매 요청 받은 책 리스트를 보여줍니다.
-exports.show_sellbooklist = async (req, res) => {
+exports.show_candibooklist = async (req, res) => {
     console.log("판매 요청 받은 책 리스트를 보여줍니다..");
     console.log(req.body);
 
-    let sellbooklist = await Sellbook_candidate.find({})
-    console.log(sellbooklist)
+    let candibooklist = await Candibook.find({})
+    console.log(candibooklist)
 
-    res.json({isloggedIn : true, sellbooklist});
+    res.json({isloggedIn : true, candibooklist});
 }
-
 
 
 // 책 판매를 허가합니다.
@@ -52,7 +51,8 @@ exports.permit_book_sell = async (req, res) => {
     console.log("책 판매를 허가합니다.");
     console.log(req.body);
 
-    // let book = await 
+    let candibook = await Candibook({_id : req.body.candibook_id})
+    // let indexes = await Card.fin
     // let cards = await Card.find({_id : })
 
     res.json({isloggedIn : true, cardlist});

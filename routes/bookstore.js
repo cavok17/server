@@ -11,8 +11,7 @@ const router = express.Router();
 router.post('/req-book-sell', isLoggedIn, Bookstore_controller.req_book_sell);
 
 // 책 판매를 요청합니다.
-router.get('/show-sellbooklist', isLoggedIn, Bookstore_controller.show_sellbooklist);
-
+router.get('/show-candibooklist', isLoggedIn, Bookstore_controller.show_candibooklist);
 
 // 책 판매를 허가합니다.
 router.post('/permit-book-sell', isLoggedIn, Bookstore_controller.permit_book_sell);
