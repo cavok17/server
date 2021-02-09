@@ -12,7 +12,7 @@ const sellbook_schema = new mongoose.Schema({
         intro_book : {type : String},
         intro_author : {type : String},
         indexes : {type : String},
-        price_hope : {type : Number},
+        price : {type : Number},
         time_created : {type : Date, default : Date.now},
     },
     index_set : {type : Array, default : []},
