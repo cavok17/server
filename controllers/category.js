@@ -88,29 +88,41 @@ exports.get_categorylist = async (req, res) => {
 // 새 카테고리를 만듭니다.
 exports.create_category = async (req, res) => {    
     console.log('category 만들어줄게');
-
-    // 기존 카테고리의 시퀀스 정보 수정해주고
-    let seq_changed_categories = await Category.updateMany(
-        {            
-            user_id : req.session.passport.user,
-            seq : {$gt : req.body.prev_category_seq}
-        },
-        {$inc : {seq : 1}}
-    );
     
-    // 새로운 카테고리 정보 생성해주고
-    let category = await Category.create({
-        user_id : req.session.passport.user,        
-        name: req.body.new_category,
-        seq: req.body.prev_category_seq+1,
-    });
+    let msg
+    let categorybooklist
+    let likebooklist
+    let write_config
 
-    let categorybooklist = await get_categorybooklist(req, res)
-    let likebooklist = await get_likebooklist(req, res)
-    let write_config = await get_write_config(req, res)
+    // 중복이 있는지 검사
+    let dup_inspection = await Category.findOne({user_id : req.session.passport.user, name : req.body.new_category})
+
+    if (dup_inspection){
+        msg = '중복된 이름이 있네요'
+    } else {
+        msg = '가능한 이름입니다.'
+        // 기존 카테고리의 시퀀스 정보 수정해주고
+        let seq_changed_categories = await Category.updateMany(
+            {            
+                user_id : req.session.passport.user,
+                seq : {$gt : req.body.prev_category_seq}
+            },
+            {$inc : {seq : 1}}
+        );
+        
+        // 새로운 카테고리 정보 생성해주고
+        let category = await Category.create({
+            user_id : req.session.passport.user,        
+            name: req.body.new_category,
+            seq: req.body.prev_category_seq+1,
+        });
     
-    console.log(write_config)
-    res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
+        let categorybooklist = await get_categorybooklist(req, res)
+        let likebooklist = await get_likebooklist(req, res)
+        let write_config = await get_write_config(req, res)
+    }
+
+    res.json({isloggedIn : true, msg, categorybooklist, likebooklist, write_config});
 };
 
 

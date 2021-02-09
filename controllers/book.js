@@ -9,6 +9,7 @@ const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 const Level_config = require('../models/level_config');
 const category = require("../models/category");
+const study_result = require("../models/study_result");
 
 // 시퀀스 정보를 전달하는 공용함수입니다.
 const get_seq_info = async (category_id) => {        
@@ -165,14 +166,18 @@ exports.delete_book =  async (req, res) => {
     // 인덱스, 카드타입, 스터디_리절트, 카드, 멘토링를 삭제 하고
     
     // 책을 삭제 하고    
-    let delete_result = await Book.deleteOne({_id : req.body.book_id});        
+    let book_delete_result = await Book.deleteOne({_id : req.body.book_id});        
+    let index_delete_result = await Index.deleteMany({_id : req.body.book_id});        
+    let cardtype_delete_result = await Cardtype.deleteMany({_id : req.body.book_id});        
+    let studyresult_delete_result = await study_result.deleteMany({_id : req.body.book_id});
+    let card_delete_result = await Card.deleteMany({_id : req.body.book_id});
 
 
     // 나머지 책들의 카테고리 내 시퀀스도 변경해주고
     let seq_changed_books = await Book.updateMany(
         {
             category_id : req.body.category_id, 
-            seq_in_category : {$gte : req.body.seq_in_category}
+            seq_in_category : {$gt : req.body.seq_in_category}
         },
         {
             $inc : {seq_in_category : -1}

@@ -165,7 +165,7 @@ exports.add_sellbook_to_mybook = async (req, res) => {
 
     let sellbook = await Sellbook.findOne({_id : req.body.sellbook_id})    
     let unde_category = await Category.findOne({user_id : req.session.passport.user, name : '(미지정)'})        
-    let max_seq_category = await Book.find({user_id : req.session.passport.user, category_id : unde_category})
+    let max_seq_category = await Book.find({user_id : req.session.passport.user, category_id : unde_category._id})
         .select('seq_in_category')
         .sort({seq : -1})
         .limit(1)
@@ -178,7 +178,7 @@ exports.add_sellbook_to_mybook = async (req, res) => {
     mybook.type = 'buy'
     mybook.user_id = req.session.passport.user
     mybook.author = sellbook.book_info.author
-    mybook.seq_in_category = max_seq_category[0].seq_in_category + 1
+    mybook.seq_in_category = (max_seq_category[0].seq_in_category)*1 + 1
     mybook.sellbook_id = sellbook._id
     mybook = await mybook.save()
 
@@ -208,8 +208,7 @@ exports.add_sellbook_to_mybook = async (req, res) => {
     // 카드 인포를 가공하고    
     for (i=0; i<sellbook.cardinfo_set.length; i++){
         sellbook.cardinfo_set[i].book_id = mybook._id
-        sellbook.cardinfo_set[i].cardtype_id = cardtype_mapper[sellbook.cardinfo_set[i].original_cardtype_id]
-        console.log(sellbook.cardinfo_set[i].original_index_id)
+        sellbook.cardinfo_set[i].cardtype_id = cardtype_mapper[sellbook.cardinfo_set[i].original_cardtype_id]        
         sellbook.cardinfo_set[i].index_id = index_mapper[sellbook.cardinfo_set[i].original_index_id]        
     }
     
