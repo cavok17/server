@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const cardtypeschema = new mongoose.Schema({  
+    // original_cardtype_id : {type : String},
     book_id: {type:mongoose.Schema.Types.ObjectId, ref:'Book'},    
     type: String,
     // read, flip-normal, flip-select, none, share

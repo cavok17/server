@@ -2,10 +2,12 @@ const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
 const sellbook_schema = new mongoose.Schema({
-    book_id : {type:mongoose.ObjectId, ref:'Book'},
-    sellbook_candidate_id : {type:mongoose.ObjectId, ref:'Sellbook_candidate'},
+    // book_id : {type:mongoose.ObjectId, ref:'Book'},
+    candibook_id : {type:mongoose.ObjectId, ref:'Candibook'},
     book_info : {
+        original_book_id : {type : String},
         title : {type : String},
+        author : {type : String},
         thumbnail : {type : String},
         intro_book : {type : String},
         intro_author : {type : String},
