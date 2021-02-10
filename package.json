@@ -27,7 +27,8 @@
     "read-excel-file": "^4.1.0",
     "sanitize-html": "^2.3.0",
     "session-file-store": "^1.5.0",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "wysiwyg-editor-node-sdk": "^3.2.5"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",

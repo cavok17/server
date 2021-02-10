@@ -34,5 +34,8 @@ router.post('/delete-many-card', isLoggedIn, Card_controller.delete_many_card);
 // 다른 인덱스로 복수 카드 이동하기
 router.post('/move-many-card', isLoggedIn, Card_controller.move_many_card);
 
+// 이미지 업로드
+router.post('/upload_image', isLoggedIn, Card_controller.upload_image);
+
 
 module.exports = router;

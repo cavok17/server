@@ -218,3 +218,11 @@ exports.add_sellbook_to_mybook = async (req, res) => {
     res.json({isloggedIn : true, cardtype_mapper, index_mapper, cardinfo : sellbook.cardinfo_set, cards });
     
 }
+
+
+
+
+
+
+
+

@@ -4,6 +4,8 @@ const multer = require('multer');
 const readXlsxFile = require('read-excel-file/node');
 // 입력 시 스크립트 같은 게 딸려오는 거 방지
 const sanitizeHtml = require('sanitize-html')
+// const FroalaEditor = require('../node_modules/wysiwyg-editor-node-sdk/lib/froalaEditor.js');
+const FroalaEditor = require('wysiwyg-editor-node-sdk/lib/froalaEditor.js');
 
 // 모델 경로
 const User = require('../models/user');
@@ -361,6 +363,17 @@ exports.move_many_card = async (req, res) => {
 
     res.json({isloggedIn : true, cardlist});
 
+}
+
+exports.upload_image = async(req, res) => {
+    FroalaEditor.Image.upload(req, '/uploads/', function(err, data) {
+        // Return data.
+        if (err) {
+          return res.send(JSON.stringify(err));
+        }    
+        data.link = 'http://localhost:5000' +data.link
+        res.send(data);
+      });
 }
 
 

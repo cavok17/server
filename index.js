@@ -37,7 +37,9 @@ if (process.env.NODE_ENV === 'production'){
 } else {
   app.use(morgan('dev'));
 }
-app.use(express.urlencoded({ extended: true }));
+// extended가 true였는데, froala하면서 false로 바꿈
+app.use('/uploads',  express.static(path.join(__dirname, 'uploads')));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
