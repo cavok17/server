@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+const style_schema = new mongoose.Schema({
+    
+})
+
 // 스키마 객체를 생성
 const cardtypeschema = new mongoose.Schema({  
     // original_cardtype_id : {type : String},
@@ -25,54 +29,61 @@ const cardtypeschema = new mongoose.Schema({
         selection : {type : Array, default : []},
         face2 : {type : Array, default : []},
         annotation : {type : Array, default : ['주석']},
-    },  
-    card_direction : {type : String, default : 'top-bottom'},
-    left_right_ratio: {
-        face1 : {type : Number, default : 0.5},
-        face2 : {type : Number, default : 0.5}
     },
-    background_color : {type : String, default : null},
-    outer_margin : {
-        top : {type : Number, default : 0},
-        bottom : {type : Number, default : 0},
-        left : {type : Number, default : 0},
-        right : {type : Number, default : 0},
+    card_style : {
+        card_direction : {type : String, default : 'top-bottom'},
+        left_right_ratio: {
+            face1 : {type : Number, default : 0.5},
+            face2 : {type : Number, default : 0.5}
+        },
+        background_color : {type : String, default : null},
+        outer_margin : {
+            top : {type : Number, default : 0},
+            bottom : {type : Number, default : 0},
+            left : {type : Number, default : 0},
+            right : {type : Number, default : 0},
+        },
+        inner_padding : {
+            top : {type : Number, default : 0},
+            bottom : {type : Number, default : 0},
+            left : {type : Number, default : 0},
+            right : {type : Number, default : 0},
+        },
+        border : {
+            mode : {type : String, default : 'package'}, //each
+            package : {
+                type : {type : String, default : null},
+                thickness : {type : Number, default : null},
+                color : {type : String, default : null},
+            },
+            top : {
+                type : {type : String, default : null},
+                thickness : {type : Number, default : null},
+                color : {type : String, default : null},
+            },
+            bottom : {            
+                type : {type : String, default : null},
+                thickness : {type : Number, default : null},
+                color : {type : String, default : null},
+            },
+            left : {            
+                type : {type : String, default : null},
+                thickness : {type : Number, default : null},
+                color : {type : String, default : null},
+            },
+            ringt : {            
+                type : {type : String, default : null},
+                thickness : {type : Number, default : null},
+                color : {type : String, default : null},
+            },
+        },
     },
-    inner_padding : {
-        top : {type : Number, default : 0},
-        bottom : {type : Number, default : 0},
-        left : {type : Number, default : 0},
-        right : {type : Number, default : 0},
-    },
-    border : {
-        mode : {type : String, default : 'package'},
-        package : {
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
-        },
-        top : {
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
-        },
-        bottom : {            
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
-        },
-        left : {            
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
-        },
-        ringt : {            
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
-        },
-    },
+    face_style : {type : {}},
+    row_style : {type : {}},
+    font : {type : {}},
 });
+
+
 
 module.exports = mongoose.model("Cardtype", cardtypeschema)
 
