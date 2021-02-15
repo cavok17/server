@@ -79,8 +79,24 @@ const cardtypeschema = new mongoose.Schema({
         },
     },
     face_style : {type : Object, default : {}},
-    row_style : {type : Object, default : {}},
-    font_style : {type : Object, default : {}},
+    row_style : {
+        maker_flag : {type : Array, default : []},
+        none : {type : Array, default : []},
+        share : {type : Array, default : []},
+        face1 : {type : Array, default : []},
+        selection : {type : Array, default : []},
+        face2 : {type : Array, default : []},
+        annotation : {type : Array, default : []},
+    },
+    font_style : {
+        maker_flag : {type : Array, default : []},
+        none : {type : Array, default : []},
+        share : {type : Array, default : []},
+        face1 : {type : Array, default : []},
+        selection : {type : Array, default : []},
+        face2 : {type : Array, default : []},
+        annotation : {type : Array, default : []},
+    },
 });
 
 

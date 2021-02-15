@@ -115,6 +115,7 @@ exports.create_book =  async (req, res) => {
             book_id : book._id,
             type : 'read',
             name : '읽기-기본',
+            seq : 0,
             num_of_row : {
                 maker_flag : 1,                
                 face1 : 1,                
@@ -122,12 +123,42 @@ exports.create_book =  async (req, res) => {
             nick_of_row : {                
                 face1 : ['본문'],                
             },
-            seq : 0,
+            face_style : {
+                face1 : {
+                    background_color : null,
+                    outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+                    inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+                    border : {
+                        mode : 'package', 
+                        package : {type : null, thickness : null, color : null,},
+                        top : {type : null, thickness : null, color : null,},
+                        bottom : {type : null, thickness : null, color : null,},
+                        left : {type : null, thickness : null, color : null,},
+                        ringt : {type : null, thickness : null, color : null,},
+                    },
+                }
+            },
+            row_style : {
+                face1 : [{
+                    background_color : null,
+                    outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+                    inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+                    border : {
+                        mode : 'package', 
+                        package : {type : null, thickness : null, color : null,},
+                        top : {type : null, thickness : null, color : null,},
+                        bottom : {type : null, thickness : null, color : null,},
+                        left : {type : null, thickness : null, color : null,},
+                        ringt : {type : null, thickness : null, color : null,},
+                    },
+                }]
+            }
         },
         {
             book_id : book._id,
             type : 'flip-normal',
             name : '뒤집기-기본',
+            seq : 1,
             num_of_row : {
                 maker_flag : 1,
                 face1 : 1,
@@ -137,7 +168,74 @@ exports.create_book =  async (req, res) => {
                 face1 : ['본문'],
                 face2 : ['정답', '부가설명'],                
             },
-            seq : 1,
+            face_style : {
+                face1 : {
+                    background_color : null,
+                    outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+                    inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+                    border : {
+                        mode : 'package', 
+                        package : {type : null, thickness : null, color : null,},
+                        top : {type : null, thickness : null, color : null,},
+                        bottom : {type : null, thickness : null, color : null,},
+                        left : {type : null, thickness : null, color : null,},
+                        ringt : {type : null, thickness : null, color : null,},
+                    },
+                },
+                face2 : {
+                    background_color : null,
+                    outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+                    inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+                    border : {
+                        mode : 'package', 
+                        package : {type : null, thickness : null, color : null,},
+                        top : {type : null, thickness : null, color : null,},
+                        bottom : {type : null, thickness : null, color : null,},
+                        left : {type : null, thickness : null, color : null,},
+                        ringt : {type : null, thickness : null, color : null,},
+                    },
+                }
+            },
+            row_style : {
+                face1 : [{
+                    background_color : null,
+                    outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+                    inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+                    border : {
+                        mode : 'package', 
+                        package : {type : null, thickness : null, color : null,},
+                        top : {type : null, thickness : null, color : null,},
+                        bottom : {type : null, thickness : null, color : null,},
+                        left : {type : null, thickness : null, color : null,},
+                        ringt : {type : null, thickness : null, color : null,},
+                    },
+                }],
+                face2 : [{
+                    background_color : null,
+                    outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+                    inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+                    border : {
+                        mode : 'package', 
+                        package : {type : null, thickness : null, color : null,},
+                        top : {type : null, thickness : null, color : null,},
+                        bottom : {type : null, thickness : null, color : null,},
+                        left : {type : null, thickness : null, color : null,},
+                        ringt : {type : null, thickness : null, color : null,},
+                    },
+                }, {
+                    background_color : null,
+                    outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+                    inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+                    border : {
+                        mode : 'package', 
+                        package : {type : null, thickness : null, color : null,},
+                        top : {type : null, thickness : null, color : null,},
+                        bottom : {type : null, thickness : null, color : null,},
+                        left : {type : null, thickness : null, color : null,},
+                        ringt : {type : null, thickness : null, color : null,},
+                    },
+                }]
+            }
         },
     ]
     let cardtype = await Cardtype.insertMany(new_cardtype)
