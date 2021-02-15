@@ -78,9 +78,9 @@ const cardtypeschema = new mongoose.Schema({
             },
         },
     },
-    face_style : {type : {}},
-    row_style : {type : {}},
-    font : {type : {}},
+    face_style : {type : Object, default : {}},
+    row_style : {type : Object, default : {}},
+    font : {type : Object, default : {}},
 });
 
 
