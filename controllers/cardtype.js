@@ -102,8 +102,6 @@ exports.update_fontstyle = async(req, res) => {
 }
 
 
-
-
 // 카드타입을 생성합니다.
 exports.create_cardtype = async(req, res) => {
     console.log('카드타입을 생성합니다.');
@@ -122,7 +120,7 @@ exports.create_cardtype = async(req, res) => {
     }
     
     
-    let cardtype = {}
+    let cardtype = new Cardtype
     cardtype.book_id = req.body.book_id
     cardtype.type = req.body.type
     cardtype.name = req.body.name
@@ -151,7 +149,46 @@ exports.create_cardtype = async(req, res) => {
         }
     }
 
-    //생성합니다.
+
+    // 일단 스타일과 폰트에 대한 디폴트 값을 잡아주시고요
+    let defult_style = {
+        background_color : null,
+        outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
+        inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
+        border : {
+            mode : 'package', 
+            package : {type : null, thickness : null, color : null,},
+            top : {type : null, thickness : null, color : null,},
+            bottom : {type : null, thickness : null, color : null,},
+            left : {type : null, thickness : null, color : null,},
+            right : {type : null, thickness : null, color : null,},
+        }
+    }
+    let default_font = {
+        font : '맑은 고딕',
+        size : 10,
+        align : 'left',
+        bold : 'off',
+        italic : 'off',
+        underline : 'off',
+    }
+
+    // 카드 스타일은 자동생성되고
+    // 면/행/폰트는 여기서 만들어줘야 함요
+    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {
+        if (cardtype.num_of_row[name]>0) {
+            cardtype.face_style = default_style
+            for (i=0; i<cardtype.num_of_row[name]; i++){
+                cardtype.row_style = []
+                cardtype.row_style[name].push(default_style)
+                cardtype.font = []
+                cardtype.font_style[name].push(default_font)
+            }
+        }
+    }
+
+
+    //생성합니다. 크리에이트 대신....
     let new_cardtype = await Cardtype.create(cardtype);
     
     let cardtypes = await get_cardtypelist_func(req, res);

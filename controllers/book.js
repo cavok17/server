@@ -153,7 +153,7 @@ exports.create_book =  async (req, res) => {
                     },
                 }]
             },
-            font_style : {
+            font : {
                 face1 : [{
                     font : '맑은 고딕',
                     size : 10,
@@ -246,7 +246,7 @@ exports.create_book =  async (req, res) => {
                     },
                 }]
             },
-            row_style : {
+            font : {
                 face1 : [{
                     font : '맑은 고딕',
                     size : 10,

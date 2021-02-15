@@ -88,7 +88,7 @@ const cardtypeschema = new mongoose.Schema({
         face2 : {type : Array, default : []},
         annotation : {type : Array, default : []},
     },
-    font_style : {
+    font : {
         maker_flag : {type : Array, default : []},
         none : {type : Array, default : []},
         share : {type : Array, default : []},
