@@ -71,7 +71,7 @@ const cardtypeschema = new mongoose.Schema({
                 thickness : {type : Number, default : null},
                 color : {type : String, default : null},
             },
-            ringt : {            
+            right : {            
                 type : {type : String, default : null},
                 thickness : {type : Number, default : null},
                 color : {type : String, default : null},

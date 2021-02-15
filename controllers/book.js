@@ -134,7 +134,7 @@ exports.create_book =  async (req, res) => {
                         top : {type : null, thickness : null, color : null,},
                         bottom : {type : null, thickness : null, color : null,},
                         left : {type : null, thickness : null, color : null,},
-                        ringt : {type : null, thickness : null, color : null,},
+                        right : {type : null, thickness : null, color : null,},
                     },
                 }
             },
@@ -149,8 +149,18 @@ exports.create_book =  async (req, res) => {
                         top : {type : null, thickness : null, color : null,},
                         bottom : {type : null, thickness : null, color : null,},
                         left : {type : null, thickness : null, color : null,},
-                        ringt : {type : null, thickness : null, color : null,},
+                        right : {type : null, thickness : null, color : null,},
                     },
+                }]
+            },
+            font_style : {
+                face1 : [{
+                    font : '맑은 고딕',
+                    size : 10,
+                    align : 'left',
+                    bold : 'off',
+                    italic : 'off',
+                    underline : 'off',
                 }]
             }
         },
@@ -179,7 +189,7 @@ exports.create_book =  async (req, res) => {
                         top : {type : null, thickness : null, color : null,},
                         bottom : {type : null, thickness : null, color : null,},
                         left : {type : null, thickness : null, color : null,},
-                        ringt : {type : null, thickness : null, color : null,},
+                        right : {type : null, thickness : null, color : null,},
                     },
                 },
                 face2 : {
@@ -192,7 +202,7 @@ exports.create_book =  async (req, res) => {
                         top : {type : null, thickness : null, color : null,},
                         bottom : {type : null, thickness : null, color : null,},
                         left : {type : null, thickness : null, color : null,},
-                        ringt : {type : null, thickness : null, color : null,},
+                        right : {type : null, thickness : null, color : null,},
                     },
                 }
             },
@@ -207,7 +217,7 @@ exports.create_book =  async (req, res) => {
                         top : {type : null, thickness : null, color : null,},
                         bottom : {type : null, thickness : null, color : null,},
                         left : {type : null, thickness : null, color : null,},
-                        ringt : {type : null, thickness : null, color : null,},
+                        right : {type : null, thickness : null, color : null,},
                     },
                 }],
                 face2 : [{
@@ -220,7 +230,7 @@ exports.create_book =  async (req, res) => {
                         top : {type : null, thickness : null, color : null,},
                         bottom : {type : null, thickness : null, color : null,},
                         left : {type : null, thickness : null, color : null,},
-                        ringt : {type : null, thickness : null, color : null,},
+                        right : {type : null, thickness : null, color : null,},
                     },
                 }, {
                     background_color : null,
@@ -232,8 +242,33 @@ exports.create_book =  async (req, res) => {
                         top : {type : null, thickness : null, color : null,},
                         bottom : {type : null, thickness : null, color : null,},
                         left : {type : null, thickness : null, color : null,},
-                        ringt : {type : null, thickness : null, color : null,},
+                        right : {type : null, thickness : null, color : null,},
                     },
+                }]
+            },
+            row_style : {
+                face1 : [{
+                    font : '맑은 고딕',
+                    size : 10,
+                    align : 'left',
+                    bold : 'off',
+                    italic : 'off',
+                    underline : 'off',
+                }],
+                face2 : [{
+                    font : '맑은 고딕',
+                    size : 10,
+                    align : 'left',
+                    bold : 'off',
+                    italic : 'off',
+                    underline : 'off',
+                },{
+                    font : '맑은 고딕',
+                    size : 10,
+                    align : 'left',
+                    bold : 'off',
+                    italic : 'off',
+                    underline : 'off',
                 }]
             }
         },
