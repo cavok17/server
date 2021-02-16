@@ -81,7 +81,7 @@ exports.update_rowstyle = async(req, res) => {
 }
 
 // 폰트를 수정합니다
-exports.update_fontstyle = async(req, res) => {
+exports.update_font = async(req, res) => {
     console.log('폰트스타일을 수정합니다.');
     console.log(req.body);
 

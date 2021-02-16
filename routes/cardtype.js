@@ -12,7 +12,7 @@ router.post('/get-cardtype', isLoggedIn, Cardtype_controller.get_cardtypelist);
 router.post('/update-cardstyle', isLoggedIn, Cardtype_controller.update_cardstyle);
 router.post('/update-facestyle', isLoggedIn, Cardtype_controller.update_facestyle);
 router.post('/update-rowstyle', isLoggedIn, Cardtype_controller.update_rowstyle);
-router.post('/update-fontstyle', isLoggedIn, Cardtype_controller.update_fontstyle);
+router.post('/update-font', isLoggedIn, Cardtype_controller.update_font);
 
 // 카드타입 생성하기
 router.post('/create-cardtype', isLoggedIn, Cardtype_controller.create_cardtype);
