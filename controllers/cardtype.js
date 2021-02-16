@@ -19,6 +19,7 @@ exports.get_cardtypelist = async(req, res) => {
     let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
         .sort ({seq : 1})
 
+    console.log(cardtypes)
     res.json({isloggedIn : true, cardtypes});
 };
 
@@ -29,7 +30,7 @@ exports.update_cardstyle = async(req, res) => {
 
     let card_style = await Cardtype.updateOne(
         {_id : req.body.cardtype_id},
-        {card_style : req.body.card_style}
+        {card_style : req.body.updated_card_style}
     )
 
     let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
@@ -64,7 +65,8 @@ exports.update_rowstyle = async(req, res) => {
     console.log('행스타일을 수정합니다.');
     console.log(req.body);
 
-    let updated_face_name = 'row_style.' + req.body.updated_face_name    
+    // if ()
+    let updated_face_name = 'row_style.' + req.body.updated_face_name
 
     let update_object = {}
     update_object[updated_face_name] = req.body.updated_row_style
@@ -119,15 +121,14 @@ exports.create_cardtype = async(req, res) => {
         max_seq = max_seq_cardtype[0].seq
     }
     
-    
-    let cardtype = new Cardtype
+    // 새 카드타입을 만들기 시작합니다.
+    let cardtype = new Cardtype    
     cardtype.book_id = req.body.book_id
     cardtype.type = req.body.type
     cardtype.name = req.body.name
     cardtype.seq = max_seq + 1
-    cardtype.num_of_row = {}
-    cardtype.nick_of_row = {}
 
+    // 행 갯수 저장해주시고
     if (cardtype.type ==='none' || cardtype.type ==='share' ){
         cardtype.num_of_row.maker_flag = 0
     } else {
@@ -140,57 +141,43 @@ exports.create_cardtype = async(req, res) => {
     cardtype.num_of_row.face2 = req.body.face2     
     cardtype.num_of_row.annotation = 1    
     
-    let cur_alphabet = 'B'
-    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {
-        cardtype.nick_of_row[name]=[]
-        for (i=0; i<req.body[name]; i++) {
-            cardtype.nick_of_row[name].push(String.fromCharCode(cur_alphabet.charCodeAt() + 1))
-            cur_alphabet = String.fromCharCode(cur_alphabet.charCodeAt() + 1)
+    // 엑셀 칼럼명 생성해주고
+    if (cardtype.type ==='none' || cardtype.type ==='share' ){
+        cardtype.excel_column.maker_flag = []
+    } else {
+        cardtype.excel_column.maker_flag = ['B']
+    }
+    let cur_alphabet = 'C'.charCodeAt()
+    for (let name of ['none', 'share', 'face1', 'selection', 'face2', 'annotation']) {        
+        for (i=0; i<cardtype.num_of_row[name]; i++) {
+            cardtype.excel_column[name].push(String.fromCharCode(cur_alphabet))
+            cur_alphabet += 1
         }
     }
 
-
-    // 일단 스타일과 폰트에 대한 디폴트 값을 잡아주시고요
-    let defult_style = {
-        background_color : null,
-        outer_margin : {top : 0, bottom : 0, left : 0, right : 0,},
-        inner_padding : {top : 0, bottom : 0, left : 0, right : 0,},
-        border : {
-            mode : 'package', 
-            package : {type : null, thickness : null, color : null,},
-            top : {type : null, thickness : null, color : null,},
-            bottom : {type : null, thickness : null, color : null,},
-            left : {type : null, thickness : null, color : null,},
-            right : {type : null, thickness : null, color : null,},
-        }
-    }
-    let default_font = {
-        font : '맑은 고딕',
-        size : 10,
-        align : 'left',
-        bold : 'off',
-        italic : 'off',
-        underline : 'off',
-    }
-
-    // 카드 스타일은 자동생성되고
-    // 면/행/폰트는 여기서 만들어줘야 함요
-    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {
-        if (cardtype.num_of_row[name]>0) {
-            cardtype.face_style = default_style
-            for (i=0; i<cardtype.num_of_row[name]; i++){
-                cardtype.row_style = []
-                cardtype.row_style[name].push(default_style)
-                cardtype.font = []
-                cardtype.font_style[name].push(default_font)
+    // 닉값 설정해주고
+    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {        
+        for (i=0; i<cardtype.num_of_row[name]; i++) {
+            if(name === 'selection'){
+                cardtype.nick_of_row[name].push('보기_'+ (i+1))
+            } else {
+                cardtype.nick_of_row[name].push('단락_'+ (i+1))
             }
         }
     }
 
+    // 행/폰트는 여기서 만들어줘야 함요
+    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {
+        if (cardtype.num_of_row[name]>0) {            
+            for (i=0; i<cardtype.num_of_row[name]; i++){
+                cardtype.row_style[name].push({})
+                cardtype.font[name].push({})
+            }
+        }
+    }
 
-    //생성합니다. 크리에이트 대신....
-    let new_cardtype = await Cardtype.create(cardtype);
-    
+    //생성합니다.    
+    cardtype = await cardtype.save()    
     let cardtypes = await get_cardtypelist_func(req, res);
 
     res.json({isloggedIn : true, cardtypes});
