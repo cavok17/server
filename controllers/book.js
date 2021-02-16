@@ -143,7 +143,8 @@ exports.create_book =  async (req, res) => {
             nick_of_row : {                
                 face1 : ['본문'],
                 face2 : ['정답', '부가설명'],                
-            },            
+            },
+            face_style : [{}, {}],
             row_style : {
                 face1 : [{}],
                 face2 : [{},{}]
