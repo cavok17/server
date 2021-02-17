@@ -22,11 +22,14 @@ exports.get_cardlist = async (req, res) => {
     console.log("카드리스트를 보내줄게요");
     console.log(req.body);
 
+    // let cardlist = await Card.find({index_id : req.body.index_id})
+    //     .sort({seq_in_index : 1})
     let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
-
 };
+
+
 
 // 카드를 만들어봅니다.
 exports.create_card = async (req, res) => {
@@ -47,13 +50,14 @@ exports.create_card = async (req, res) => {
         index_id: req.body.index_id,        
         parent_card_id : req.body.parent_card_id,
         seq_in_index: req.body.seq_in_index*1 + 1,
-        contents : {
-            maker_flag : req.body.flag_of_maker,
-            face1 : req.body.face1,
-            selection : req.body.selection,
-            face2 : req.body.face2,
-            annotation : req.body.annotation
-        }
+        // contents : {
+        //     maker_flag : req.body.flag_of_maker,
+        //     face1 : req.body.face1,
+        //     selection : req.body.selection,
+        //     face2 : req.body.face2,
+        //     annotation : req.body.annotation
+        // }
+        contents : req.body.contents
     }
 
     // 카드를 생성합니다.
@@ -79,7 +83,10 @@ exports.create_card = async (req, res) => {
             {$push : {child_card_ids : card._id}})
     }
 
+    // let cardlist = await Card.find({index_id : req.body.index_id})
+    //     .sort({seq_in_index : 1})
     let cardlist = await get_cardlist_func(req.body.index_id)
+
     res.json({isloggedIn : true, cardlist});
 };
 
