@@ -22,8 +22,9 @@ exports.get_cardlist = async (req, res) => {
     console.log("카드리스트를 보내줄게요");
     console.log(req.body);
 
-    let cardlist = await Card.find({index_id : req.body.index_id})
-        .sort({seq_in_index : 1})    
+    // let cardlist = await Card.find({index_id : req.body.index_id})
+    //     .sort({seq_in_index : 1}) 
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 };
@@ -75,8 +76,9 @@ exports.create_card = async (req, res) => {
             {$push : {child_card_ids : card._id}})
     }
 
-    let cardlist = await Card.find({index_id : req.body.index_id})
-        .sort({seq_in_index : 1})    
+    // let cardlist = await Card.find({index_id : req.body.index_id})
+    //     .sort({seq_in_index : 1})    
+    let cardlist = await get_cardlist_func(req.body.index_id)
 
     res.json({isloggedIn : true, cardlist});
 };
