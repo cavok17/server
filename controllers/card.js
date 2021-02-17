@@ -49,8 +49,6 @@ exports.create_card = async (req, res) => {
         seq_in_index: req.body.seq_in_index*1 + 1,
         contents : {
             maker_flag : req.body.flag_of_maker,
-            none : req.body.none,
-            share : req.body.share,
             face1 : req.body.face1,
             selection : req.body.selection,
             face2 : req.body.face2,
@@ -229,8 +227,9 @@ exports.update_card = async (req, res) => {
     console.log("카드 내용을 변경합니다.");
     console.log(req.body);
 
-    let card = await Card.findOne({_id : req.body.card_id})
-
+    // let card = await Card.findOne({_id : req.body.card_id})
+    let card = await Card.updateOne({_id : req.body.card_id},
+        {contents : req.body.contents})
     // let num_cards = {read : 0, flip : 0}
     // switch (card.type) {
     //     case 'read' : 
@@ -254,23 +253,23 @@ exports.update_card = async (req, res) => {
 
     // card.cardtype_id = req.body.cardtype_id
     // card.type = req.body.type
-    // card.parent_card_id = req.body.parent_card_id
-    card.contents.maker_flag = req.body.flag_of_maker
-    // card.contents.share = req.body.share
-    card.contents.face1 = req.body.face1
-    card.contents.selection = req.body.selection
-    card.contents.face2 = req.body.face2
-    card.contents.annotation = req.body.annotation
+    // // card.parent_card_id = req.body.parent_card_id
+    // card.contents.maker_flag = req.body.flag_of_maker
+    // // card.contents.share = req.body.share
+    // card.contents.face1 = req.body.face1
+    // card.contents.selection = req.body.selection
+    // card.contents.face2 = req.body.face2
+    // card.contents.annotation = req.body.annotation
         
-    card = await card.save()
+    // card = await card.save()
 
-    // 쓸 일이 있을지는 모르겠으나, 자식 카드 정보를 기록해보자고
-    // 자식 카드의 시퀀스는 일단 관리하지 않는 것으로
-    if (req.body.parent_card_id != null){
-        let parent_card = await Card.updateOne(
-            {_id : req.body.parent_card_id},
-            {$push : {child_card_ids : card._id}})
-    }
+    // // 쓸 일이 있을지는 모르겠으나, 자식 카드 정보를 기록해보자고
+    // // 자식 카드의 시퀀스는 일단 관리하지 않는 것으로
+    // if (req.body.parent_card_id != null){
+    //     let parent_card = await Card.updateOne(
+    //         {_id : req.body.parent_card_id},
+    //         {$push : {child_card_ids : card._id}})
+    // }
 
     let cardlist = await get_cardlist_func(req.body.index_id)
     res.json({isloggedIn : true, cardlist});
