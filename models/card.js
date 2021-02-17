@@ -9,20 +9,17 @@ const cardschema = new mongoose.Schema({
   common_face_use_yeobu : {type : String, default : 'not_use'}, // use, not_use
   seq_in_index: {type : Number, default : null},
   seq_in_total_list: {type : Number, default : null},
-  // seq_in_studying_list: Number,
   
   position_of_content : {type : String, default : 'internal'},
   external_card_id : {type:mongoose.ObjectId, ref:'Card_external', default : null}, // 반댓말은 external
 
-  child_card_ids : [{type:mongoose.ObjectId, ref:'Card'}],
-  // child_yeobu : {type : String, default : null}, //child
+  // child_card_ids : [{type:mongoose.ObjectId, ref:'Card'}],
+  child_yeobu : {type : String, default : null}, //child
   parent_card_id : {type:mongoose.ObjectId, ref:'Card', default : null},
   
   contents : {
     user_flag : {type : Array, default : []},
-    maker_flag : {type : Array, default : []},
-    none : {type : Array, default : []},
-    share : {type : Array, default : []},
+    maker_flag : {type : Array, default : []},    
     face1 : {type : Array, default : []},
     selection : {type : Array, default : []},
     face2 : {type : Array, default : []},

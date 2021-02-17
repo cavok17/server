@@ -134,8 +134,6 @@ exports.create_cardtype = async(req, res) => {
     } else {
         cardtype.num_of_row.maker_flag = 1
     }
-    cardtype.num_of_row.none = req.body.none
-    cardtype.num_of_row.share = req.body.share
     cardtype.num_of_row.face1 = req.body.face1
     cardtype.num_of_row.selection = req.body.selection
     cardtype.num_of_row.face2 = req.body.face2     
@@ -148,15 +146,15 @@ exports.create_cardtype = async(req, res) => {
         cardtype.excel_column.maker_flag = ['B']
     }
     let cur_alphabet = 'C'.charCodeAt()
-    for (let name of ['none', 'share', 'face1', 'selection', 'face2', 'annotation']) {        
+    for (let name of ['face1', 'selection', 'face2', 'annotation']) {        
         for (i=0; i<cardtype.num_of_row[name]; i++) {
-            cardtype.excel_column[name].push(String.fromCharCode(cur_alphabet))
+            cardtype.excel_column[name].push(String.fromCharCode(cur_alphabet))            
             cur_alphabet += 1
         }
     }
 
     // 닉값 설정해주고
-    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {        
+    for (let name of ['face1', 'selection', 'face2']) {        
         for (i=0; i<cardtype.num_of_row[name]; i++) {
             if(name === 'selection'){
                 cardtype.nick_of_row[name].push('보기_'+ (i+1))
@@ -166,8 +164,14 @@ exports.create_cardtype = async(req, res) => {
         }
     }
 
+    // 면 서식을 만들어주고.... flip인 경우만 만들어 준다.
+    if (cardtype.type === 'flip-normal' || cardtype.type === 'flip-selection' ){
+        cardtype.face_style.push({}) //앞면
+        cardtype.face_style.push({}) //뒷면
+    }
+
     // 행/폰트는 여기서 만들어줘야 함요
-    for (let name of ['none', 'share', 'face1', 'selection', 'face2']) {
+    for (let name of ['face1', 'selection', 'face2']) {
         if (cardtype.num_of_row[name]>0) {            
             for (i=0; i<cardtype.num_of_row[name]; i++){
                 cardtype.row_style[name].push({})

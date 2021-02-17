@@ -256,7 +256,7 @@ exports.update_card = async (req, res) => {
     // card.type = req.body.type
     // card.parent_card_id = req.body.parent_card_id
     card.contents.maker_flag = req.body.flag_of_maker
-    card.contents.share = req.body.share
+    // card.contents.share = req.body.share
     card.contents.face1 = req.body.face1
     card.contents.selection = req.body.selection
     card.contents.face2 = req.body.face2
