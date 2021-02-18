@@ -81,7 +81,7 @@ exports.get_cardlist = async (req, res) => {
         filters.index_id = session.booksnindexes[i].index_ids                      
         cardlist_of_singlebook = await Card            
             .find(filters)
-            .select('cardtype_name book_id index_id type status former_status seq_in_index detail_status')                
+            .select('cardtype_id type book_id index_id seq_in_index status position_of_content parent_exist_yeobu detail_status')                
             .sort({seq_in_index : 1})
             .populate({path : 'index_id',select : 'seq'})
         // 위에서는 인덱스 내 순서로만 정렬되어 있고, 이제 인덱스 순서로도 정렬해줘야 함.
@@ -98,6 +98,7 @@ exports.get_cardlist = async (req, res) => {
             break
         case 'time' :
             cardlist_total.sort((a,b) => a.detail_status.need_study_time - b.detail_status.need_study_time)
+            // 널이 앞으로 와버리니까 뒤로 옮기는 작업이 필요함
             let not_null
             for (i=0; i<cardlist_total.length; i++){
                 if(cardlist_total[i].detail_status.need_study_time != null){
@@ -120,19 +121,8 @@ exports.get_cardlist = async (req, res) => {
 
     // 토탈 카드리스트에서의 시퀀스 정보를 생성합니다.
     for (i=0; i<cardlist_total.length; i++) {        
-        cardlist_total[i].seq_in_total_list = i        
-        // cardlist_total[i].detail_status.session_study_times = 0
-        // cardlist_total[i].detail_status.need_study_time_tmp = null
-        // cardlist_total[i].detail_status.status_in_session = 'on'
-        // cardlist_total[i].former_status = null
+        cardlist_total[i].seq_in_session = i                
     }
-
-    // 불필요한 정보를 지워줍니다.
-    for (i=0; i<cardlist_total.length; i++){
-        delete cardlist_total[i].seq_in_index        
-        // delete cardlist_total[i].index_id
-    }
-    // session.cardlist_total = cardlist_total
 
 // -------------------------------------- 세 파 -----------------------------------------------------
     // 이걸 속성으로 분리하고
@@ -142,7 +132,7 @@ exports.get_cardlist = async (req, res) => {
     cardlist_sepa.hold = cardlist_total.filter((card) => card.status === 'hold')    
     cardlist_sepa.completed = cardlist_total.filter((card) => card.status === 'completed')    
 
-    // 이걸 세션에 저장하고
+    // 이걸 세션에 저장하고... 이 때 불필요한 데이터가 날라갑니다.
     session.cardlist_sepa = {
         yet : cardlist_sepa.yet,
         ing : cardlist_sepa.ing,
@@ -186,24 +176,25 @@ exports.get_cardlist = async (req, res) => {
     session.num_cards.hold.selected = cardlist_studying_hold.length
     session.num_cards.completed.selected = cardlist_studying_completed.length
 
-    // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
+    // seq_in_session로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying
-        .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
+        .sort((a,b) => a.seq_in_session - b.seq_in_session)
     
     session = await session.save()
 
-    // 학습 설정도 받아주시고요
-    let book_ids = []
+// -------------------------------------- 레벨 설정  -----------------------------------------------------
+    let book_ids = []    
     for (i=0; i<session.booksnindexes.length; i++){
         book_ids.push(session.booksnindexes[i].book_id)
     }
     let level_config = await Level_config.find({book_id : book_ids})
     
-    console.log('1', cardlist_studying)
     res.json({isloggedIn : true, cardlist_studying, level_config, num_cards : session.num_cards});
 }
 
-exports.get_cardlist_continue = async (req, res) => {
+// ******************************************************************************************************************************************
+// ******************************************************************************************************************************************
+exports.get_cardlist_for_continue = async (req, res) => {
     console.log("기존에 진행했던 session을 이어합니다.");
     console.log(req.body);
 
@@ -276,9 +267,9 @@ exports.get_cardlist_continue = async (req, res) => {
     session.num_cards.hold.selected += cardlist_studying_hold.length
     session.num_cards.completed.selected += cardlist_studying_completed.length
 
-    // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
+    // seq_in_session로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying
-        .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
+        .sort((a,b) => a.seq_in_session - b.seq_in_session)
     
     session = await session.save()
 
@@ -386,8 +377,8 @@ exports.get_studying_cards = async (req, res) => {
 
     // 컨텐츠를 받아오고
     let cards = await Card.find({_id : req.body.card_ids})
-        .select ('parent_card_id external_card_id seq_in_index contents book_id')        
-        .populate({path : 'parent_card_id',select : 'contents'})
+        .select ('parent_card_id external_card_id contents book_id')        
+        .populate({path : 'parent_card_id',select : 'contents external_card_id', populate :{path : 'external_card_id',select : 'contents'}})
         .populate({path : 'external_card_id',select : 'contents'})
     
     // 날라온 카드 아이디 순서랑 맞춰주고
@@ -398,23 +389,27 @@ exports.get_studying_cards = async (req, res) => {
         }
     }
     
-    // 익스터널이나, 쉐어 카드의 컨텐츠 정리해주고
+    // 부모카드는 자식카드는 익스터널 컨텐츠는 안으로 넣어줌
     for (i=0; i<cards.length; i++) {
-        if (cards[i].parent_card_id != null) {
-            cards[i].contents.share = cards[i].parent_card_id.contents.share
-        }
         if (cards[i].external_card_id != null) {
-            cards[i].contents.share = cards[i].external_card_id.contents.share,
             cards[i].contents.face1 = cards[i].external_card_id.contents.face1,
             cards[i].contents.selection = cards[i].external_card_id.contents.selection,
             cards[i].contents.face2 = cards[i].external_card_id.contents.face2,
             cards[i].contents.annotation = cards[i].external_card_id.contents.annotation
+            // 요롷게 null로 넣으면 null이 되려나... 안 되면 하나씩 지워야 함
+            cards[i].external_card_id.contents = null
+        }
+        if (cards[i].parent_card_id != null) {
+            if (cards[i].parent_card_id.external_card_id != null) {
+                cards[i].parent_card_id.contents.face1 = cards[i].parent_card_id.external_card_id.contents.face1,
+                cards[i].parent_card_id.contents.selection = cards[i].parent_card_id.external_card_id.contents.selection,
+                cards[i].parent_card_id.contents.face2 = cards[i].parent_card_id.external_card_id.contents.face2,
+                cards[i].parent_card_id.contents.annotation = cards[i].parent_card_id.external_card_id.contents.annotation
+                // 요롷게 null로 넣으면 null이 되려나... 안 되면 하나씩 지워야 함
+                cards[i].parent_card_id.external_card_id.contents = null
+            }            
         }
     }
-
-    delete cards.parent_card_id
-    delete cards.external_card_id
-    delete cards.seq_in_index
 
     res.json({isloggedIn : true, cards, });
 }
@@ -436,114 +431,96 @@ exports.get_studying_cards_in_read_mode = async (req, res) => {
     // -------------------------------------- 필터 세팅 -----------------------------------------------------
     let filters = {}
 
-    // 1번
-    filters.index_id = [req.body.index_id]
+    // 1번 - 인덱스 아이디
+    filters.index_id = req.body.index_id
 
-    // 2번
-    let cardtype_filter = []    
-    // read, flip-normal, flip-select, none, share
-    // 스탠하고 랜덤은 쉐어를 넣고 차일드를 빼야하고, 타임은 쉐어를 빼고 차일드를 넣어야 해. 아님 취소
+    // 2번 - 카드 타입
+    let target_cardtype = ['none', 'share']    
+    // read, flip-normal, flip-select, none, share    
     if (session.study_config.card_on_off.read_card === 'on' ){
-        cardtype_filter = cardtype_filter.concat(['read'])
+        target_cardtype = target_cardtype.concat(['read'])
     }
     if (session.study_config.card_on_off.flip_card === 'on' ){
-        cardtype_filter = cardtype_filter.concat(['flip-normal', 'flip-select'])
+        target_cardtype = target_cardtype.concat(['flip-normal', 'flip-select'])
     }
-    // 중복제거
-    [...new Set(cardtype_filter)]
-    filters.type = cardtype_filter
+    filters.type = target_cardtype
     
     // 3번
-    let cardstatus_filter = []
+    let target_status = []
     for (let card_status in ['yet', 'ing', 'hold', 'completed']) {
-        if (session.study_config.status_on_off[card_status] === 'on')
-        cardstatus_filter.push(card_status)
+        if (session.study_config.status_on_off[card_status] === 'on'){
+            target_status.push(card_status)
+        }
     }
-    filters.status = cardstatus_filter
+    filters.status = target_status
     
-    // 4,5번
-    let needstudytime_high_filter
-    let needstudytime_low_filter
+    // 4,5번    
+    let target_needstudytime_from
+    let target_needstudytime_to
     if(session.study_config.status_on_off.ing === 'on'){
         switch (session.study_config.collect_criteria){
             case 'all' :
-                needstudytime_low_filter = new Date('2000/1/1/00:00:00')
-                needstudytime_high_filter = new Date('2050/1/1/00:00:00')
+                target_needstudytime_from = new Date('2000/1/1/00:00:00')
+                target_needstudytime_to = new Date('2050/1/1/00:00:00')
                 break
             case 'by_now' : 
-                needstudytime_low_filter = new Date('2000/1/1/00:00:00')
-                needstudytime_high_filter = Date.now()
+                target_needstudytime_from = new Date('2000/1/1/00:00:00')
+                target_needstudytime_to = Date.now()
                 break
             case 'by_today' :
                 let tomorrow = new Date()
                 tomorrow.setDate(tomorrow.getDate()+1)
-                tomorrow.setHours(0,0,0,0)
-                // console.log(tomorrow.getTime())         
-                needstudytime_high_filter = tomorrow.getTime()
-                needstudytime_low_filter = new Date('2000/1/1/00:00:00')
+                tomorrow.setHours(0,0,0,0)                
+                target_needstudytime_to = tomorrow.getTime()
+                target_needstudytime_from = new Date('2000/1/1/00:00:00')
                 break
             case 'custom' :
                 // 필터 날짜 변환하는 거 확인 필요함
-                needstudytime_low_filter = session.study_config.needstudytime_filter.low
-                needstudytime_high_filter = session.study_config.needstudytime_filter.low
+                target_needstudytime_from = session.study_config.needstudytime_filter.from
+                target_needstudytime_to = session.study_config.needstudytime_filter.to
         }
         
-        filters.$or= {$and : {'study_result.need_study_time' : {$gt : needstudytime_low_filter,}, 'study_result.need_study_time' : {$lt : needstudytime_high_filter}}, 'study_result.need_study_time' : null}
-        // 이게 되는지 모르겠다야!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+        filters.$or= {$and : {'study_result.need_study_time' : {$gt : target_needstudytime_from,}, 'study_result.need_study_time' : {$lt : target_needstudytime_to}}, 'study_result.need_study_time' : null}        
     }
 
     // 리스트를 하나로 통합하고
     let cardlist_total = []
 
-    // 책 단위로 카드를 받아서 통합하자
-    for (i=0; i<session.booksnindexes.length; i++){
-        filters.index_id = session.booksnindexes[i].index_ids
-        // let index_ids = session.booksnindexes[i].indexes.map((index_array) => index_array.index_id)
-        // console.log(filters)
-        cardlist_of_singlebook = await Card           
-            .find(filters)
-            .select('type index_id seq_in_index parent_card_id position_of_contents external_card_id contents')                
-            .sort({seq_in_index : 1})
-            .populate({path : 'index_id',select : 'seq'})
-            .populate({path : 'external_card_id',select : 'contents'})
-            // position_of_contents
-        
-        cardlist_of_singlebook.sort((a,b) => a.index_id.seq - b.index_id.seq)        
-        cardlist_total = cardlist_total.concat(cardlist_of_singlebook)                
-    }
+    let cards = await Card
+        .find(filters)
+        .select ('cardtype_id type seq_in_index position_of_content parent_exist_yeobu parent_card_id external_card_id contents')        
+        .sort({seq_in_index : 1})
+        .populate({path : 'parent_card_id',select : 'contents external_card_id', populate :{path : 'external_card_id',select : 'contents'}})
+        .populate({path : 'external_card_id',select : 'contents'})
     
     // 하위카드가 없는 share카드의 삭제 --> 쉐어 카드 자체가 들어오지 않으므로 상관없을 듯
     // 포문으로 share 카드를 찾아서, 그 다음 카드의 parent와 동일하지 않다면 share를 삭제    
     let delete_list = []
-    for (i=0; i<cardlist_total.length; i++){
-        if (cardlist_total[i].type ==='share'){
-            if (cardlist_total[i]._id != cardlist_total[i+1].parent_card_id || i === cardlist_total.length-1){
+    for (i=0; i<cards.length; i++){
+        if (cards[i].type ==='share'){
+            if (i === cards.length-1 || cards[i]._id != cards[i+1].parent_card_id ){
                 delete_list.push(i)
             }
         }
     }    
     delete_list.reverse()
     for (i=0; i<delete_list.length; i++){
-        cardlist_total.splice(delete_list[i], 1)
+        cards.splice(delete_list[i], 1)
     }
 
-    //익스터널은 데이터를 다시 만들어줘야...
-    for (i=0; i<cardlist_total.length; i++){
-        if (cardlist_total[i].position_of_content ==='external'){
-            cardlist_total[i].contents = {
-                none : cardlist_total[i].external_card_id.contents.none,
-                share : cardlist_total[i].external_card_id.contents.share,
-                face1 : cardlist_total[i].external_card_id.contents.face1,
-                selection : cardlist_total[i].external_card_id.contents.selection,
-                face2 : cardlist_total[i].external_card_id.contents.face2,
-                annotation : cardlist_total[i].external_card_id.contents.annotation,                
-            }
+    // 부모카드는 자식카드는 익스터널 컨텐츠는 안으로 넣어줌
+    for (i=0; i<cards.length; i++) {
+        if (cards[i].external_card_id != null) {
+            cards[i].contents.face1 = cards[i].external_card_id.contents.face1,
+            cards[i].contents.selection = cards[i].external_card_id.contents.selection,
+            cards[i].contents.face2 = cards[i].external_card_id.contents.face2,
+            cards[i].contents.annotation = cards[i].external_card_id.contents.annotation
+            // 요롷게 null로 넣으면 null이 되려나... 안 되면 하나씩 지워야 함
+            cards[i].external_card_id.contents = null
         }
     }
-
-    delete cardlist_total.external_card_id    
-
-    res.json({isloggedIn : true, cardlist_studying, });
+    
+    res.json({isloggedIn : true, cards, });
 
 }
 
@@ -578,9 +555,9 @@ exports.req_add_cards = async (req, res) => {
         }
     }
 
-    // seq_in_total_list로 정렬함 -> 그럼 원래 순서로 돌아옴
+    // seq_in_session로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying
-        .sort((a,b) => a.seq_in_total_list - b.seq_in_total_list)
+        .sort((a,b) => a.seq_in_session - b.seq_in_session)
 
     res.json({isloggedIn : true, cardlist_studying, });
 

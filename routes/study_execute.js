@@ -10,7 +10,7 @@ const router = express.Router();
 router.post('/get-cardlist', isLoggedIn, Study_execute_controller.get_cardlist);
 
 // 카드리스트만 받아옵니다..
-router.post('/get-cardlist-continue', isLoggedIn, Study_execute_controller.get_cardlist_continue);
+router.post('/get-cardlist-for-continue', isLoggedIn, Study_execute_controller.get_cardlist_for_continue);
 
 // 카드를 보내줍니다.
 router.post('/get-studying-cards',Study_execute_controller.get_studying_cards);

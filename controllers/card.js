@@ -43,19 +43,25 @@ exports.create_card = async (req, res) => {
         {$inc : {seq_in_index : 1}}
     )       
     
-    let new_card = {
-        cardtype_id: req.body.cardtype_id,
-        type : req.body.type,
-        book_id: req.body.book_id,
-        index_id: req.body.index_id,        
-        parent_card_id : req.body.parent_card_id,
-        seq_in_index: req.body.seq_in_index*1 + 1,
-        contents : req.body.contents
+    let new_card = new Card
+    
+    new_card.cardtype_id = req.body.cardtype_id
+    new_card.type =  req.body.type
+    new_card.book_id = req.body.book_id
+    new_card.index_id = req.body.index_id
+    new_card.parent_card_id =  req.body.parent_card_id
+    new_card.seq_in_index = req.body.seq_in_index*1 + 1
+    
+    // 컨텐츠를 저장할 때는 허용하지 않은 html을 걸러준다.
+    for (let face of ['maker_flag', 'face1','selection','face2','annotation']){
+        for (i=0; i<new_card.contents[face]; i++) {
+            new_card.contents[face][i] = sanitizeHtml(req.body.contents[face][i])
+        }
     }
-
+    
     // 카드를 생성합니다.
-    // sanitize 쓰는 거 연구 필요
-    let card = await Card.create(new_card)
+    new_card = new_card.save()
+    // let card = await Card.create(new_card)
 
     // 카드 갯수 정보 업데이트
     switch (req.body.type){
@@ -227,6 +233,12 @@ exports.update_card = async (req, res) => {
     console.log("카드 내용을 변경합니다.");
     console.log(req.body);
 
+    // 컨텐츠를 저장할 때는 허용하지 않은 html을 걸러준다.
+    for (let face of ['maker_flag', 'face1','selection','face2','annotation']){
+        for (i=0; i<req.body.contents[face]; i++) {
+            req.body.contents[face][i] = sanitizeHtml(req.body.contents[face][i])
+        }
+    }
     // let card = await Card.findOne({_id : req.body.card_id})
     let card = await Card.updateOne({_id : req.body.card_id},
         {contents : req.body.contents})
@@ -293,7 +305,6 @@ exports.delete_card = async (req, res) => {
 
     }
     
-
     let card_delete_result = await Card.deleteOne({_id : req.body.card_id})
     let seq_modi_result = await Card.updateMany(
         {index_id : req.body.index_id,

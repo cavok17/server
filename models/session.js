@@ -8,7 +8,7 @@ const cardlist_schema = new mongoose.Schema({
     former_status : {type : String, default : null}, 
     type : {type : String, default : null},
     apply_sepa : {type : String, default : 'no'},
-    seq_in_total_list : {type : Number},
+    seq_in_session : {type : Number},
     detail_status : {
         status_in_session : {type : String, default : 'on'},
         recent_study_time : {type : Date, default : null},
