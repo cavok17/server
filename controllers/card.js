@@ -22,10 +22,9 @@ exports.get_cardlist = async (req, res) => {
     console.log("카드리스트를 보내줄게요");
     console.log(req.body);
 
-    // let cardlist = await Card.find({index_id : req.body.index_id})
-    //     .sort({seq_in_index : 1}) 
-    let cardlist = await get_cardlist_func(req.body.index_id)
-
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1}) 
+    
     res.json({isloggedIn : true, cardlist});
 };
 
@@ -54,14 +53,13 @@ exports.create_card = async (req, res) => {
     
     // 컨텐츠를 저장할 때는 허용하지 않은 html을 걸러준다.
     for (let face of ['maker_flag', 'face1','selection','face2','annotation']){
-        for (i=0; i<new_card.contents[face]; i++) {
-            new_card.contents[face][i] = sanitizeHtml(req.body.contents[face][i])
+        for (i=0; i<req.body.contents[face].length; i++) {            
+            new_card.contents[face][i] = sanitizeHtml(req.body.contents[face][i])            
         }
     }
     
     // 카드를 생성합니다.
-    new_card = new_card.save()
-    // let card = await Card.create(new_card)
+    new_card = new_card.save()    
 
     // 카드 갯수 정보 업데이트
     switch (req.body.type){
@@ -76,15 +74,14 @@ exports.create_card = async (req, res) => {
     
     // 쓸 일이 있을지는 모르겠으나, 자식 카드 정보를 기록해보자고
     // 자식 카드의 시퀀스는 일단 관리하지 않는 것으로
-    if (req.body.parent_card_id != null){
-        let parent_card = await Card.updateOne(
-            {_id : req.body.parent_card_id},
-            {$push : {child_card_ids : card._id}})
-    }
+    // if (req.body.parent_card_id != null){
+    //     let parent_card = await Card.updateOne(
+    //         {_id : req.body.parent_card_id},
+    //         {$push : {child_card_ids : card._id}})
+    // }
 
-    // let cardlist = await Card.find({index_id : req.body.index_id})
-    //     .sort({seq_in_index : 1})    
-    let cardlist = await get_cardlist_func(req.body.index_id)
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1})        
 
     res.json({isloggedIn : true, cardlist});
 };
