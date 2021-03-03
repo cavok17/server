@@ -420,6 +420,7 @@ exports.show_the_rest_of_cards = async (req, res) => {
 
 
 
+
 exports.get_studying_cards_in_read_mode = async (req, res) => {
     console.log("목차별로 카드를 쏴드려요. 필터가 적용된 걸루요");
     console.log(req.body);
