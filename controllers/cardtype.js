@@ -45,12 +45,12 @@ exports.update_facestyle = async(req, res) => {
     console.log('면스타일을 수정합니다.');
     console.log(req.body);
 
-    let updated_face_name = 'face_style.' + req.body.updated_face_name
-    let update_object = {}
-    update_object[updated_face_name] = req.body.updated_face_style
+    // let updated_face_name = 'face_style.' + req.body.updated_face_name
+    // let update_object = {}
+    // update_object[updated_face_name] = req.body.updated_face_style
     let face_style = await Cardtype.updateOne(
         {_id : req.body.cardtype_id},
-        {update_object}
+        {face_style : req.body.updated_face_style}
     )
 
     let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
@@ -65,14 +65,9 @@ exports.update_rowstyle = async(req, res) => {
     console.log('행스타일을 수정합니다.');
     console.log(req.body);
 
-    // if ()
-    let updated_face_name = 'row_style.' + req.body.updated_face_name
-
-    let update_object = {}
-    update_object[updated_face_name] = req.body.updated_row_style
     let row_style = await Cardtype.updateOne(
         {_id : req.body.cardtype_id},
-        {update_object}
+        {row_style : req.body.updated_row_style}
     )
 
     let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
@@ -87,13 +82,9 @@ exports.update_font = async(req, res) => {
     console.log('폰트스타일을 수정합니다.');
     console.log(req.body);
 
-    let updated_face_name = 'font_style.' + req.body.updated_face_name    
-
-    let update_object = {}
-    update_object[updated_face_name] = req.body.updated_font_style
     let font_style = await Cardtype.updateOne(
         {_id : req.body.cardtype_id},
-        {update_object}
+        {font : req.body.updated_font}
     )
 
     let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
