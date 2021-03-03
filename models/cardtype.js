@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const style_object = {
-    background_color : {type : String, default : null},
+    background_color : {type : String, default : "#FFFFFF"},
     outer_margin : {
         top : {type : Number, default : 0},
         bottom : {type : Number, default : 0},
@@ -17,29 +17,29 @@ const style_object = {
     border : {
         mode : {type : String, default : 'package'}, //each
         package : {
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
+            type : {type : String, default : "solid"},
+            thickness : {type : Number, default : 1},
+            color : {type : String, default :  "#000000"},
         },
         top : {
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
+            type : {type : String, default : "solid"},
+            thickness : {type : Number, default : 1},
+            color : {type : String, default :  "#000000"},
         },
         bottom : {            
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
+            type : {type : String, default : "solid"},
+            thickness : {type : Number, default : 1},
+            color : {type : String, default :  "#000000"},
         },
         left : {            
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
+            type : {type : String, default : "solid"},
+            thickness : {type : Number, default : 1},
+            color : {type : String, default :  "#000000"},
         },
         right : {            
-            type : {type : String, default : null},
-            thickness : {type : Number, default : null},
-            color : {type : String, default : null},
+            type : {type : String, default : "solid"},
+            thickness : {type : Number, default : 1},
+            color : {type : String, default :  "#000000"},
         },
     },    
 }
