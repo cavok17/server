@@ -156,10 +156,16 @@ exports.create_cardtype = async(req, res) => {
     // 닉값 설정해주고
     for (let name of ['face1', 'selection', 'face2']) {        
         for (i=0; i<cardtype.num_of_row[name]; i++) {
-            if(name === 'selection'){
-                cardtype.nick_of_row[name].push('보기_'+ (i+1))
-            } else {
-                cardtype.nick_of_row[name].push('단락_'+ (i+1))
+            switch (name) {
+                case 'face1' :
+                    cardtype.nick_of_row[name].push('앞면_'+ (i+1))
+                    break;
+                case 'selection' :
+                    cardtype.nick_of_row[name].push('보기_'+ (i+1))
+                    break;
+                case 'face2' :
+                    cardtype.nick_of_row[name].push('뒷면_'+ (i+1))
+                    break;
             }
         }
     }

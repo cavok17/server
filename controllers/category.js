@@ -117,9 +117,9 @@ exports.create_category = async (req, res) => {
             seq: req.body.prev_category_seq+1,
         });
     
-        let categorybooklist = await get_categorybooklist(req, res)
-        let likebooklist = await get_likebooklist(req, res)
-        let write_config = await get_write_config(req, res)
+        categorybooklist = await get_categorybooklist(req, res)
+        likebooklist = await get_likebooklist(req, res)
+        write_config = await get_write_config(req, res)
     }
 
     res.json({isloggedIn : true, msg, categorybooklist, likebooklist, write_config});
