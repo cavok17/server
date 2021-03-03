@@ -4,12 +4,12 @@ const mongoose = require("mongoose");
 const Category = require('../models/category');
 const Cardtype = require('../models/cardtype');
 
-const get_cardtypelist_func = async(req, res) => {
-    const cardtypes = await Cardtype.find({book_id : req.body.book_id})
-        .sort ({seq : 1})
+// const get_cardtypelist_func = async(req, res) => {
+//     const cardtypes = await Cardtype.find({book_id : req.body.book_id})
+//         .sort ({seq : 1})
     
-    return cardtypes
-}
+//     return cardtypes
+// }
 
 // 카드타입 리스트를 보여줍니다.
 exports.get_cardtypelist = async(req, res) => {
@@ -93,7 +93,6 @@ exports.update_font = async(req, res) => {
     res.json({isloggedIn : true, cardtypes});
 
 }
-
 
 // 카드타입을 생성합니다.
 exports.create_cardtype = async(req, res) => {
@@ -179,7 +178,8 @@ exports.create_cardtype = async(req, res) => {
 
     //생성합니다.    
     cardtype = await cardtype.save()    
-    let cardtypes = await get_cardtypelist_func(req, res);
+    let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
+        .sort ({seq : 1})
 
     res.json({isloggedIn : true, cardtypes});
 };
@@ -191,10 +191,11 @@ exports.change_cardtype_name = async(req, res) => {
 
     let cardtype = await Cardtype.updateOne(
         {_id : req.body.cardtype_id},
-        {name : req.body.name}
+        {nick_of_row : req.body.nick_of_row}
     );
     
-    let cardtypes = get_cardtypelist_func(req, res);
+    let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
+        .sort ({seq : 1})
 
     res.json({isloggedIn : true, cardtypes});
 };
@@ -212,7 +213,7 @@ exports.change_cardtype_order = async (req, res) => {
                 seq : {$lt : req.body.seq}})
             .sort({seq : -1})
             .limit(1);            
-    } else {
+    } else if (req.body.action === 'down'){
         destination_cardtype = await Category
             .find({
                 book_id : req.body.book_id,
@@ -231,7 +232,8 @@ exports.change_cardtype_order = async (req, res) => {
         {seq : req.body.seq}        
     );
 
-    let cardtypes = get_cardtypelist_func(req, res);
+    let cardtypes = await Cardtype.find({book_id : req.body.book_id})        
+        .sort ({seq : 1})
 
     res.json({isloggedIn : true, cardtypes});
 };
