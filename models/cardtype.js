@@ -47,6 +47,7 @@ const style_object = {
 const font_object = {
     font : {type : String, default : '맑은 고딕'},
     size : {type : Number, default : 10},
+    color : {type : String, default :  "#000000"},
     align : {type : String, default : 'left'},
     bold : {type : String, default : 'off'},
     italic : {type : String, default : 'off'},
