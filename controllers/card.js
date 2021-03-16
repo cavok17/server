@@ -51,7 +51,7 @@ exports.create_card = async (req, res) => {
     new_card.parent_card_id =  req.body.parent_card_id
     new_card.seq_in_index = req.body.seq_in_index*1 + 1
 
-    new_card.contents = req.boy.contents
+    new_card.contents = req.body.contents
     // // 컨텐츠를 저장할 때는 허용하지 않은 html을 걸러준다.
     // for (let face of ['maker_flag', 'face1','selection','face2','annotation']){
     //     for (i=0; i<req.body.contents[face].length; i++) {            
@@ -187,7 +187,9 @@ exports.create_card_by_excel = async (req, res) => {
         'num_cards.total.total' : num_cards.read + num_cards.flip,
         'num_cards.total.yet' : num_cards.read + num_cards.flip,
     }})
-    let cardlist = await get_cardlist_func(req.body.index_id)
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1})        
+
     res.json({isloggedIn : true, msg : '업로드 완료', cardlist});
 
 };
@@ -221,7 +223,8 @@ exports.change_card_order = async (req, res) => {
         current_seq_card = await current_seq_card.save();
     } 
 
-    let cardlist = await get_cardlist_func(req.body.index_id)
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1})        
 
     res.json({isloggedIn : true, cardlist});
 };
@@ -282,7 +285,9 @@ exports.update_card = async (req, res) => {
     //         {$push : {child_card_ids : card._id}})
     // }
 
-    let cardlist = await get_cardlist_func(req.body.index_id)
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1})        
+
     res.json({isloggedIn : true, cardlist});
 
 };
@@ -310,7 +315,9 @@ exports.delete_card = async (req, res) => {
         seq_in_index : {$gt : req.body.seq_in_index}},
         {$inc : {seq_in_index : -1}})    
 
-    let cardlist = await get_cardlist_func(req.body.index_id)
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1})        
+
     res.json({isloggedIn : true, cardlist});
 };
 
@@ -346,7 +353,8 @@ exports.delete_many_card = async (req, res) => {
             let seq_modi = await Card.updateOne({_id : cards[i]._id},{seq_in_index : i})
         }
     }    
-    let cardlist = await get_cardlist_func(req.body.index_id)
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1})        
 
     res.json({isloggedIn : true, cardlist});
 };
@@ -368,7 +376,8 @@ exports.move_many_card = async (req, res) => {
     // 근데 불안하단 말야. 시퀀스 정보가 폭발할까봐
     // 음 max_seq가 크면 seq를 함 정리하는 것도 방법이겠구만    
     
-    let cardlist = await get_cardlist_func(req.body.index_id)
+    let cardlist = await Card.find({index_id : req.body.index_id})
+        .sort({seq_in_index : 1})        
 
     res.json({isloggedIn : true, cardlist});
 

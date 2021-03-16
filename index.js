@@ -69,6 +69,7 @@ const bookRouter = require('./routes/book');
 const categoryRouter = require('./routes/category');
 const indexRouter = require('./routes/index');
 const cardtypeRouter = require('./routes/cardtype');
+const pagetypeRouter = require('./routes/pagetype');
 const cardRouter = require('./routes/card');
 const study_setupRouter = require('./routes/study_setup');
 const study_executeRouter = require('./routes/study_execute');
@@ -83,6 +84,7 @@ app.use('/api/book', bookRouter)
 app.use('/api/category', categoryRouter)
 app.use('/api/index', indexRouter)
 app.use('/api/cardtype', cardtypeRouter)
+app.use('/api/pagetype', pagetypeRouter)
 app.use('/api/card', cardRouter)
 app.use('/api/studysetup',study_setupRouter);
 app.use('/api/studyexecute',study_executeRouter);

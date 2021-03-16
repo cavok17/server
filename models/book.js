@@ -1,5 +1,6 @@
 // const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
+const { addColors } = require("winston/lib/winston/config");
 
 // 스키마 객체를 생성
 const book_schema = new mongoose.Schema({
@@ -19,6 +20,20 @@ const book_schema = new mongoose.Schema({
     seq_in_category : Number,
     seq_in_like : {type : Number, default : null},    
     time_created: {type : Date, default : Date.now},
+    pagetype : {
+        size : {
+            width : {type : Number, default : 790},
+            height : {type : Number, default : 1000},
+        },
+        annot_ratio : {type : Number, default : 20},
+        color : {type : String, default :  "#FFFFFF"},
+        inner_padding : {
+            top : {type : Number, default : 75},
+            bottom : {type : Number, default : 75},
+            left : {type : Number, default : 75},
+            right : {type : Number, default : 75},
+        }
+    },
     result : {
         total : {
             num_cards_change : {
