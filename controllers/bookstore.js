@@ -24,8 +24,19 @@ exports.create_sellbook = async (req, res) => {
     sellbook = await sellbook.save()
 
     sellbooklist = await Sellbook.find()
+        .select('book_info')
 
     res.json({isloggedIn : true, sellbooklist});
+}
+
+// 북스토어의 책 리스트를 보여줍니다.
+exports.get_sellbooklist = async (req, res) => {
+    console.log('북스토어의 책 리스트를 보여줍니다.')
+
+    let sellbooklist = await Sellbook.find({})
+        .select('book_info')
+
+    res.json({isloggedIn : true, sellbooklist, });
 }
 
 // 책 판매를 요청합니다..
@@ -159,15 +170,15 @@ exports.permit_book_sell = async (req, res) => {
 
 };
 
-// 북스토어의 책 리스트를 보여줍니다.
-exports.get_sellbooklist = async (req, res) => {
-    console.log('북스토어의 책 리스트를 보여줍니다.')
+// // 북스토어의 책 리스트를 보여줍니다.
+// exports.get_sellbooklist = async (req, res) => {
+//     console.log('북스토어의 책 리스트를 보여줍니다.')
 
-    let sellbooklist = await Sellbook.find({})
-        .select('book_info')
+//     let sellbooklist = await Sellbook.find({})
+//         .select('book_info')
 
-    res.json({isloggedIn : true, sellbooklist, });
-}
+//     res.json({isloggedIn : true, sellbooklist, });
+// }
 
 
 
