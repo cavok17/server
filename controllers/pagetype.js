@@ -9,10 +9,10 @@ exports.get_pagetype = async(req, res) => {
     console.log('페이지 타입을 보여줍니다.');
     console.log(req.body);
 
-    let pagetype = await Book.find({book_id : req.body.book_id})
+    let pagetype = await Book.find({_id : req.body.book_id})
         .select('pagetype')
 
-    res.json({isloggedIn : true, cardtypes});
+    res.json({isloggedIn : true, pagetype});
 };
 
 // 페이지타입을 수정합니다.

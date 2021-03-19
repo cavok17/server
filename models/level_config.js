@@ -3,6 +3,14 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const level_config_schema = new mongoose.Schema({
   book_id : {type:mongoose.ObjectId, ref:'Book'},
+  retention_curve : {
+    type : {type: String, default : 'linear'},
+    coeff_a : {type: Number, default : 1},
+    coeff_b : {type: Number, default : 1},
+  },
+  restudy_ratio : {type: Number, default : 80},  
+  sensitivity : {type : Number, default : 75},
+
 //   difficulty : {
 //     dontknow : {
 //       name : {type : String, default : 'dontknow'},
@@ -87,30 +95,8 @@ const level_config_schema = new mongoose.Schema({
 //       coefficient : {type : Number, default : 2294.487},
 //     },    
 //   },
-//   max_ratio_for_restudy : {type : Number, default : 80},
-//   sensitivity : {type : Number, default : 75},
-//   study_times_by_ratio : [
-//     {
-//       // 1회
-//       to : {type : Number, default : 100},
-//       from : {type : Number, default : 90},
-//     },
-//     {
-//       // 2회
-//       to : {type : Number, default : 90},
-//       from : {type : Number, default : 70},
-//     },
-//     {
-//       // 3회
-//       to : {type : Number, default : 70},
-//       from : {type : Number, default : 40},
-//     },
-//     {
-//       // 4회
-//       to : {type : Number, default : 40},
-//       from : {type : Number, default : 0},
-//     },
-// ],
+
+
   difficulty_setting : {
     diffi1 : {
       name : {type : String, default : 'diffi1'},

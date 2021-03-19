@@ -60,7 +60,7 @@ exports.create_card = async (req, res) => {
     // }
     
     // 카드를 생성합니다.
-    new_card = new_card.save()    
+    new_card = await new_card.save()    
 
     // 카드 갯수 정보 업데이트
     switch (req.body.type){
@@ -82,7 +82,8 @@ exports.create_card = async (req, res) => {
     // }
 
     let cardlist = await Card.find({index_id : req.body.index_id})
-        .sort({seq_in_index : 1})        
+        .sort({seq_in_index : 1})
+        
 
     res.json({isloggedIn : true, cardlist});
 };

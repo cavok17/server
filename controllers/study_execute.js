@@ -202,6 +202,9 @@ exports.get_cardlist_for_continue = async (req, res) => {
     let session = await Session.findOne({_id : req.body.session_id})
         .select('num_cards cardlist_sepa cardlist_studied')
 
+    // 카드리스트_토탈을 다시 보내면 어떨까.
+
+    // 이 때 카드 갯수가 꼬일 수 있어 300 - 200을 공부했고, 100이 남았다..
     // cardlist_studied의 중복 제거
     // 나중에는 cardlist_studied에 신규 여부를 관리할 거야. 그 때 반영해줘.
     // 근데 카드리스트 스터디드가 심플해진다면, 중복 제거하는 작업이 오히려 번거로워질 수도 있겠다.
@@ -231,7 +234,7 @@ exports.get_cardlist_for_continue = async (req, res) => {
             }
         }
 
-        // on하고 off를 분리했다가 다시 붙히자. 이게 일종의 필터 기능이 되어버려. off -> on 중에 학습한 거 -> on 중에 학습 안 한거
+        // on하고 off를 분리했다가 다시 붙히자. 이게 일종의 정렬 기능이 되어버려. off -> on 중에 학습한 거 -> on 중에 학습 안 한거
         let on_cards = cardlist_sepa[status].filter(card => card.detail_status.status_in_session === 'on')
         session.num_cards[status].selected = on_card.length
         let off_cards = cardlist_sepa[status].filter(card => card.detail_status.status_in_session === 'off')

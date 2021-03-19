@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 // 스키마 객체를 생성
-const cardlist_schema = new mongoose.Schema({
+const cardlist_object = {
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
     status : {type : String, default : 'yet'}, 
@@ -10,21 +10,27 @@ const cardlist_schema = new mongoose.Schema({
     apply_sepa : {type : String, default : 'no'},
     seq_in_session : {type : Number},
     detail_status : {
-        status_in_session : {type : String, default : 'on'},
-        recent_study_time : {type : Date, default : null},
+        recent_selection : {type : String, default : null},
+
+        recent_study_time : {type : Date, default : null},    
+        recent_know_time : {type : Date, default : null},    
+
         need_study_time: {type : Date, default : null},
         need_study_time_tmp: {type : Date, default : null},
-        recent_difficulty : {type : String, default : null},
+
+        status_in_session : {type : String, default : 'on'},
         session_study_times : {type : Number, default : 0},
-        total_study_times : {type : Number, default : null},
         current_lev_study_times : {type : Number, default : null},
+        current_lev_accu_study_time : {type : Date, default : null},    
+        
+        total_study_times : {type : Number, default : null},
         recent_study_hour : {type : Number, default : null},
         total_study_hour : {type : Number, default : null},
-        exp_stacked : {type : Number, default : null},
-        exp_gained  : {type : Number, default : null},
+        
         level : {type : Number, default : null},
+        former_level : {type : Number, default : null},
     }
-})
+}
 
 const session_schema = new mongoose.Schema({
     user_id : String,
@@ -119,98 +125,101 @@ const session_schema = new mongoose.Schema({
     //     status : {type : String},
     //     status_in_session : {type : String, default : null},
     // }],
-    cardlist_studied : [cardlist_schema],
+    cardlist_studied : [{
+        ...cardlist_object,
+        result_include_yeobu : {type : String, default : 'no'},
+    }],
     cardlist_sepa : {
-        yet : [cardlist_schema],
-        ing : [cardlist_schema],
-        hold : [cardlist_schema],
-        completed : [cardlist_schema],
+        yet : [cardlist_object],
+        ing : [cardlist_object],
+        hold : [cardlist_object],
+        completed : [cardlist_object],
     },
-    study_result : {    
-        avg_level :{
-            before : {type : Number, default : 0},
-            after : {type : Number, default : 0},
-        },
-        cards_until_today : {type : Number, default : 0},
-        total : {
-            num_cards_change : {
-                total : {type : Number, default : 0},
-                yet : {type : Number, default : 0},
-                ing : {type : Number, default : 0},
-                hold : {type : Number, default : 0},
-                completed : {type : Number, default : 0},
-            },
-            studied_cards : {
-                total : {type : Number, default : 0},
-                yet : {type : Number, default : 0},
-                ing : {type : Number, default : 0},
-                hold : {type : Number, default : 0},
-                completed : {type : Number, default : 0},
-            },
-            study_times : {
-                total : {type : Number, default : 0},
-                diffi1 : {type : Number, default : 0},
-                diffi2 : {type : Number, default : 0},
-                diffi3 : {type : Number, default : 0},
-                diffi4 : {type : Number, default : 0},
-                diffi5 : {type : Number, default : 0},
-            },
-            study_hour : {type : Number, default : 0},
-            exp_gained : {type : Number, default : 0},    
-        },
-        read : {
-            num_cards_change : {
-                total : {type : Number, default : 0},
-                yet : {type : Number, default : 0},
-                ing : {type : Number, default : 0},
-                hold : {type : Number, default : 0},
-                completed : {type : Number, default : 0},
-            },
-            studied_cards : {
-                total : {type : Number, default : 0},
-                yet : {type : Number, default : 0},
-                ing : {type : Number, default : 0},
-                hold : {type : Number, default : 0},
-                completed : {type : Number, default : 0},
-            },
-            study_times : {
-                total : {type : Number, default : 0},
-                diffi1 : {type : Number, default : 0},
-                diffi2 : {type : Number, default : 0},
-                diffi3 : {type : Number, default : 0},
-                diffi4 : {type : Number, default : 0},
-                diffi5 : {type : Number, default : 0},
-            },
-            study_hour : {type : Number, default : 0},
-            exp_gained : {type : Number, default : 0},    
-        },
-        flip : {
-            num_cards_change : {
-                total : {type : Number, default : 0},
-                yet : {type : Number, default : 0},
-                ing : {type : Number, default : 0},
-                hold : {type : Number, default : 0},
-                completed : {type : Number, default : 0},
-            },
-            studied_cards : {
-                total : {type : Number, default : 0},
-                yet : {type : Number, default : 0},
-                ing : {type : Number, default : 0},
-                hold : {type : Number, default : 0},
-                completed : {type : Number, default : 0},
-            },
-            study_times : {
-                total : {type : Number, default : 0},
-                diffi1 : {type : Number, default : 0},
-                diffi2 : {type : Number, default : 0},
-                diffi3 : {type : Number, default : 0},
-                diffi4 : {type : Number, default : 0},
-                diffi5 : {type : Number, default : 0},
-            },
-            study_hour : {type : Number, default : 0},
-            exp_gained : {type : Number, default : 0},    
-        }
-    },
+    // study_result : {    
+    //     avg_level :{
+    //         before : {type : Number, default : 0},
+    //         after : {type : Number, default : 0},
+    //     },
+    //     cards_until_today : {type : Number, default : 0},
+    //     total : {
+    //         num_cards_change : {
+    //             total : {type : Number, default : 0},
+    //             yet : {type : Number, default : 0},
+    //             ing : {type : Number, default : 0},
+    //             hold : {type : Number, default : 0},
+    //             completed : {type : Number, default : 0},
+    //         },
+    //         studied_cards : {
+    //             total : {type : Number, default : 0},
+    //             yet : {type : Number, default : 0},
+    //             ing : {type : Number, default : 0},
+    //             hold : {type : Number, default : 0},
+    //             completed : {type : Number, default : 0},
+    //         },
+    //         study_times : {
+    //             total : {type : Number, default : 0},
+    //             diffi1 : {type : Number, default : 0},
+    //             diffi2 : {type : Number, default : 0},
+    //             diffi3 : {type : Number, default : 0},
+    //             diffi4 : {type : Number, default : 0},
+    //             diffi5 : {type : Number, default : 0},
+    //         },
+    //         study_hour : {type : Number, default : 0},
+    //         exp_gained : {type : Number, default : 0},    
+    //     },
+    //     read : {
+    //         num_cards_change : {
+    //             total : {type : Number, default : 0},
+    //             yet : {type : Number, default : 0},
+    //             ing : {type : Number, default : 0},
+    //             hold : {type : Number, default : 0},
+    //             completed : {type : Number, default : 0},
+    //         },
+    //         studied_cards : {
+    //             total : {type : Number, default : 0},
+    //             yet : {type : Number, default : 0},
+    //             ing : {type : Number, default : 0},
+    //             hold : {type : Number, default : 0},
+    //             completed : {type : Number, default : 0},
+    //         },
+    //         study_times : {
+    //             total : {type : Number, default : 0},
+    //             diffi1 : {type : Number, default : 0},
+    //             diffi2 : {type : Number, default : 0},
+    //             diffi3 : {type : Number, default : 0},
+    //             diffi4 : {type : Number, default : 0},
+    //             diffi5 : {type : Number, default : 0},
+    //         },
+    //         study_hour : {type : Number, default : 0},
+    //         exp_gained : {type : Number, default : 0},    
+    //     },
+    //     flip : {
+    //         num_cards_change : {
+    //             total : {type : Number, default : 0},
+    //             yet : {type : Number, default : 0},
+    //             ing : {type : Number, default : 0},
+    //             hold : {type : Number, default : 0},
+    //             completed : {type : Number, default : 0},
+    //         },
+    //         studied_cards : {
+    //             total : {type : Number, default : 0},
+    //             yet : {type : Number, default : 0},
+    //             ing : {type : Number, default : 0},
+    //             hold : {type : Number, default : 0},
+    //             completed : {type : Number, default : 0},
+    //         },
+    //         study_times : {
+    //             total : {type : Number, default : 0},
+    //             diffi1 : {type : Number, default : 0},
+    //             diffi2 : {type : Number, default : 0},
+    //             diffi3 : {type : Number, default : 0},
+    //             diffi4 : {type : Number, default : 0},
+    //             diffi5 : {type : Number, default : 0},
+    //         },
+    //         study_hour : {type : Number, default : 0},
+    //         exp_gained : {type : Number, default : 0},    
+    //     }
+    // },
 });
 
 module.exports = mongoose.model("Session", session_schema)

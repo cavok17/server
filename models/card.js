@@ -7,9 +7,8 @@ const cardschema = new mongoose.Schema({
   book_id: {type:mongoose.ObjectId, ref:'Book'},
   index_id: {type:mongoose.ObjectId, ref:'Index'},  
   seq_in_index: {type : Number, default : null},
-  seq_in_session: {type : Number, default : null},
-  status : {type : String, default : 'yet'}, // yet, ing, hold, completed
-  // former_status : {type : String, default : null}, 
+  seq_in_session: {type : Number, default : null}, //임시임
+  status : {type : String, default : 'yet'}, // yet, ing, hold, completed  
   time_created : {type : Date, default : Date.now},
   
   position_of_content : {type : String, default : 'internal'},
@@ -29,19 +28,20 @@ const cardschema = new mongoose.Schema({
     annotation : {type : Array, default : []},
     memo : {type : Array, default : []},
   },
-  detail_status : {
-    // status_in_session : {type : String, default : null},
-    recent_study_time : {type : Date, default : null},
+  detail_status : {    
+    recent_selection : {type : String, default : null},
+    recent_study_time : {type : Date, default : null},    
+    recent_konw_time : {type : Date, default : null},    
     need_study_time: {type : Date, default : null},
-    // need_study_time_tmp: {type : Date, default : null},
-    recent_difficulty : {type : String, default : null},
-    // session_study_times : {type : Number, default : null},
+        
     current_lev_study_times : {type : Number, default : 0},
+    current_lev_accu_study_time : {type : Date, default : null},    
+
     total_study_times : {type : Number, default : 0},
+    
     recent_study_hour : {type : Number, default : 0},
     total_study_hour : {type : Number, default : 0},
-    // exp_gained  : {type : Number, default : null},
-    exp_stacked : {type : Number, default : null},
+        
     level : {type : Number, default : 0},
   },
 });

@@ -19,27 +19,27 @@ const style_object = {
         package : {
             type : {type : String, default : "solid"},
             thickness : {type : Number, default : 1},
-            color : {type : String, default :  "#000000"},
+            color : {type : String, default :  "#FFFFFF"},
         },
         top : {
             type : {type : String, default : "solid"},
             thickness : {type : Number, default : 1},
-            color : {type : String, default :  "#000000"},
+            color : {type : String, default :  "#FFFFFF"},
         },
         bottom : {            
             type : {type : String, default : "solid"},
             thickness : {type : Number, default : 1},
-            color : {type : String, default :  "#000000"},
+            color : {type : String, default :  "#FFFFFF"},
         },
         left : {            
             type : {type : String, default : "solid"},
             thickness : {type : Number, default : 1},
-            color : {type : String, default :  "#000000"},
+            color : {type : String, default :  "#FFFFFF"},
         },
         right : {            
             type : {type : String, default : "solid"},
             thickness : {type : Number, default : 1},
-            color : {type : String, default :  "#000000"},
+            color : {type : String, default :  "#FFFFFF"},
         },
     },    
 }
