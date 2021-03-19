@@ -35,6 +35,17 @@ exports.create_studyresult= async (req, res) => {
     let cardlist_studied = session.cardlist_studied
     cardlist_studied = cardlist_studied.filter((cardlist) => cardlist.result_include_yeobu === 'no')
 
+    // retention을 받아와야 해 -> level_config로 보내서 돌리자
+    let regression_array = []
+    for (i=0; i<cardlist_studied.length; i++){
+        if (cardlist_studied[i].detail_status.recent_selection === 'know'){
+            single_data = [cardlist_studied[i].detail_status.retention_for_regression, cardlist_studied[i].detail_status.studytimes_for_regression]
+            regression_array.push(single_data)
+        }
+    }
+    // 함수(regression_array)
+
+
 // -----------------------카드리스트 스터디드 편집 ---------------------------------    
     // 날짜 단위로 학습 결과가 정리되어야 하므로 날짜 데이터를 생성해줌    
     // Date 객체로 하니까 중복 제거가 안 됨. 그래서 스트링으로 바꿈
@@ -203,12 +214,52 @@ exports.req_session_studyresult= async (req, res) => {
     console.log("세션 스터디 결과를 보내줍니다.");
     console.log('body', req.body);
     
-    let session = await Session.findOne({_id : req.body.session_id})
-        .select('study_result')
+    // let session = await Session.findOne({_id : req.body.session_id})
+    //     .select('study_result')
     let study_results_by_book = await Study_result.find({session_id : req.body.session_id})
         .sort({session_id : 1})
         .populate({path : 'book_id', select : 'title'})
-    console.log('session', session)
-    console.log('study_results_by_book', study_results_by_book)
-    res.json({isloggedIn : true, session, study_results_by_book });
+
+    let study_results_by_session = {}
+
+    for (i=0; i<study_results_by_book.length; i++){        
+        study_results_by_session.status_change.total.plus +=  study_relts_by_book[i].status_change.total.plus,
+        study_results_by_session.status_change.total.minus +=  study_relts_by_book[i].status_change.total.minus,
+        study_results_by_session.status_change.yet.plus +=  study_relts_by_book[i].status_change.yet.plus,
+        study_results_by_session.status_change.yet.minus +=  study_relts_by_book[i].status_change.yet.minus,
+        study_results_by_session.status_change.ing.plus +=  study_relts_by_book[i].status_change.ing.plus,
+        study_results_by_session.status_change.ing.minus +=  study_relts_by_book[i].status_change.ing.minus,
+        study_results_by_session.status_change.hold.plus +=  study_relts_by_book[i].status_change.hold.plus,
+        study_results_by_session.status_change.hold.minus +=  study_relts_by_book[i].status_change.hold.minus,
+        study_results_by_session.status_change.completed.plus +=  study_relts_by_book[i].status_change.completed.plus,
+        study_results_by_session.status_change.completed.minus +=  study_relts_by_book[i].status_change.completed.minus,
+        study_results_by_session.num_cards.selected +=  study_relts_by_book[i].num_cards.selected,
+        study_results_by_session.num_cards.inserted +=  study_relts_by_book[i].num_cards.inserted,
+        study_results_by_session.num_cards.started +=  study_relts_by_book[i].num_cards.started,
+        study_results_by_session.num_cards.finished.total +=  study_relts_by_book[i].num_cards.finished.total,
+        study_results_by_session.num_cards.finished.know +=  study_relts_by_book[i].num_cards.finished.know,
+        study_results_by_session.num_cards.finished.pass +=  study_relts_by_book[i].num_cards.finished.pass,
+        study_results_by_session.num_cards.finished.hold +=  study_relts_by_book[i].num_cards.finished.hold,
+        study_results_by_session.num_cards.finished.completed +=  study_relts_by_book[i].num_cards.finished.completed,
+        study_results_by_session.selection_stats.total.count +=  study_relts_by_book[i].selection_stats.total.count,
+        study_results_by_session.selection_stats.total.hour +=  study_relts_by_book[i].selection_stats.total.hour,
+        study_results_by_session.selection_stats.short.count +=  study_relts_by_book[i].selection_stats.short.count,
+        study_results_by_session.selection_stats.short.hour +=  study_relts_by_book[i].selection_stats.short.hour,
+        study_results_by_session.selection_stats.long.count +=  study_relts_by_book[i].selection_stats.long.count,
+        study_results_by_session.selection_stats.long.hour +=  study_relts_by_book[i].selection_stats.long.hour,
+        study_results_by_session.selection_stats.know.count +=  study_relts_by_book[i].selection_stats.know.count,
+        study_results_by_session.selection_stats.know.hour +=  study_relts_by_book[i].selection_stats.know.hour,
+        study_results_by_session.selection_stats.pass.count +=  study_relts_by_book[i].selection_stats.pass.count,
+        study_results_by_session.selection_stats.pass.hour +=  study_relts_by_book[i].selection_stats.pass.hour,
+        study_results_by_session.selection_stats.hold.count +=  study_relts_by_book[i].selection_stats.hold.count,
+        study_results_by_session.selection_stats.hold.hour +=  study_relts_by_book[i].selection_stats.hold.hour,
+        study_results_by_session.selection_stats.completed.count +=  study_relts_by_book[i].selection_stats.completed.count,
+        study_results_by_session.selection_stats.completed.hour +=  study_relts_by_book[i].selection_stats.completed.hour,
+        study_results_by_session.selection_stats.back_mode.count +=  study_relts_by_book[i].selection_stats.back_mode.count,
+        study_results_by_session.selection_stats.back_mode.hour +=  study_relts_by_book[i].selection_stats.back_mode.hour,
+        study_results_by_session.level_change +=  study_relts_by_book[i].level_change
+    }
+
+    
+    res.json({isloggedIn : true, session, study_results_by_book, study_results_by_session });
 }

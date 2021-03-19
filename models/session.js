@@ -26,6 +26,8 @@ const cardlist_object = {
         total_study_times : {type : Number, default : null},
         recent_study_hour : {type : Number, default : null},
         total_study_hour : {type : Number, default : null},
+        retention_for_regression : {type : Number, default : null},
+        studytimes_for_regression : {type : Number, default : null},
         
         level : {type : Number, default : null},
         former_level : {type : Number, default : null},
