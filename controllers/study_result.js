@@ -11,6 +11,8 @@ const Session = require('../models/session');
 const Study_result = require('../models/study_result');
 const { session } = require("passport");
 const study_result = require("../models/study_result");
+const level_config = require("../models/level_config");
+const { result } = require("lodash");
 
 
 // 세션 결과를 분석합니다.
@@ -34,16 +36,6 @@ exports.create_studyresult= async (req, res) => {
         .select('cardlist_studied')
     let cardlist_studied = session.cardlist_studied
     cardlist_studied = cardlist_studied.filter((cardlist) => cardlist.result_include_yeobu === 'no')
-
-    // retention을 받아와야 해 -> level_config로 보내서 돌리자
-    let regression_array = []
-    for (i=0; i<cardlist_studied.length; i++){
-        if (cardlist_studied[i].detail_status.recent_selection === 'know'){
-            single_data = [cardlist_studied[i].detail_status.retention_for_regression, cardlist_studied[i].detail_status.studytimes_for_regression]
-            regression_array.push(single_data)
-        }
-    }
-    // 함수(regression_array)
 
 
 // -----------------------카드리스트 스터디드 편집 ---------------------------------    
@@ -200,6 +192,19 @@ exports.create_studyresult= async (req, res) => {
         })
     }       
 
+    ////////////////////////////////////// 회귀분석 //////////////////////////////////////
+    // retention을 받아와야 해 -> level_config로 보내서 돌리자
+    let regression_array = []
+    for (i=0; i<cardlist_studied.length; i++){
+        if (cardlist_studied[i].detail_status.recent_selection === 'know'){
+            single_data = [cardlist_studied[i].detail_status.retention_for_regression, cardlist_studied[i].detail_status.studytimes_for_regression]
+            regression_array.push(single_data)
+        }
+    }
+    // 함수(regression_array)
+
+
+
     // 카드리스트 스터디드에 결과 반영 여부를 yes로 바까준다.
     session = await session.update(
         {_id : req.body.session_id},
@@ -207,6 +212,49 @@ exports.create_studyresult= async (req, res) => {
     )
 
     res.json({isloggedIn : true, msg : '성공적'});
+}
+
+// 회귀분석하는 거
+// 책 단위로 해야 함
+const execute_regression =  async (book_id, regression_array) => {   
+    let min_sample = 100
+    let max_sample = 1000
+    
+    // 일단 데이터를 저장하시구요
+    let level_config = await level_config.findOne({book_id : book_id})
+    level_config.regression_source.data = level_config.regression_source.data.concat(regression_array)
+
+    let regression_object = {}
+    if (level_config.regression_source.data.length > min_sample){
+        regression_object.num_sample = level_config.regression_source.data.length
+        // linear
+        result = regression.linear(level_config.regression_source.data.length)
+        regression_object.original ={
+            gradient : result.equation[0],
+            yintercept : result.equation[1],
+            r_value : result.r2
+        }
+        // log
+        result = regression.logarithmic(level_config.regression_source.data.length)
+        regression_object.log ={
+            gradient : result.equation[0],
+            yintercept : result.equation[1],
+            r_value : result.r2
+        }
+        // exponential
+        result = regression.exponential(level_config.regression_source.data.length)
+        regression_object.exp ={
+            gradient : result.equation[0],
+            yintercept : result.equation[1],
+            r_value : result.r2
+        }
+    }
+
+    let Type
+
+    // 최소값을 찾아서 거시기 한다.
+
+
 }
 
 // 세션 스터디 결과를 보내줍니다.
