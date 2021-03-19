@@ -12,8 +12,21 @@ const Candibook = require('../models/candibook');
 const Sellbook = require('../models/sellbook');
 const Contents_tong = require('../models/contents_tong');
 const category = require("../models/category");
+const sellbook = require("../models/sellbook");
 
 
+exports.create_sellbook = async (req, res) => {
+    console.log("책 판매를 요청합니다.");
+    console.log(req.body);
+
+    let sellbook = new Sellbook
+    sellbook.book_info = req.body.book_info
+    sellbook = await sellbook.save()
+
+    sellbooklist = await Sellbook.find()
+
+    res.json({isloggedIn : true, sellbooklist});
+}
 
 // 책 판매를 요청합니다..
 exports.req_book_sell = async (req, res) => {

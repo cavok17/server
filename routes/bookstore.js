@@ -6,6 +6,8 @@ const { isLoggedIn, isNotLoggedIn, upload} = require('./middlewares');
 const router = express.Router();
 
 
+// 책 판매를 요청합니다.
+router.post('/create-sellbook', isLoggedIn, Bookstore_controller.create_sellbook);
 
 // 책 판매를 요청합니다.
 router.post('/req-book-sell', isLoggedIn, Bookstore_controller.req_book_sell);
