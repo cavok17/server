@@ -30,7 +30,7 @@ const cardlist_object = {
         studytimes_for_regression : {type : Number, default : null},
         
         level : {type : Number, default : null},
-        former_level : {type : Number, default : null},
+        former_level : {type : Number, default : 0},
     }
 }
 

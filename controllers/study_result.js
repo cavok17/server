@@ -8,6 +8,7 @@ const Index = require('../models/index');
 const Category = require('../models/category');
 const Mentoring_req = require('../models/mentoring_req');
 const Session = require('../models/session');
+const Level_config = require('../models/level_config');
 const Study_result = require('../models/study_result');
 const { session } = require("passport");
 const study_result = require("../models/study_result");
@@ -221,7 +222,7 @@ const execute_regression =  async (book_id, regression_array) => {
     let max_sample = 1000
     
     // 일단 데이터를 저장하시구요
-    let level_config = await level_config.findOne({book_id : book_id})
+    let level_config = await Level_config.findOne({book_id : book_id})
     level_config.regression_source.data = level_config.regression_source.data.concat(regression_array)
 
     let regression_object = {}
@@ -230,8 +231,8 @@ const execute_regression =  async (book_id, regression_array) => {
         // linear
         result = regression.linear(level_config.regression_source.data.length)
         regression_object.original ={
-            gradient : result.equation[0],
-            yintercept : result.equation[1],
+            a : result.equation[0],
+            b : result.equation[1],
             r_value : result.r2
         }
         // log
