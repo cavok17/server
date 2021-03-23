@@ -8,8 +8,8 @@ const level_config_schema = new mongoose.Schema({
   book_id : {type:mongoose.ObjectId, ref:'Book'},
   retention_count_curve : {
     type : {type: String, default : 'linear'},
-    a : {type: Number, default : -10},
-    b : {type: Number, default : 0},
+    a : {type: Number, default : -7},
+    b : {type: Number, default : 7},
     r_value : {type: Number, default : 1},
   },
   restudy_period : {
@@ -43,7 +43,7 @@ const level_config_schema = new mongoose.Schema({
     },
   }],
   restudy_ratio : {type: Number, default : 80},  
-  sensitivity : {type : Number, default : 75},
+  sensitivity : {type : Number, default : 80},
 
 });
 
