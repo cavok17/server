@@ -28,6 +28,8 @@ exports.create_studyresult= async (req, res) => {
             {_id : req.body.session_id},
             {$push : {cardlist_studied : {$each : req.body.cardlist_studied}}}
         )
+
+        // 원본을 바꾸는 작업이 필요함
         return
     }
 
@@ -193,18 +195,15 @@ exports.create_studyresult= async (req, res) => {
         })
     }       
 
-    ////////////////////////////////////// 회귀분석 //////////////////////////////////////
-    // retention을 받아와야 해 -> level_config로 보내서 돌리자
+    ////////////////////////////////////// 회귀분석 //////////////////////////////////////    
     let regression_array = []
     for (i=0; i<cardlist_studied.length; i++){
         if (cardlist_studied[i].detail_status.recent_selection === 'know'){
             single_data = [cardlist_studied[i].detail_status.retention_for_regression, cardlist_studied[i].detail_status.studytimes_for_regression]
             regression_array.push(single_data)
         }
-    }
-    // 함수(regression_array)
-
-
+    }    
+    execute_regression(req.body.book_id, regression_array)
 
     // 카드리스트 스터디드에 결과 반영 여부를 yes로 바까준다.
     session = await session.update(
@@ -218,44 +217,70 @@ exports.create_studyresult= async (req, res) => {
 // 회귀분석하는 거
 // 책 단위로 해야 함
 const execute_regression =  async (book_id, regression_array) => {   
-    let min_sample = 100
-    let max_sample = 1000
-    
-    // 일단 데이터를 저장하시구요
+        
+    // 일단 데이터를 저장해야 하는데... 레벨 콘피그를 받고
     let level_config = await Level_config.findOne({book_id : book_id})
-    level_config.regression_source.data = level_config.regression_source.data.concat(regression_array)
 
-    let regression_object = {}
-    if (level_config.regression_source.data.length > min_sample){
-        regression_object.num_sample = level_config.regression_source.data.length
-        // linear
-        result = regression.linear(level_config.regression_source.data.length)
-        regression_object.original ={
-            a : result.equation[0],
-            b : result.equation[1],
-            r_value : result.r2
+    // 처음에는 regression 돌릴 데이터가 없으므로 데이터를 생성해준다.
+    if (level_config.regression_data.length === []) {
+        let regression_basis
+        for (i=1; i<level_config.retention_count_curve.b; i++){
+            let single_array = [(i-level_config.retention_count_curve.b)/level_config.retention_count_curve.a,i]
+            regression_basis.push(single_array)
         }
-        // log
-        result = regression.logarithmic(level_config.regression_source.data.length)
-        regression_object.log ={
-            gradient : result.equation[0],
-            yintercept : result.equation[1],
-            r_value : result.r2
-        }
-        // exponential
-        result = regression.exponential(level_config.regression_source.data.length)
-        regression_object.exp ={
-            gradient : result.equation[0],
-            yintercept : result.equation[1],
-            r_value : result.r2
-        }
+        for (i=0; i<Math.ceil(500/(level_config.retention_count_curve.b-1)); i++) {
+            level_config.regression_data.push(regression_basis)
+        }        
+    }
+    console.log(level_config.regression_data)
+    
+    // 그 다음 regression 돌릴 데이터만 남긴다.
+    level_config.regression_data = level_config.regression_data.concat(regression_array)
+    if (level_config.regression_data.length >level_config.regression_sample_count) {
+        level_config.regression_data.splice(0,level_config.regression_data.length-level_config.regression_sample_count)
     }
 
-    let Type
+    // 이제 regression을 돌린다.
+    // original
+    let result = regression.linear(level_config.regression_source.data.length)
+    regression_result.original ={
+        a : result.equation[0],
+        b : result.equation[1],
+        r_value : result.r2
+    }
+    // log
+    result = regression.logarithmic(level_config.regression_source.data.length)
+    regression_result.log ={
+        gradient : result.equation[0],
+        yintercept : result.equation[1],
+        r_value : result.r2
+    }
+    // exponential
+    result = regression.exponential(level_config.regression_source.data.length)
+    regression_result.exp ={
+        gradient : result.equation[0],
+        yintercept : result.equation[1],
+        r_value : result.r2
+    }
 
-    // 최소값을 찾아서 거시기 한다.
 
+    // 최소값을 찾아 retention_count_curve를 확정한다.    
+    if (regression_object.original.r_value > regression_object.log.r_value){
+        retention_count_curve.type = 'original'
+    } else {
+        retention_count_curve.type = 'log'
+    }
+    if (regression_object[retention_count_curve.type].r_value > regression_object.exp.r_value){        
+    } else {
+        retention_count_curve.type = 'exp'
+    }
+    retention_count_curve.a = regression_result[retention_count_curve.type].a
+    retention_count_curve.b = regression_result[retention_count_curve.type].b
+    retention_count_curve.r_value = regression_result[retention_count_curve.type].r_value
 
+    level_config.save()
+    return
+    
 }
 
 // 세션 스터디 결과를 보내줍니다.

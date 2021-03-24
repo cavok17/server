@@ -29,6 +29,18 @@ exports.create_sellbook = async (req, res) => {
     res.json({isloggedIn : true, sellbooklist});
 }
 
+exports.update_sellbook_info = async (req, res) => {
+    console.log("책 판매를 요청합니다.");
+    console.log(req.body);
+
+    sellbooklist = await Sellbook.updateOne(
+        {_id : req.body.sellbook_id},
+        {book_info : req.body.book_info})
+
+    res.json({isloggedIn : true, msg : "잘됐음"});
+}
+
+
 // 북스토어의 책 리스트를 보여줍니다.
 exports.get_sellbooklist = async (req, res) => {
     console.log('북스토어의 책 리스트를 보여줍니다.')

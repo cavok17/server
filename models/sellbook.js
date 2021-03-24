@@ -6,7 +6,8 @@ const sellbook_schema = new mongoose.Schema({
     candibook_id : {type:mongoose.ObjectId, ref:'Candibook'},
     book_info : {
         original_book_id : {type : String},
-        category : {type : String},
+        category : {type : Array},
+        hashtag : {type : Array},
         title : {type : String},
         author : {type : String},
         publisher : {type : String},
@@ -15,6 +16,16 @@ const sellbook_schema = new mongoose.Schema({
         intro_author : {type : String},
         indexes : {type : String},
         price : {type : Number},
+        promotion : {
+            name : {type : String},
+            gap : {type : String},
+            price : {type : Number},
+            period : {
+                from : {type : Date},
+                to : {type : Date},
+            }
+        }
+        
     },
     time_created : {type : Date, default : Date.now},
     index_set : {type : Array, default : []},

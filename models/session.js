@@ -7,9 +7,11 @@ const cardlist_object = {
     status : {type : String, default : 'yet'}, 
     former_status : {type : String, default : null}, 
     type : {type : String, default : null},
+    // apply_sepa 어따 쓰냐
     apply_sepa : {type : String, default : 'no'},
     seq_in_session : {type : Number},
     detail_status : {
+        flip_mode : {type : String, default : 'flip'},
         recent_selection : {type : String, default : null},
 
         recent_study_time : {type : Date, default : null},    

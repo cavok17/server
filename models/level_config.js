@@ -24,8 +24,10 @@ const level_config_schema = new mongoose.Schema({
       period : {type: Number, default : 30},
     },
   },
-  regression_history : [{
-    num_sample : {type: Number, default : 0},  
+  regression_data : {type : Array, default : []},
+  regression_sample_count : {type : Number, default : 500},
+  regression_result : [{
+    // num_sample : {type: Number, default : 0},  
     original : {    
       a : {type: Number, default : 0},
       b : {type: Number, default : 0},
