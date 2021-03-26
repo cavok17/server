@@ -190,7 +190,7 @@ exports.create_studyresult= async (req, res) => {
                 }
             }
         }
-
+    }
 //         // 단일 조건(book_id, 날짜)에 대한 집계가 완료되면 저장한다.
 //         let studyresult_of_book = await Study_result.updateOne(
 //             {session_id : req.body.session_id, book_id, study_date},
