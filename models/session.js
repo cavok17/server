@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 // 스키마 객체를 생성
 const cardlist_object = {
     book_id : {type:mongoose.ObjectId, ref:'Book'},
@@ -10,8 +11,7 @@ const cardlist_object = {
     // apply_sepa 어따 쓰냐
     apply_sepa : {type : String, default : 'no'},
     seq_in_session : {type : Number},
-    detail_status : {
-        
+    detail_status : {        
         recent_selection : {type : String, default : null},
 
         recent_know_time : {type : Date, default : null},    
@@ -36,7 +36,7 @@ const cardlist_object = {
         
         level : {type : Number, default : null},
         former_level : {type : Number, default : 0},
-    }
+    },    
 }
 
 const session_schema = new mongoose.Schema({

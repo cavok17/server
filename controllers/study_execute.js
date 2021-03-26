@@ -550,14 +550,14 @@ exports.req_add_cards = async (req, res) => {
         }
     }
     
-    // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
-    // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
-    let now = Date.now()        
-    for (i=0; i<cardlist_add.length; i++){        
-        if (cardlist_add[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
-            cardlist_studying[i].detail_status.need_study_time = now
-        }
-    }
+    // // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
+    // // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
+    // let now = Date.now()        
+    // for (i=0; i<cardlist_add.length; i++){        
+    //     if (cardlist_add[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
+    //         cardlist_studying[i].detail_status.need_study_time = now
+    //     }
+    // }
 
     // seq_in_session로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying

@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
-// 스키마 객체를 생성
+contact_history = {
+  recent_select_time : {type : Date, default : null},    
+  recent_selection  : {type : String, default : null},
+  recent_stay_hour : {type : Number, default : null},
+}
+
 const cardschema = new mongoose.Schema({  
   cardtype_id: {type:mongoose.ObjectId, ref:'Cardtype'},
   type : {type : String, default : null},
@@ -30,8 +35,11 @@ const cardschema = new mongoose.Schema({
   },
   detail_status : {    
     recent_selection : {type : String, default : null},
+    recent_know_time : {type : Date, default : null},    
+    recent_study_result  : {type : String, default : null},
     recent_study_time : {type : Date, default : null},    
-    recent_konw_time : {type : Date, default : null},    
+    recent_selection  : {type : String, default : null},
+    recent_select_time : {type : Date, default : null},   
     need_study_time: {type : Date, default : null},
         
     current_lev_study_times : {type : Number, default : 0},
@@ -39,11 +47,12 @@ const cardschema = new mongoose.Schema({
 
     total_study_times : {type : Number, default : 0},
     
-    recent_study_hour : {type : Number, default : 0},
-    total_study_hour : {type : Number, default : 0},
+    recent_stay_hour : {type : Number, default : null},
+    total_stay_hour : {type : Number, default : null},
         
     level : {type : Number, default : 0},
   },
+  contact_history : {type : [contact_history]},    
 });
 
 

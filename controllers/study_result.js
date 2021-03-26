@@ -30,6 +30,7 @@ exports.create_studyresult= async (req, res) => {
         )
 
         // 원본을 바꾸는 작업이 필요함
+        ogiginal_update(req.body.cardlist_studied)
         return
     }
 
@@ -281,6 +282,21 @@ const execute_regression =  async (book_id, regression_array) => {
     level_config.save()
     return
     
+}
+
+const original_update =  async (cardlist_sudied) => {   
+    for (i=0 ; i<cardlist_studied.length; i++){        
+        let contact_history = [cardlist_studied[i].detail_status.recent_select_time, cardlist_studied[i].detail_status.recent_selection, cardlist_studied[i].detail_status.recent_stay_hour]
+        if (dup_position === -1) {            
+            let card = await Card.updateOne(        
+                {_id : cardlist_studied[i]._id},
+                {status : cardlist_studied[i].status,
+                detail_status : cardlist_studied[i].detail_status,
+                $push : {contact_history : contact_history}}
+            )
+        }        
+    }
+
 }
 
 // 세션 스터디 결과를 보내줍니다.
