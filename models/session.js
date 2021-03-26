@@ -21,7 +21,7 @@ const cardlist_object = {
         recent_study_time : {type : Date, default : null},    
         recent_selection  : {type : String, default : null},
         recent_select_time : {type : Date, default : null},    
-        formal_status_in_session : {type : String, default : 'on'},
+        former_status_in_session : {type : String, default : 'on'},
         status_in_session : {type : String, default : 'on'},
 
         need_study_time: {type : Date, default : null},

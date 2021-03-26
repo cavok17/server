@@ -171,10 +171,12 @@ exports.create_studyresult= async (req, res) => {
                     single_result.num_cards.finished[cardlist_studied[i].detail_status.recent_selection] +=1
                 }
 
-                // 학습 횟수를 집계한다.
-                if(['short', 'long', 'know', 'pass', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
-                    single_result.study_times +=1                    
-                }
+                // 클릭 횟수를 집계한다.
+                // if(['short', 'long', 'know', 'pass', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
+                    single_result.num_click.total +=1
+                    single_result.num_click.[cardlist_studied[i].detail_status.recent_selection] +=1
+                                    
+                // }
                 
                 // 학습 시간을 집계하고
                 if (cardlist_studied[i].detail_status.recent_selection != 'restore'){
