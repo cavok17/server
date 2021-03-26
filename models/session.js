@@ -6,7 +6,9 @@ const cardlist_object = {
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     _id : {type:mongoose.ObjectId, ref:'Card'},
     status : {type : String, default : 'yet'}, 
-    former_status : {type : String, default : null}, 
+    former_status : {type : String, default : null},
+    original_status : {type : String, default : null},
+
     type : {type : String, default : null},
     // apply_sepa 어따 쓰냐
     apply_sepa : {type : String, default : 'no'},
@@ -19,6 +21,7 @@ const cardlist_object = {
         recent_study_time : {type : Date, default : null},    
         recent_selection  : {type : String, default : null},
         recent_select_time : {type : Date, default : null},    
+        formal_status_in_session : {type : String, default : 'on'},
         status_in_session : {type : String, default : 'on'},
 
         need_study_time: {type : Date, default : null},

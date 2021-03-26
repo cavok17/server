@@ -168,6 +168,11 @@ exports.get_cardlist = async (req, res) => {
     }
 
     cardlist_studying = cardlist_studying.concat(cardlist_studying_yet, cardlist_studying_ing, cardlist_studying_hold, cardlist_studying_completed)
+
+    // 오리지날 스테이터스를 남겨둔다.
+    for (i=0; i<cardlist_studying.length; i++){
+        cardlist_studying[i].original_status = cardlist_studying[i].status
+    }
     
 
     // 사용한 카드가 몇 장인지 업데이트 해주자
