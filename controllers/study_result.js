@@ -174,7 +174,7 @@ exports.create_studyresult= async (req, res) => {
                 // 클릭 횟수를 집계한다.
                 // if(['short', 'long', 'know', 'pass', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
                     single_result.num_click.total +=1
-                    single_result.num_click.[cardlist_studied[i].detail_status.recent_selection] +=1
+                    single_result.num_click[cardlist_studied[i].detail_status.recent_selection] +=1
                                     
                 // }
                 
