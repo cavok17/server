@@ -11,23 +11,26 @@ const cardlist_object = {
     apply_sepa : {type : String, default : 'no'},
     seq_in_session : {type : Number},
     detail_status : {
-        flip_mode : {type : String, default : 'flip'},
+        
         recent_selection : {type : String, default : null},
 
-        recent_study_time : {type : Date, default : null},    
         recent_know_time : {type : Date, default : null},    
+        recent_study_result  : {type : String, default : null},
+        recent_study_time : {type : Date, default : null},    
+        recent_selection  : {type : String, default : null},
+        recent_select_time : {type : Date, default : null},    
+        status_in_session : {type : String, default : 'on'},
 
         need_study_time: {type : Date, default : null},
         need_study_time_tmp: {type : Date, default : null},
 
-        status_in_session : {type : String, default : 'on'},
         session_study_times : {type : Number, default : 0},
         current_lev_study_times : {type : Number, default : null},
         current_lev_accu_study_time : {type : Date, default : null},    
         
-        total_study_times : {type : Number, default : null},
-        recent_study_hour : {type : Number, default : null},
-        total_study_hour : {type : Number, default : null},
+        total_study_times : {type : Number, default : null},        
+        recent_stay_hour : {type : Number, default : null},
+        total_stay_hour : {type : Number, default : null},
         retention_for_regression : {type : Number, default : null},
         studytimes_for_regression : {type : Number, default : null},
         

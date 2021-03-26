@@ -132,7 +132,7 @@ exports.get_cardlist = async (req, res) => {
     cardlist_sepa.hold = cardlist_total.filter((card) => card.status === 'hold')    
     cardlist_sepa.completed = cardlist_total.filter((card) => card.status === 'completed')    
 
-    // 이걸 세션에 저장하고... 이 때 불필요한 데이터가 날라갑니다.
+    // 이걸 세션에 저장하고... 이 때 불필요한 필드가 날라갑니다.
     session.cardlist_sepa = {
         yet : cardlist_sepa.yet,
         ing : cardlist_sepa.ing,
