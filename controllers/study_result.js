@@ -86,30 +86,73 @@ const execute_regression =  async (book_id, regression_array) => {
     level_config.retention_count_curve.r_value = level_config.regression_result[level_config.retention_count_curve.type].r_value
 
     // retention 보정
-    // 1보다 큰 경우를 찾아라
-    let normal_study_times
-    for (i=1; i<11; i++){
+    // 1보다 큰 retention을 수정하라
+    let normal_min_study_times // 1보다 작은 게 정상임
+    let max_retention
+    for (i=1; i<21; i++){
         switch (level_config.retention_count_curve.type){
             case 'original' : 
-                let retention = (i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a
+                max_retention = (i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a
                 break;
             case 'log' : 
-                retention = Math.exp((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                max_retention = Math.exp((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
                 break;
             case 'original' : 
-                retention = Math.log((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                max_retention = Math.log((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
                 break;
         }
-        if (retention < 1) {
-            normal_study_times = i
+        if (max_retention < 1) {
+            normal_min_study_times = i
             break;
         }
     }
-    if (normal_study_times>1){
-        // for 
+    // 1보다 큰 녀석은 max retention과 1 사이 값으로 한다.
+    if (normal_min_study_times > 1){
+        for (i=1; i<normal_min_study_times; i++){
+            level_config.retention['t'+i] = 1- (1-max_retention)*(i/normal_min_study_times)
+        }
     }
 
+    // 0보다 작은 retention을 수정하라
+    let normal_max_study_times
+    let min_retention
+    for (i=20; i>0; i--){
+        switch (level_config.retention_count_curve.type){
+            case 'original' : 
+                min_retention = (i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a
+                break;
+            case 'log' : 
+                min_retention = Math.exp((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                break;
+            case 'original' : 
+                min_retention = Math.log((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                break;
+        }
+        if (min_retention > 0) {
+            normal_max_study_times = i
+            break;
+        }
+    }
+    if (normal_max_study_times < 20){
+        for (i=20; i>normal_max_study_times; i--){
+            level_config.retention['t'+i] = min_retention * (21-i) / (21 - normal_max_study_times)
+        }
+    }
 
+    for (i=normal_min_study_times + 1; i<normal_max_study_times; i++){
+        switch (level_config.retention_count_curve.type){
+            case 'original' : 
+                level_config.retention['t'+i] = (i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a
+                break;
+            case 'log' : 
+                level_config.retention['t'+i] = Math.exp((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                break;
+            case 'original' : 
+                level_config.retention['t'+i] = Math.log((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                break;
+        }
+
+    }
 
     await level_config.save()
     return
@@ -328,8 +371,15 @@ exports.create_studyresult= async (req, res) => {
         }
     }    
 
-    ////////////////////////////////////// 회귀분석 //////////////////////////////////////    
+    res.json({isloggedIn : true, msg : '성공적'});
     
+    // 카드리스트 스터디드에 결과 반영 여부를 yes로 바까준다.
+    session = await session.updateOne(
+        {_id : req.body.session_id},
+        {$set : {"cardlist_studied.$[].result_include_yeobu" : 'yes'}}
+    )
+
+    ////////////////////////////////////// 회귀분석 //////////////////////////////////////    
     for (book_id of book_ids){   
         let regression_array = []
         for (i=0; i<cardlist_studied.length; i++){
@@ -338,20 +388,9 @@ exports.create_studyresult= async (req, res) => {
                 regression_array.push(single_array)
             }
         }
-        console.log(regression_array)
+        // console.log(regression_array)
         await execute_regression(book_id, regression_array)
-
-    }
-    // for (i=0; i<cardlist_studied.length; i++){
-    // }
-
-    // 카드리스트 스터디드에 결과 반영 여부를 yes로 바까준다.
-    session = await session.updateOne(
-        {_id : req.body.session_id},
-        {$set : {"cardlist_studied.$[].result_include_yeobu" : 'yes'}}
-    )
-
-    res.json({isloggedIn : true, msg : '성공적'});
+    }    
 }
 
 
@@ -367,19 +406,20 @@ exports.req_session_studyresult= async (req, res) => {
         .sort({session_id : 1})
         .populate({path : 'book_id', select : 'title'})
 
-    let study_results_by_session = {}
+    let study_results_by_session = new Study_result()
+    // let study_results_by_session = {}
 
     for (i=0; i<study_results_by_book.length; i++){        
         // study_results_by_session.status_change.total.plus +=  study_results_by_book[i].status_change.total.plus,
         // study_results_by_session.status_change.total.minus +=  study_results_by_book[i].status_change.total.minus,
-        study_results_by_session.status_change.yet.plus +=  study_results_by_book[i].status_change.yet.plus,
-        study_results_by_session.status_change.yet.minus +=  study_results_by_book[i].status_change.yet.minus,
-        study_results_by_session.status_change.ing.plus +=  study_results_by_book[i].status_change.ing.plus,
-        study_results_by_session.status_change.ing.minus +=  study_results_by_book[i].status_change.ing.minus,
-        study_results_by_session.status_change.hold.plus +=  study_results_by_book[i].status_change.hold.plus,
-        study_results_by_session.status_change.hold.minus +=  study_results_by_book[i].status_change.hold.minus,
-        study_results_by_session.status_change.completed.plus +=  study_results_by_book[i].status_change.completed.plus,
-        study_results_by_session.status_change.completed.minus +=  study_results_by_book[i].status_change.completed.minus,
+        study_results_by_session.num_cards.status_change.yet.plus +=  study_results_by_book[i].num_cards.status_change.yet.plus,
+        study_results_by_session.num_cards.status_change.yet.minus +=  study_results_by_book[i].num_cards.status_change.yet.minus,
+        study_results_by_session.num_cards.status_change.ing.plus +=  study_results_by_book[i].num_cards.status_change.ing.plus,
+        study_results_by_session.num_cards.status_change.ing.minus +=  study_results_by_book[i].num_cards.status_change.ing.minus,
+        study_results_by_session.num_cards.status_change.hold.plus +=  study_results_by_book[i].num_cards.status_change.hold.plus,
+        study_results_by_session.num_cards.status_change.hold.minus +=  study_results_by_book[i].num_cards.status_change.hold.minus,
+        study_results_by_session.num_cards.status_change.completed.plus +=  study_results_by_book[i].num_cards.status_change.completed.plus,
+        study_results_by_session.num_cards.status_change.completed.minus +=  study_results_by_book[i].num_cards.status_change.completed.minus,
         study_results_by_session.num_cards.started.yet +=  study_results_by_book[i].num_cards.started.yet,
         study_results_by_session.num_cards.started.ing +=  study_results_by_book[i].num_cards.started.ing,
         study_results_by_session.num_cards.started.hold +=  study_results_by_book[i].num_cards.started.hold,
