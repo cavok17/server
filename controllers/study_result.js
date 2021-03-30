@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const regression = require('regression')
 
 // 모델 경로
 const User = require('../models/user');
@@ -12,7 +13,6 @@ const Level_config = require('../models/level_config');
 const Study_result = require('../models/study_result');
 const { session } = require("passport");
 const study_result = require("../models/study_result");
-const level_config = require("../models/level_config");
 const { result } = require("lodash");
 
 // 회귀분석하는 거
@@ -21,65 +21,97 @@ const execute_regression =  async (book_id, regression_array) => {
         
     // 일단 데이터를 저장해야 하는데... 레벨 콘피그를 받고
     let level_config = await Level_config.findOne({book_id : book_id})
-
+    
     // 처음에는 regression 돌릴 데이터가 없으므로 데이터를 생성해준다.
-    if (level_config.regression_data.length === []) {
-        let regression_basis
+    if (level_config.regression_data.length === 0) {        
+        let regression_basis = []        
         for (i=1; i<level_config.retention_count_curve.b; i++){
             let single_array = [(i-level_config.retention_count_curve.b)/level_config.retention_count_curve.a,i]
-            regression_basis.push(single_array)
+            regression_basis.push(single_array)            
         }
         for (i=0; i<Math.ceil(500/(level_config.retention_count_curve.b-1)); i++) {
-            level_config.regression_data.push(regression_basis)
+            level_config.regression_data.push(...regression_basis)
         }        
-    }
-    console.log(level_config.regression_data)
-    
+    }    
+
     // 그 다음 regression 돌릴 데이터만 남긴다.
     level_config.regression_data = level_config.regression_data.concat(regression_array)
     if (level_config.regression_data.length >level_config.regression_sample_count) {
         level_config.regression_data.splice(0,level_config.regression_data.length-level_config.regression_sample_count)
     }
 
+    console.log(level_config.regression_data)
     // 이제 regression을 돌린다.
     // original
-    let result = regression.linear(level_config.regression_source.data.length)
-    regression_result.original ={
+    let result = regression.linear(level_config.regression_data)
+    level_config.regression_result.original ={
         a : result.equation[0],
         b : result.equation[1],
         r_value : result.r2
     }
+    console.log('original', level_config.regression_result.original)
+    
     // log
-    result = regression.logarithmic(level_config.regression_source.data.length)
-    regression_result.log ={
+    result = regression.logarithmic(level_config.regression_data)
+    level_config.regression_result.log = {
         gradient : result.equation[0],
         yintercept : result.equation[1],
         r_value : result.r2
     }
-    // exponential
-    result = regression.exponential(level_config.regression_source.data.length)
-    regression_result.exp ={
-        gradient : result.equation[0],
-        yintercept : result.equation[1],
-        r_value : result.r2
-    }
+    console.log('log', level_config.regression_result.log)
 
+    // exponential
+    result = regression.exponential(level_config.regression_data)
+    level_config.regression_result.exp ={
+        gradient : result.equation[0],
+        yintercept : result.equation[1],
+        r_value : result.r2
+    }
+    console.log('exp', level_config.regression_result.log)
+
+    console.log(level_config.regression_result)
 
     // 최소값을 찾아 retention_count_curve를 확정한다.    
-    if (regression_object.original.r_value > regression_object.log.r_value){
-        retention_count_curve.type = 'original'
+    if (level_config.regression_result.original.r_value > level_config.regression_result.log.r_value){
+        level_config.retention_count_curve.type = 'original'
     } else {
-        retention_count_curve.type = 'log'
+        level_config.retention_count_curve.type = 'log'
     }
-    if (regression_object[retention_count_curve.type].r_value > regression_object.exp.r_value){        
+    if (level_config.regression_result[level_config.retention_count_curve.type].r_value > level_config.regression_result.exp.r_value){        
     } else {
-        retention_count_curve.type = 'exp'
+        level_config.retention_count_curve.type = 'exp'
     }
-    retention_count_curve.a = regression_result[retention_count_curve.type].a
-    retention_count_curve.b = regression_result[retention_count_curve.type].b
-    retention_count_curve.r_value = regression_result[retention_count_curve.type].r_value
+    level_config.retention_count_curve.a = level_config.regression_result[level_config.retention_count_curve.type].a
+    level_config.retention_count_curve.b = level_config.regression_result[level_config.retention_count_curve.type].b
+    level_config.retention_count_curve.r_value = level_config.regression_result[level_config.retention_count_curve.type].r_value
 
-    level_config.save()
+    // retention 보정
+    // 1보다 큰 경우를 찾아라
+    let normal_study_times
+    for (i=1; i<11; i++){
+        switch (level_config.retention_count_curve.type){
+            case 'original' : 
+                let retention = (i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a
+                break;
+            case 'log' : 
+                retention = Math.exp((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                break;
+            case 'original' : 
+                retention = Math.log((i -level_config.retention_count_curve.b)/level_config.retention_count_curve.a)
+                break;
+        }
+        if (retention < 1) {
+            normal_study_times = i
+            break;
+        }
+    }
+    if (normal_study_times>1){
+        // for 
+    }
+
+
+
+    await level_config.save()
     return
     
 }
@@ -108,7 +140,6 @@ exports.create_studyresult= async (req, res) => {
     console.log("세션 결과를 정리합니다.");
     console.log('body', req.body);
 
-    // 카드리스트 스터디드를 업로드 한다.
     // 만약 학습 완료가 아니면 저장만 하고 탈출한다.
     if (req.body.status !='finished') {
         let cardlist_studied_upload = await Session.updateOne(
@@ -129,179 +160,196 @@ exports.create_studyresult= async (req, res) => {
     session.cardlist_studied = session.cardlist_studied.concat(req.body.cardlist_studied)    
     let cardlist_studied = session.cardlist_studied.filter((cardlist) => cardlist.result_include_yeobu === 'no')
 
+    // 임시로 저장을 좀 허자
+    await session.save()
+
 
 
 // -----------------------카드리스트 스터디드 편집 ---------------------------------    
-    // 날짜 단위로 학습 결과가 정리되어야 하므로 날짜 데이터를 생성해줌    
-    // Date 객체로 하니까 중복 제거가 안 됨. 그래서 스트링으로 바꿈
+    // 날짜 단위로 학습 결과가 정리되어야 하므로 날짜 데이터를 생성해줌        
     for (i=0; i<cardlist_studied.length; i++){
-        cardlist_studied[i].detail_status.recent_study_time = new Date(cardlist_studied[i].detail_status.recent_study_time)
-        cardlist_studied[i].detail_status.recent_study_date = new Date(cardlist_studied[i].detail_status.recent_study_time)
-        cardlist_studied[i].detail_status.recent_study_date.setHours(0,0,0,0)
-        cardlist_studied[i].detail_status.recent_study_date = cardlist_studied[i].detail_status.recent_study_date.toString()
+        cardlist_studied[i].detail_status.recent_select_time = new Date(cardlist_studied[i].detail_status.recent_select_time)
+        cardlist_studied[i].detail_status.recent_select_date = new Date(cardlist_studied[i].detail_status.recent_select_time)
+        cardlist_studied[i].detail_status.recent_select_date.setHours(0,0,0,0)        
     }
 
-    // 학습 결과를 정리할 단위(책, 날짜)를 만들어줍니다.
+    // 학습 결과를 정리할 단위(책, 날짜)를 만들어줍니다. 
+    // object_id, date 객체는 set으로 중복제거가 안 됨. string으로 변환함
     let book_ids = cardlist_studied.map((cardlist) => cardlist.book_id)
+    for (i=0; i<book_ids.length; i++){
+        book_ids[i] = String(book_ids[i])
+    }
     book_ids = [...new Set(book_ids)]    
-    let study_dates = cardlist_studied.map((cardlist) => cardlist.detail_status.recent_study_date)    
-    study_dates = [...new Set(study_dates)]
+
+    let select_dates = cardlist_studied.map((cardlist) => cardlist.detail_status.recent_select_date)    
+    for (i=0; i<select_dates.length; i++){
+        select_dates[i] = String(select_dates[i])
+    }    
+    select_dates = [...new Set(select_dates)]
+    
 
 
     let single_result = new Study_result
     // 책 및 날짜 단위로 데이터를 추출하여 저장함
     for (book_id of book_ids){        
-        for (study_date of study_dates){   
-        
-            // book_id 및 날짜가 일치하는 데이터만 집계한다.
-            if (cardlist_studied[i].book_id == book_id && cardlist_studied[i].detail_status.recent_study_date == study_date ){                                
-                // status 변화를 집계한다. 포머 상태와 현재 상태가 다른 경우만
-                if (cardlist_studied[i].former_status != cardlist_studied[i].status){
-                    single_result.status_change[cardlist_studied[i].former_status].minus -= 1
-                    single_result.status_change[cardlist_studied[i].status].plus += 1
-                }
-                // 학습 시작된 카드를 집계한다. 선택-투입-시작-완료(탈출, 패스, 완료전환, 보류전환)
-                if (cardlist_studied[i].detail_status.session_study_times === 1){                        
-                    single_result.num_cards.started +=1                        
-                }
-                
-                // 완료된 카드를 집계한다.
-                if(['know', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
-                    single_result.num_cards.finished.total +=1
-                    single_result.num_cards.finished[cardlist_studied[i].detail_status.recent_selection] +=1
-                }
-
-                // 클릭 횟수를 집계한다.
-                // if(['short', 'long', 'know', 'pass', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
+        for (select_date of select_dates){   
+            for (i=0; i<cardlist_studied.length; i++){
+                // book_id 및 날짜가 일치하는 데이터만 집계한다.
+                if (cardlist_studied[i].book_id == book_id && cardlist_studied[i].detail_status.recent_select_date == select_date ){                                
+                    // 클릭 횟수를 집계한다.
                     single_result.num_click.total +=1
+                    single_result.stay_hour.total += cardlist_studied[i].detail_status.recent_stay_hour                    
                     single_result.num_click[cardlist_studied[i].detail_status.recent_selection] +=1
-                                    
-                // }
-                
-                // 학습 시간을 집계하고
-                if (cardlist_studied[i].detail_status.recent_selection != 'restore'){
-                    single_result.selection_stats.total.count +=1
-                    single_result.selection_stats[cardlist_studied[i].detail_status.recent_selection].count +=1
-                    single_result.selection_stats.total.hour += cardlist_studied[i].detail_status.study_hour
-                    single_result.selection_stats[cardlist_studied[i].detail_status.recent_selection].count +=cardlist_studied[i].detail_status.study_hour
-                }
+                    single_result.stay_hour[cardlist_studied[i].detail_status.recent_selection] += cardlist_studied[i].detail_status.recent_stay_hour
+                    // if(['short', 'long', 'know', 'pass', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
+                    // }
+                    
+                    // status 변화를 집계한다. 포머 상태와 현재 상태가 다른 경우만
+                    if (cardlist_studied[i].former_status != cardlist_studied[i].status){
+                        single_result.num_cards.status_change[cardlist_studied[i].former_status].minus -= 1
+                        single_result.num_cards.status_change[cardlist_studied[i].status].plus += 1
+                    }
+                    // 학습 시작된 카드를 집계한다. 선택-투입-시작-완료(탈출, 패스, 완료전환, 보류전환)
+                    if (cardlist_studied[i].detail_status.session_study_times === 1){                        
+                        single_result.num_cards.started[cardlist_studied[i].original_status]+= 1
+                    }
+                    if (cardlist_studied[i].detail_status.status_in_session === 'off'){                        
+                        single_result.num_cards.finished[cardlist_studied[i].original_status]+= 1
+                    }
+                        // 복구되는 경우가 조금 애매하다.
+                        // recent_study_time이 null이면 yet으로 복구, 아니면 ing으로 복구
+                    if (cardlist_studied[i].detail_status.recent_selection === 'restore'){
+                        if (cardlist_studied[i].detail_status.recent_study_time == null){
+                            single_result.num_cards.finished.yet -= 1
+                        } else {
+                            single_result.num_cards.finished.ing -= 1
+                        }                    
+                    }
 
-                // 레벨 변화도 집계하고
-                if (cardlist_studied[i].detail_status.recent_selection != 'know'){                    
-                    single_result.level_change += cardlist_studied[i].detail_status.level-cardlist_studied[i].detail_status.formal_level
+                    // 레벨 변화도 집계하고
+                    if (cardlist_studied[i].detail_status.recent_selection === 'know'||cardlist_studied[i].detail_status.recent_selection === 'completed'){                    
+                        single_result.total_level_change += cardlist_studied[i].detail_status.level-cardlist_studied[i].detail_status.formal_level
+                    }
                 }
+            }  
+            
+            console.log(single_result)
+    
+            // 단일 조건(book_id, 날짜)에 대한 집계가 완료되면 저장한다.
+            let studyresult_of_book = await Study_result.findOne(
+                {session_id : req.body.session_id, book_id, select_date},
+                {select : 'session_id'})
+                
+            if (studyresult_of_book === null){
+                single_result.session_id = req.body.session_id
+                single_result.book_id = book_id
+                single_result.study_date = select_date
+                studyresult_of_book = await Study_result.create(single_result)
+            } else {
+                studyresult_of_book = await Study_result.updateOne(
+                    {session_id : req.body.session_id, book_id, select_date},
+                    {$inc : {
+                        // 'num_cards.status_change.total.plus' : single_result.status_change.total.plus,
+                        // 'num_cards.status_change.total.minus' : single_result.status_change.total.minus,
+                        'num_cards.status_change.yet.plus' : single_result.status_change.yet.plus,
+                        'num_cards.status_change.yet.minus' : single_result.status_change.yet.minus,
+                        'num_cards.status_change.ing.plus' : single_result.status_change.ing.plus,
+                        'num_cards.status_change.ing.minus' : single_result.status_change.ing.minus,
+                        'num_cards.status_change.hold.plus' : single_result.status_change.hold.plus,
+                        'num_cards.status_change.hold.minus' : single_result.status_change.hold.minus,
+                        'num_cards.status_change.completed.plus' : single_result.status_change.completed.plus,
+                        'num_cards.status_change.completed.minus' : single_result.status_change.completed.minus,
+                        'num_cards.started.yet' : single_result.num_cards.started.yet,
+                        'num_cards.started.ing' : single_result.num_cards.started.ing,
+                        'num_cards.started.hold' : single_result.num_cards.started.hold,
+                        'num_cards.started.completed' : single_result.num_cards.started.completed,
+                        'num_cards.finished.yet' : single_result.num_cards.finished.yet,
+                        'num_cards.finished.ing' : single_result.num_cards.finished.ing,
+                        'num_cards.finished.hold' : single_result.num_cards.finished.hold,
+                        'num_cards.finished.completed' : single_result.num_cards.finished.completed,
+                        'num_click.total' : single_result.num_click.total ,
+                        'num_click.short' : single_result.num_click.short ,
+                        'num_click.long' : single_result.num_click.long ,
+                        'num_click.know' : single_result.num_click.know ,
+                        'num_click.hold' : single_result.num_click.hold ,
+                        'num_click.completed' : single_result.num_click.completed ,
+                        'num_click.pass' : single_result.num_click.pass ,
+                        'num_click.restore' : single_result.num_click.restore ,
+                        'num_click.back' : single_result.num_click.back ,
+                        'num_click.move' : single_result.num_click.move ,
+                        'num_click.finish' : single_result.num_click.finish ,
+                        'stay_hour.total' : single_result.stay_hour.total ,
+                        'stay_hour.short' : single_result.stay_hour.short ,
+                        'stay_hour.long' : single_result.stay_hour.long ,
+                        'stay_hour.know' : single_result.stay_hour.know ,
+                        'stay_hour.hold' : single_result.stay_hour.hold ,
+                        'stay_hour.completed' : single_result.stay_hour.completed ,
+                        'stay_hour.pass' : single_result.stay_hour.pass ,
+                        'stay_hour.restore' : single_result.stay_hour.restore ,
+                        'stay_hour.back' : single_result.stay_hour.back ,
+                        'stay_hour.move' : single_result.stay_hour.move ,
+                        'stay_hour.finish' : single_result.stay_hour.finish ,                
+                        'level_change' : single_result.level_change
+                    }}
+                )
+            }
+
+            // 북에도 업데이트 한다.
+            let book = await Book.updateOne({_id : book_id},
+                {$inc : 
+                    {
+                        'result.num_click.total' : single_result.num_click.total ,
+                        'result.num_click.short' : single_result.num_click.short ,
+                        'result.num_click.long' : single_result.num_click.long ,
+                        'result.num_click.know' : single_result.num_click.know ,
+                        'result.num_click.hold' : single_result.num_click.hold ,
+                        'result.num_click.completed' : single_result.num_click.completed ,
+                        'result.num_click.pass' : single_result.num_click.pass ,
+                        'result.num_click.restore' : single_result.num_click.restore ,
+                        'result.num_click.back' : single_result.num_click.back ,
+                        'result.num_click.move' : single_result.num_click.move ,
+                        'result.num_click.finish' : single_result.num_click.finish ,
+                        'result.stay_hour.total' : single_result.stay_hour.total ,
+                        'result.stay_hour.short' : single_result.stay_hour.short ,
+                        'result.stay_hour.long' : single_result.stay_hour.long ,
+                        'result.stay_hour.know' : single_result.stay_hour.know ,
+                        'result.stay_hour.hold' : single_result.stay_hour.hold ,
+                        'result.stay_hour.completed' : single_result.stay_hour.completed ,
+                        'result.stay_hour.pass' : single_result.stay_hour.pass ,
+                        'result.stay_hour.restore' : single_result.stay_hour.restore ,
+                        'result.stay_hour.back' : single_result.stay_hour.back ,
+                        'result.stay_hour.move' : single_result.stay_hour.move ,
+                        'result.stay_hour.finish' : single_result.stay_hour.finish ,                
+                        'result.level_change' : single_result.level_change
+                    }
+                }, {
+                recent_study_time : new Date(select_date)
+            })
+        }
+    }    
+
+    ////////////////////////////////////// 회귀분석 //////////////////////////////////////    
+    
+    for (book_id of book_ids){   
+        let regression_array = []
+        for (i=0; i<cardlist_studied.length; i++){
+            if (cardlist_studied[i].detail_status.recent_selection === 'know'){
+                let single_array = [cardlist_studied[i].detail_status.retention_for_regression, cardlist_studied[i].detail_status.studytimes_for_regression]
+                regression_array.push(single_array)
             }
         }
+        console.log(regression_array)
+        await execute_regression(book_id, regression_array)
+
     }
-//         // 단일 조건(book_id, 날짜)에 대한 집계가 완료되면 저장한다.
-//         let studyresult_of_book = await Study_result.updateOne(
-//             {session_id : req.body.session_id, book_id, study_date},
-//             {$inc : {
-//                 'status_change.total.plus' : single_result.status_change.total.plus,
-//                 'status_change.total.minus' : single_result.status_change.total.minus,
-//                 'status_change.yet.plus' : single_result.status_change.yet.plus,
-//                 'status_change.yet.minus' : single_result.status_change.yet.minus,
-//                 'status_change.ing.plus' : single_result.status_change.ing.plus,
-//                 'status_change.ing.minus' : single_result.status_change.ing.minus,
-//                 'status_change.hold.plus' : single_result.status_change.hold.plus,
-//                 'status_change.hold.minus' : single_result.status_change.hold.minus,
-//                 'status_change.completed.plus' : single_result.status_change.completed.plus,
-//                 'status_change.completed.minus' : single_result.status_change.completed.minus,
-//                 'num_cards.selected' : single_result.num_cards.selected,
-//                 'num_cards.inserted' : single_result.num_cards.inserted,
-//                 'num_cards.started' : single_result.num_cards.started,
-//                 'num_cards.finished.total' : single_result.num_cards.finished.total,
-//                 'num_cards.finished.know' : single_result.num_cards.finished.know,
-//                 'num_cards.finished.pass' : single_result.num_cards.finished.pass,
-//                 'num_cards.finished.hold' : single_result.num_cards.finished.hold,
-//                 'num_cards.finished.completed' : single_result.num_cards.finished.completed,
-//                 'selection_stats.total.count' : single_result.selection_stats.total.count,
-//                 'selection_stats.total.hour' : single_result.selection_stats.total.hour,
-//                 'selection_stats.short.count' : single_result.selection_stats.short.count,
-//                 'selection_stats.short.hour' : single_result.selection_stats.short.hour,
-//                 'selection_stats.long.count' : single_result.selection_stats.long.count,
-//                 'selection_stats.long.hour' : single_result.selection_stats.long.hour,
-//                 'selection_stats.know.count' : single_result.selection_stats.know.count,
-//                 'selection_stats.know.hour' : single_result.selection_stats.know.hour,
-//                 'selection_stats.pass.count' : single_result.selection_stats.pass.count,
-//                 'selection_stats.pass.hour' : single_result.selection_stats.pass.hour,
-//                 'selection_stats.hold.count' : single_result.selection_stats.hold.count,
-//                 'selection_stats.hold.hour' : single_result.selection_stats.hold.hour,
-//                 'selection_stats.completed.count' : single_result.selection_stats.completed.count,
-//                 'selection_stats.completed.hour' : single_result.selection_stats.completed.hour,
-//                 'selection_stats.back_mode.count' : single_result.selection_stats.back_mode.count,
-//                 'selection_stats.back_mode.hour' : single_result.selection_stats.back_mode.hour,
-//                 'level_change' : single_result.level_change
-//             }}
-//         )
-//         if (studyresult_of_book === undefined){
-//             single_result.session_id = req.body.session_id
-//             single_result.book_id = book_id
-//             single_result.study_date = study_date
-//             studyresult_of_book = await Study_result.create(single_result)
-//         }
+    // for (i=0; i<cardlist_studied.length; i++){
+    // }
 
-
-//         // 북에도 업데이트 한다.
-//         let book = await Book.updateOne({_id : book_id},
-//             {$inc : 
-//                 {
-//                     'status_change.total.plus' : single_result.status_change.total.plus,
-//                     'status_change.total.minus' : single_result.status_change.total.minus,
-//                     'status_change.yet.plus' : single_result.status_change.yet.plus,
-//                     'status_change.yet.minus' : single_result.status_change.yet.minus,
-//                     'status_change.ing.plus' : single_result.status_change.ing.plus,
-//                     'status_change.ing.minus' : single_result.status_change.ing.minus,
-//                     'status_change.hold.plus' : single_result.status_change.hold.plus,
-//                     'status_change.hold.minus' : single_result.status_change.hold.minus,
-//                     'status_change.completed.plus' : single_result.status_change.completed.plus,
-//                     'status_change.completed.minus' : single_result.status_change.completed.minus,
-//                     'num_cards.selected' : single_result.num_cards.selected,
-//                     'num_cards.inserted' : single_result.num_cards.inserted,
-//                     'num_cards.started' : single_result.num_cards.started,
-//                     'num_cards.finished.total' : single_result.num_cards.finished.total,
-//                     'num_cards.finished.know' : single_result.num_cards.finished.know,
-//                     'num_cards.finished.pass' : single_result.num_cards.finished.pass,
-//                     'num_cards.finished.hold' : single_result.num_cards.finished.hold,
-//                     'num_cards.finished.completed' : single_result.num_cards.finished.completed,
-//                     'selection_stats.total.count' : single_result.selection_stats.total.count,
-//                     'selection_stats.total.hour' : single_result.selection_stats.total.hour,
-//                     'selection_stats.short.count' : single_result.selection_stats.short.count,
-//                     'selection_stats.short.hour' : single_result.selection_stats.short.hour,
-//                     'selection_stats.long.count' : single_result.selection_stats.long.count,
-//                     'selection_stats.long.hour' : single_result.selection_stats.long.hour,
-//                     'selection_stats.know.count' : single_result.selection_stats.know.count,
-//                     'selection_stats.know.hour' : single_result.selection_stats.know.hour,
-//                     'selection_stats.pass.count' : single_result.selection_stats.pass.count,
-//                     'selection_stats.pass.hour' : single_result.selection_stats.pass.hour,
-//                     'selection_stats.hold.count' : single_result.selection_stats.hold.count,
-//                     'selection_stats.hold.hour' : single_result.selection_stats.hold.hour,
-//                     'selection_stats.completed.count' : single_result.selection_stats.completed.count,
-//                     'selection_stats.completed.hour' : single_result.selection_stats.completed.hour,
-//                     'selection_stats.back_mode.count' : single_result.selection_stats.back_mode.count,
-//                     'selection_stats.back_mode.hour' : single_result.selection_stats.back_mode.hour,
-//                     'level_change' : single_result.level_change
-//                 }
-//             }, {
-//             recent_study_time : new Date(study_date)
-//         })
-//     }       
-
-//     ////////////////////////////////////// 회귀분석 //////////////////////////////////////    
-//     let regression_array = []
-//     for (i=0; i<cardlist_studied.length; i++){
-//         if (cardlist_studied[i].detail_status.recent_selection === 'know'){
-//             single_data = [cardlist_studied[i].detail_status.retention_for_regression, cardlist_studied[i].detail_status.studytimes_for_regression]
-//             regression_array.push(single_data)
-//         }
-//     }    
-//     execute_regression(req.body.book_id, regression_array)
-
-//     // 카드리스트 스터디드에 결과 반영 여부를 yes로 바까준다.
-//     session = await session.update(
-//         {_id : req.body.session_id},
-//         {$set : {"cardlist_studied.$[].result_include_yeobu" : 'yes'}}
-//     )
+    // 카드리스트 스터디드에 결과 반영 여부를 yes로 바까준다.
+    session = await session.updateOne(
+        {_id : req.body.session_id},
+        {$set : {"cardlist_studied.$[].result_include_yeobu" : 'yes'}}
+    )
 
     res.json({isloggedIn : true, msg : '성공적'});
 }
@@ -322,43 +370,48 @@ exports.req_session_studyresult= async (req, res) => {
     let study_results_by_session = {}
 
     for (i=0; i<study_results_by_book.length; i++){        
-        study_results_by_session.status_change.total.plus +=  study_relts_by_book[i].status_change.total.plus,
-        study_results_by_session.status_change.total.minus +=  study_relts_by_book[i].status_change.total.minus,
-        study_results_by_session.status_change.yet.plus +=  study_relts_by_book[i].status_change.yet.plus,
-        study_results_by_session.status_change.yet.minus +=  study_relts_by_book[i].status_change.yet.minus,
-        study_results_by_session.status_change.ing.plus +=  study_relts_by_book[i].status_change.ing.plus,
-        study_results_by_session.status_change.ing.minus +=  study_relts_by_book[i].status_change.ing.minus,
-        study_results_by_session.status_change.hold.plus +=  study_relts_by_book[i].status_change.hold.plus,
-        study_results_by_session.status_change.hold.minus +=  study_relts_by_book[i].status_change.hold.minus,
-        study_results_by_session.status_change.completed.plus +=  study_relts_by_book[i].status_change.completed.plus,
-        study_results_by_session.status_change.completed.minus +=  study_relts_by_book[i].status_change.completed.minus,
-        study_results_by_session.num_cards.selected +=  study_relts_by_book[i].num_cards.selected,
-        study_results_by_session.num_cards.inserted +=  study_relts_by_book[i].num_cards.inserted,
-        study_results_by_session.num_cards.started +=  study_relts_by_book[i].num_cards.started,
-        study_results_by_session.num_cards.finished.total +=  study_relts_by_book[i].num_cards.finished.total,
-        study_results_by_session.num_cards.finished.know +=  study_relts_by_book[i].num_cards.finished.know,
-        study_results_by_session.num_cards.finished.pass +=  study_relts_by_book[i].num_cards.finished.pass,
-        study_results_by_session.num_cards.finished.hold +=  study_relts_by_book[i].num_cards.finished.hold,
-        study_results_by_session.num_cards.finished.completed +=  study_relts_by_book[i].num_cards.finished.completed,
-        study_results_by_session.selection_stats.total.count +=  study_relts_by_book[i].selection_stats.total.count,
-        study_results_by_session.selection_stats.total.hour +=  study_relts_by_book[i].selection_stats.total.hour,
-        study_results_by_session.selection_stats.short.count +=  study_relts_by_book[i].selection_stats.short.count,
-        study_results_by_session.selection_stats.short.hour +=  study_relts_by_book[i].selection_stats.short.hour,
-        study_results_by_session.selection_stats.long.count +=  study_relts_by_book[i].selection_stats.long.count,
-        study_results_by_session.selection_stats.long.hour +=  study_relts_by_book[i].selection_stats.long.hour,
-        study_results_by_session.selection_stats.know.count +=  study_relts_by_book[i].selection_stats.know.count,
-        study_results_by_session.selection_stats.know.hour +=  study_relts_by_book[i].selection_stats.know.hour,
-        study_results_by_session.selection_stats.pass.count +=  study_relts_by_book[i].selection_stats.pass.count,
-        study_results_by_session.selection_stats.pass.hour +=  study_relts_by_book[i].selection_stats.pass.hour,
-        study_results_by_session.selection_stats.hold.count +=  study_relts_by_book[i].selection_stats.hold.count,
-        study_results_by_session.selection_stats.hold.hour +=  study_relts_by_book[i].selection_stats.hold.hour,
-        study_results_by_session.selection_stats.completed.count +=  study_relts_by_book[i].selection_stats.completed.count,
-        study_results_by_session.selection_stats.completed.hour +=  study_relts_by_book[i].selection_stats.completed.hour,
-        study_results_by_session.selection_stats.back_mode.count +=  study_relts_by_book[i].selection_stats.back_mode.count,
-        study_results_by_session.selection_stats.back_mode.hour +=  study_relts_by_book[i].selection_stats.back_mode.hour,
-        study_results_by_session.level_change +=  study_relts_by_book[i].level_change
+        // study_results_by_session.status_change.total.plus +=  study_results_by_book[i].status_change.total.plus,
+        // study_results_by_session.status_change.total.minus +=  study_results_by_book[i].status_change.total.minus,
+        study_results_by_session.status_change.yet.plus +=  study_results_by_book[i].status_change.yet.plus,
+        study_results_by_session.status_change.yet.minus +=  study_results_by_book[i].status_change.yet.minus,
+        study_results_by_session.status_change.ing.plus +=  study_results_by_book[i].status_change.ing.plus,
+        study_results_by_session.status_change.ing.minus +=  study_results_by_book[i].status_change.ing.minus,
+        study_results_by_session.status_change.hold.plus +=  study_results_by_book[i].status_change.hold.plus,
+        study_results_by_session.status_change.hold.minus +=  study_results_by_book[i].status_change.hold.minus,
+        study_results_by_session.status_change.completed.plus +=  study_results_by_book[i].status_change.completed.plus,
+        study_results_by_session.status_change.completed.minus +=  study_results_by_book[i].status_change.completed.minus,
+        study_results_by_session.num_cards.started.yet +=  study_results_by_book[i].num_cards.started.yet,
+        study_results_by_session.num_cards.started.ing +=  study_results_by_book[i].num_cards.started.ing,
+        study_results_by_session.num_cards.started.hold +=  study_results_by_book[i].num_cards.started.hold,
+        study_results_by_session.num_cards.started.completed +=  study_results_by_book[i].num_cards.started.completed,
+        study_results_by_session.num_cards.finished.yet +=  study_results_by_book[i].num_cards.finished.yet,
+        study_results_by_session.num_cards.finished.ing +=  study_results_by_book[i].num_cards.finished.ing,
+        study_results_by_session.num_cards.finished.hold +=  study_results_by_book[i].num_cards.finished.hold,
+        study_results_by_session.num_cards.finished.completed +=  study_results_by_book[i].num_cards.finished.completed,
+        study_results_by_session.num_click.total +=  study_results_by_book[i].num_click.total,
+        study_results_by_session.num_click.short +=  study_results_by_book[i].num_click.short,
+        study_results_by_session.num_click.long +=  study_results_by_book[i].num_click.long,
+        study_results_by_session.num_click.know +=  study_results_by_book[i].num_click.know,
+        study_results_by_session.num_click.hold +=  study_results_by_book[i].num_click.hold,
+        study_results_by_session.num_click.completed +=  study_results_by_book[i].num_click.completed,
+        study_results_by_session.num_click.pass +=  study_results_by_book[i].num_click.pass,
+        study_results_by_session.num_click.restore +=  study_results_by_book[i].num_click.restore,
+        study_results_by_session.num_click.back +=  study_results_by_book[i].num_click.back,
+        study_results_by_session.num_click.move +=  study_results_by_book[i].num_click.move,
+        study_results_by_session.num_click.finish +=  study_results_by_book[i].num_click.finish,
+        study_results_by_session.stay_hour.total +=  study_results_by_book[i].stay_hour.total,
+        study_results_by_session.stay_hour.short +=  study_results_by_book[i].stay_hour.short,
+        study_results_by_session.stay_hour.long +=  study_results_by_book[i].stay_hour.long,
+        study_results_by_session.stay_hour.know +=  study_results_by_book[i].stay_hour.know,
+        study_results_by_session.stay_hour.hold +=  study_results_by_book[i].stay_hour.hold,
+        study_results_by_session.stay_hour.completed +=  study_results_by_book[i].stay_hour.completed,
+        study_results_by_session.stay_hour.pass +=  study_results_by_book[i].stay_hour.pass,
+        study_results_by_session.stay_hour.restore +=  study_results_by_book[i].stay_hour.restore,
+        study_results_by_session.stay_hour.back +=  study_results_by_book[i].stay_hour.back,
+        study_results_by_session.stay_hour.move +=  study_results_by_book[i].stay_hour.move,
+        study_results_by_session.stay_hour.finish +=  study_results_by_book[i].stay_hour.finish,
+        study_results_by_session.level_change +=  study_results_by_book[i].level_change
     }
-
     
     res.json({isloggedIn : true, session, study_results_by_book, study_results_by_session });
 }
