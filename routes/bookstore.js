@@ -29,7 +29,7 @@ AWS.config.update({
 const upload = multer({
     storage : multer.diskStorage({
         destination(req, file, done){            
-            done(null, 'uploads/');
+            done(null, 'uploads/thumbnail/');
         },
         filename(req,file,done){    
             const ext = path.extname(file.originalname);            
