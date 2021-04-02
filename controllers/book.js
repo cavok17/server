@@ -86,7 +86,7 @@ exports.get_booklist = async (req, res) => {
     res.json({isloggedIn : true, categorybooklist, likebooklist, write_config});
 };
 
-// 새 책을 만듭니다.
+// 새 책을 만듭니다.d
 exports.create_book =  async (req, res) => {
     console.log('책 만들러 왔냐');
 
