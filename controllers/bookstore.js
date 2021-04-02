@@ -20,10 +20,11 @@ const sellbook = require("../models/sellbook");
 exports.upload_thumbnail = async (req, res) => {
     console.log("thumbnail을 등록합니다.");
     // console.log(req.file);
-    console.log(req.body);
-    console.log(req.file.filename)
+    console.log('이전파일명', req.body.prev_thumbnail);
+    // console.log(req.file.filename)
 
-    res.json({ url: `/thumbnail/${req.file.filename}` })
+    // res.json({ url: `/thumbnail/${req.file.filename}` })
+    res.json({ url: req.file.location })
 }
 
 exports.create_sellbook = async (req, res) => {

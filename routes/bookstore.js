@@ -16,28 +16,28 @@ AWS.config.update({
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
     region: 'ap-northeast-2'
 })
-// const upload = multer({
-//     storage : multerS3({
-//         s3: new AWS.S3(),
-//         bucket: 'cogbookofopensky',
-//         key(req, file, cb){
-//             cb(null, `book_info0017/${Date.now()}${path.basename(file.originalname)}`)
-//         },
-//     }),
-//     limits : {fileSize : 5*1024*1024},
-// });
 const upload = multer({
-    storage : multer.diskStorage({
-        destination(req, file, done){            
-            done(null, 'uploads/thumbnail/');
-        },
-        filename(req,file,done){    
-            const ext = path.extname(file.originalname);            
-            done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+    storage : multerS3({
+        s3: new AWS.S3(),
+        bucket: 'cogbookofopensky',
+        key(req, file, cb){
+            cb(null, `thumbnail/${Date.now()}${path.basename(file.originalname)}`)
         },
     }),
     limits : {fileSize : 5*1024*1024},
 });
+// const upload = multer({
+//     storage : multer.diskStorage({
+//         destination(req, file, done){            
+//             done(null, 'uploads/thumbnail/');
+//         },
+//         filename(req,file,done){    
+//             const ext = path.extname(file.originalname);            
+//             done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+//         },
+//     }),
+//     limits : {fileSize : 5*1024*1024},
+// });
 
 
 
