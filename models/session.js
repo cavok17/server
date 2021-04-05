@@ -30,7 +30,7 @@ const cardlist_object = {
 
         session_study_times : {type : Number, default : 0},
         current_lev_study_times : {type : Number, default : null},
-        current_lev_accu_study_time : {type : Date, default : null},    
+        current_lev_accu_study_time : {type : Number, default : null},    
         
         total_study_times : {type : Number, default : null},        
         recent_stay_hour : {type : Number, default : null},
