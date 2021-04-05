@@ -43,7 +43,7 @@ const cardschema = new mongoose.Schema({
     need_study_time: {type : Date, default : null},
         
     current_lev_study_times : {type : Number, default : 0},
-    current_lev_accu_study_time : {type : Date, default : null},    
+    current_lev_accu_study_time : {type : Number, default : null},    
 
     total_study_times : {type : Number, default : 0},
     

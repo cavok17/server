@@ -192,7 +192,8 @@ exports.create_studyresult= async (req, res) => {
         
         // 원본을 바꾸는 작업이 필요함
         await original_update(req.body.cardlist_studied)    
-    
+        
+        res.json({isloggedIn : true, msg : '성공적'});
         return
     }
 
