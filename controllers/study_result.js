@@ -183,15 +183,15 @@ exports.create_studyresult= async (req, res) => {
     console.log("세션 결과를 정리합니다.");
     console.log('body', req.body);
 
+    // 원본을 바꿔줌
+    await original_update(req.body.cardlist_studied)    
+
     // 만약 학습 완료가 아니면 저장만 하고 탈출한다.
     if (req.body.status !='finished') {
         let cardlist_studied_upload = await Session.updateOne(
             {_id : req.body.session_id},
             {$push : {cardlist_studied : {$each : req.body.cardlist_studied}}}
         )
-        
-        // 원본을 바꾸는 작업이 필요함
-        await original_update(req.body.cardlist_studied)    
         
         res.json({isloggedIn : true, msg : '성공적'});
         return
