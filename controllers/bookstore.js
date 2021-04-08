@@ -23,8 +23,16 @@ exports.upload_thumbnail = async (req, res) => {
     console.log('이전파일명', req.body.prev_thumbnail);
     // console.log(req.file.filename)
 
+    const url_original = decodeURIComponent(req.file.location.replace(/\+/g, " "))    
+    const url_large = url_original.replace(/\/original\//, '/large/')
+    const url_medium = url_original.replace(/\/original\//, '/medium/')
+    const url_small = url_original.replace(/\/original\//, '/small/')
+
+    console.log(url_original)
+    console.log(url_large)
+
     // res.json({ url: `/thumbnail/${req.file.filename}` })
-    res.json({ url: req.file.location })
+    res.json({url_original, url_large, url_medium, url_small })
 }
 
 exports.create_sellbook = async (req, res) => {

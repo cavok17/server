@@ -11,7 +11,12 @@ const sellbook_schema = new mongoose.Schema({
         title : {type : String},
         author : {type : String},
         publisher : {type : String},
-        thumbnail : {type : String},
+        image : {
+            original : {type : String},
+            large : {type : String},
+            medium : {type : String},
+            small : {type : String},
+        },
         intro_book : {type : String},
         intro_author : {type : String},
         indexes : {type : String},

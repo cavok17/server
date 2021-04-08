@@ -19,9 +19,10 @@ AWS.config.update({
 const upload = multer({
     storage : multerS3({
         s3: new AWS.S3(),
-        bucket: 'cogbookofopensky',
+        bucket: 'bookcoverofcogbook',
         key(req, file, cb){
-            cb(null, `thumbnail/${Date.now()}${path.basename(file.originalname)}`)
+            // cb(null, `bookcover/original/${Date.now()}${path.basename(file.originalname)}`)
+            cb(null, `original/${Date.now()}${path.basename(file.originalname)}`)
         },
     }),
     limits : {fileSize : 5*1024*1024},
