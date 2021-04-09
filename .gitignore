@@ -7,6 +7,9 @@
 .env
 /.pnp
 .pnp.js
+dev.js
+prod.js
+
 
 # testing
 /coverage

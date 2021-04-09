@@ -32,15 +32,40 @@ const level_config_schema = new mongoose.Schema({
     t20 : {type: Number, default : 0.010},
   },
   restudy_option : {
+    veryshort : {
+      on_off : {type: String, default : 'on'},
+      nick : {type: String, default : '5분 뒤 한번 더'},
+      period : {type: Number, default : 5},
+      swipe : {type: String},
+      gesture : {type: String}
+    },
     short : {
       on_off : {type: String, default : 'on'},
-      nick : {type: String, default : '짧게 한번 더'},
+      nick : {type: String, default : '10분 뒤 한번 더'},
       period : {type: Number, default : 10},
+      swipe : {type: String},
+      gesture : {type: String}
     },
     long : {
       on_off : {type: String, default : 'on'},
-      nick : {type: String, default : '길게 한번 더'},
+      nick : {type: String, default : '20분 뒤 한번 더'},
+      period : {type: Number, default : 20},
+      swipe : {type: String},
+      gesture : {type: String}
+    },
+    verylong : {
+      on_off : {type: String, default : 'on'},
+      nick : {type: String, default : '30분 뒤 한번 더'},
       period : {type: Number, default : 30},
+      swipe : {type: String},
+      gesture : {type: String}
+    },
+    know : {
+      on_off : {type: String, default : 'on'},
+      nick : {type: String, default : '세션 탈출'},
+      period : {type: Number, default : 10},
+      swipe : {type: String},
+      gesture : {type: String}
     },
   },
   restudy_ratio : {type: Number, default : 80},  

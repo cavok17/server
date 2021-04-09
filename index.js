@@ -13,6 +13,7 @@ const csrfProtection = csrf({cookie : true})
 
 const FileStore = require('session-file-store')(session);
 const path = require("path");
+const config = require('./config/key')
 
 
 
@@ -43,7 +44,8 @@ console.log(__dirname)
 app.use('/thumbnail',  express.static(path.join(__dirname, 'uploads/thumbnail')));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cookieParser(process.env.COOKIE_SECRET));
+// app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(cookieParser(config.COOKIE_SECRET));
 
 
 // 프록시 서버를 쓴다면 아래 내용을 적어주는 게 좋다고 함
@@ -51,7 +53,8 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 const sessionOption = {
   resave : false,
   saveUninitialized : false,
-  secret : process.env.COOKIE_SECRET,
+  // secret : process.env.COOKIE_SECRET,
+  secret : config.COOKIE_SECRET,
   cookie : {
     httpOnly : true,
     secure : false,
@@ -95,7 +98,8 @@ app.use('/api/user', userRouter);
 app.use('/api/mentoring', mentoringRouter);
 app.use('/api/bookstore', bookstoreRouter);
 
-const connect = mongoose.connect(process.env.mongoURI,{
+// const connect = mongoose.connect(process.env.mongoURI,{
+const connect = mongoose.connect(config.mongoURI,{
     useNewUrlParser: true, 
     useUnifiedTopology: true,
     useCreateIndex: true, 
@@ -104,6 +108,6 @@ const connect = mongoose.connect(process.env.mongoURI,{
   .then(() => console.log('MongoDB Connected...'))
   .catch(err => console.log(err));
 
-const PORT = process.env.PORT || 5000;
+const PORT = config.PORT;
 
 app.listen(PORT,() => console.log(`Server started on port ${PORT}`))

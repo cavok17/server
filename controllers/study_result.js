@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const regression = require('regression')
+const fetch = require('node-fetch')
+
 
 // 모델 경로
 const User = require('../models/user');
@@ -18,9 +20,21 @@ const { result } = require("lodash");
 // 회귀분석하는 거
 // 책 단위로 해야 함
 const execute_regression =  async (book_id, regression_array) => {   
-        
+
     // 일단 데이터를 저장해야 하는데... 레벨 콘피그를 받고
     let level_config = await Level_config.findOne({book_id : book_id})
+    
+    let body = {book_id, regression_array, level_config}
+    fetch('https://n2e7kwpfb2.execute-api.ap-northeast-2.amazonaws.com/default/regression',{
+        method : 'post',
+        body:    JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then (res => res.json())
+    .then (json => console.log(json))
+
+        
+
     
     // 처음에는 regression 돌릴 데이터가 없으므로 데이터를 생성해준다.
     if (level_config.regression_data.length === 0) {        
