@@ -33,11 +33,11 @@ const execute_regression =  async (book_id, regression_array) => {
     .then (res => res.json())
     .then (json => {
         console.log(json)
-        return json.level_config
+        level_config = json.level_config
     })
 
-    // await level_config.save()
-    // return    
+    await level_config.save()
+    return    
 }
 
 const original_update =  async (cardlist_studied) => {   
@@ -271,7 +271,7 @@ exports.create_studyresult= async (req, res) => {
             }
         }
         // console.log(regression_array)
-        await execute_regression(book_id, regression_array)
+    await execute_regression(book_id, regression_array)
     }    
 }
 
