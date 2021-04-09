@@ -35,7 +35,7 @@ const execute_regression =  async (book_id, regression_array) => {
         console.log(json)
         level_config = json.level_config
     })
-
+    console.log(level_config)
     await level_config.save()
     return    
 }
