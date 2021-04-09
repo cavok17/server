@@ -73,7 +73,7 @@ const level_config_schema = new mongoose.Schema({
 
   regression_data : {type : Array, default : []},
   regression_sample_count : {type : Number, default : 500},
-  regression_result : [{
+  regression_result : {
     // num_sample : {type: Number, default : 0},  
     original : {    
       a : {type: Number, default : 0},
@@ -90,7 +90,7 @@ const level_config_schema = new mongoose.Schema({
       b : {type: Number, default : 0},
       r_value : {type: Number, default : 0},
     },
-  }],
+  },
 });
 
 
