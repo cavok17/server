@@ -32,11 +32,13 @@ const execute_regression =  async (book_id, regression_array) => {
     })
     .then (res => res.json())
     .then (json => {
-        console.log(json)
-        level_config = json.level_config
+        console.log('json', json)
+        level_config = json
+        console.log('level_config--------------------------',level_config)
+        level_config = await level_config.save()
+        console.log('level_config--------------------------',level_config)
     })
     console.log(level_config)
-    await level_config.save()
     return    
 }
 
