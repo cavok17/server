@@ -115,7 +115,7 @@ exports.get_cardlist = async (req, res) => {
             for (let i = cardlist_total.length - 1; i > 0; i--) {
                 let j = Math.floor(Math.random() * (i + 1)); // 무작위 인덱스(0 이상 i 미만)  
                 [cardlist_total[i], cardlist_total[j]] = [cardlist_total[j], cardlist_total[i]];
-              }
+            }
             break            
     }
 
@@ -141,10 +141,10 @@ exports.get_cardlist = async (req, res) => {
     }
 
     // 카드 갯수를 업데이트 합니다.
-    session.num_cards.yet.total = cardlist_sepa.yet.length
-    session.num_cards.ing.total = cardlist_sepa.ing.length
-    session.num_cards.hold.total = cardlist_sepa.hold.length
-    session.num_cards.completed.total = cardlist_sepa.completed.length
+    session.num_cards.yet.selected = cardlist_sepa.yet.length
+    session.num_cards.ing.selected = cardlist_sepa.ing.length
+    session.num_cards.hold.selected = cardlist_sepa.hold.length
+    session.num_cards.completed.selected = cardlist_sepa.completed.length
 
 // -------------------------------------- 스터딩 -----------------------------------------------------
 
@@ -175,11 +175,11 @@ exports.get_cardlist = async (req, res) => {
     }
     
 
-    // 사용한 카드가 몇 장인지 업데이트 해주자
-    session.num_cards.yet.selected = cardlist_studying_yet.length
-    session.num_cards.ing.selected = cardlist_studying_ing.length
-    session.num_cards.hold.selected = cardlist_studying_hold.length
-    session.num_cards.completed.selected = cardlist_studying_completed.length
+    // 투입된 카드가 몇 장인지 업데이트 해주자
+    session.num_cards.yet.inserted = cardlist_studying_yet.length
+    session.num_cards.ing.inserted = cardlist_studying_ing.length
+    session.num_cards.hold.inserted = cardlist_studying_hold.length
+    session.num_cards.completed.inserted = cardlist_studying_completed.length
 
     // seq_in_session로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying
@@ -187,7 +187,7 @@ exports.get_cardlist = async (req, res) => {
     
     session = await session.save()
 
-// -------------------------------------- 레벨 설정  -----------------------------------------------------
+// -------------------------------------- 레벨 콘피그  -----------------------------------------------------
     let book_ids = []    
     for (i=0; i<session.booksnindexes.length; i++){
         book_ids.push(session.booksnindexes[i].book_id)
@@ -422,10 +422,6 @@ exports.get_studying_cards = async (req, res) => {
     res.json({isloggedIn : true, cards, });
 }
 
-exports.show_the_rest_of_cards = async (req, res) => {
-
-}
-
 
 
 
@@ -535,34 +531,42 @@ exports.get_studying_cards_in_read_mode = async (req, res) => {
 
 
 
+// 선택된 카드와 투입된 카드 갯수를 보여줍니다.
+exports.get_num_cards = async (req, res) => {
+    console.log("선택된 카드와 투입된 카드 갯수를 보여줍니다.");
+    console.log(req.body);
 
-exports.req_add_cards = async (req, res) => {
+    let session = await Session.findOne({_id : req.body.session_id})
+        .select('num_cards')        
+    
+    res.json({isloggedIn : true, num_cards : session.num_cards, });
+}
+
+// 미투입 카드 일부에 대한 카드리스트를 보내줍니다.
+exports.get_additional_cardlist = async (req, res) => {
     console.log("추가 카드를 요청하셨군요.");
     console.log(req.body);
 
     req.body.session_id
     req.body.add_cards.yet
+    req.body.add_cards.ing
+    req.body.add_cards.hold
+    req.body.add_cards.completed
 
     let session = await Session.findOne({_id : req.body.session_id})
-        .select('num_used_cards cardlist_sepa ')
+        .select('num_cards cardlist_sepa ')
 
     let cardlist_add = []
     // 사용 카드 갯수 정보를 업데이트 하고
     for (status of ['yet', 'ing', 'hold', 'completed']){
         if (req.body.add_cards[status] > 0){
             cardlist_add = cardlist_add.concat(session.cardlist_sepa[status].slice(session.num_used_cards[status]-1, session.num_used_cards[status]+req.body.add_cards[status]-1))
-            session.num_used_cards[status] += req.body_add_cards[status]        
+            session.num_cards[status] += req.body_add_cards[status]
         }
     }
     
-    // // 복습 필요 시점이 지금보다 나중이면, 현재로 바꿔주자.
-    // // 안 그러면 난이도 평가 후에 복습 순서가 꼬여버림
-    // let now = Date.now()        
-    // for (i=0; i<cardlist_add.length; i++){        
-    //     if (cardlist_add[i].detail_status.need_study_time === null || cardlist_studying[i].detail_status.need_study_time > now){
-    //         cardlist_studying[i].detail_status.need_study_time = now
-    //     }
-    // }
+    // num_cards 수정된 거 반영
+    session = await session.save()
 
     // seq_in_session로 정렬함 -> 그럼 원래 순서로 돌아옴
     cardlist_studying

@@ -56,20 +56,20 @@ const session_schema = new mongoose.Schema({
     }],
     num_cards : {
         yet : {
-            total : {type : Number, default : 0},
             selected : {type : Number, default : 0},
+            inserted : {type : Number, default : 0},
         },
         ing : {
-            total : {type : Number, default : 0},
             selected : {type : Number, default : 0},
+            inserted : {type : Number, default : 0},
         },
         hold : {
-            total : {type : Number, default : 0},
             selected : {type : Number, default : 0},
+            inserted : {type : Number, default : 0},
         },
         completed : {
-            total : {type : Number, default : 0},
             selected : {type : Number, default : 0},
+            inserted : {type : Number, default : 0},
         },
     },
     study_mode : {type : String, default : null},
