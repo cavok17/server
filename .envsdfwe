@@ -1,5 +1,0 @@
-COOKIE_SECRET=cookiesecret
-mongoURI="mongodb://localhost:27017/Opensky"
-mongoUURI='mongodb+srv://opensky:zhrQnr17!@cluster0.wjnoa.mongodb.net/cogbook?retryWrites=true&w=majority'
-S3_ACCESS_KEY_ID=AKIASIYWEVCUE6L65MNE
-S3_SECRET_ACCESS_KEY=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
