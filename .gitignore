@@ -7,8 +7,10 @@
 .env
 /.pnp
 .pnp.js
+/config
 dev.js
 prod.js
+key.js
 
 
 # testing
