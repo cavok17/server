@@ -23,6 +23,7 @@ const execute_regression =  async (book_id, regression_array) => {
 
     // 일단 데이터를 저장해야 하는데... 레벨 콘피그를 받고
     let level_config = await Level_config.findOne({book_id : book_id})
+    console.log(level_config instanceof Level_config)
     
     let body = {book_id, regression_array, level_config}
     fetch('https://n2e7kwpfb2.execute-api.ap-northeast-2.amazonaws.com/default/regression',{
@@ -31,14 +32,33 @@ const execute_regression =  async (book_id, regression_array) => {
         headers: { 'Content-Type': 'application/json' },
     })
     .then (res => res.json())
-    .then (json => {
-        console.log('json', json)
-        level_config = json
-        console.log('level_config--------------------------',level_config)
-        // level_config = await level_config.save()
-        console.log('level_config--------------------------',level_config)
+    .then (regression_result => {
+        console.log('regression_result', regression_result)
+        
+        level_config.retention_count_curve = regression_result.retention_count_curve
+        level_config.regression_result = regression_result.regression_result
+        level_config.retention = regression_result.retention
+        level_config.regression_data = regression_result.regression_data
+
+        console.log('진짜로?', level_config instanceof Level_config)
+        return level_config.save()
+        // console.log('level_config--------------------------',level_config)
+        // level_config = json
+        // console.log('level_config--------------------------',level_config)
+        // console.log(level_config instanceof Level_config)
+
+        // level_config = level_config.save()
+        // return level_config.save().exec()
+        // console.log('level_config--------------------------',level_config)
+        // return level_config
     })
-    console.log(level_config)
+    .then(save_result => {
+        console.log('잘 됐을 것이야')
+    })
+
+    console.log('완전 다 끝났음')
+
+
     return    
 }
 
