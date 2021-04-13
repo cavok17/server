@@ -4,6 +4,7 @@ const path = require('path')
 const multer = require('multer')
 const AWS = require('aws-sdk')
 const multerS3 = require('multer-s3')
+const config = require('../config/key')
 
 
 // 컨트롤러 경로
@@ -12,8 +13,10 @@ const { isLoggedIn, isNotLoggedIn} = require('./middlewares');
 const router = express.Router();
 
 AWS.config.update({
-    accessKeyId : process.env.S3_ACCESS_KEY_ID,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    // accessKeyId : process.env.S3_ACCESS_KEY_ID,
+    accessKeyId : config.S3_ACCESS_KEY_ID,
+    // secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    secretAccessKey: config.S3_SECRET_ACCESS_KEY,
     region: 'ap-northeast-2'
 })
 const upload = multer({

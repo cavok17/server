@@ -21,7 +21,8 @@ exports.upload_thumbnail = async (req, res) => {
     console.log("thumbnail을 등록합니다.");    
     console.log('이전파일명', req.body.prev_thumbnail);    
 
-    const url_original = decodeURIComponent(req.file.location.replace(/\+/g, " "))    
+    // const url_original = decodeURIComponent(req.file.location.replace(/\+/g, " "))    
+    const url_original = req.file.location.replace(/\+/g, " ")
     const url_large = url_original.replace(/\/original\//, '/large/')
     const url_medium = url_original.replace(/\/original\//, '/medium/')
     const url_small = url_original.replace(/\/original\//, '/small/')
