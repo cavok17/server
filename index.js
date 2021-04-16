@@ -13,11 +13,11 @@ const csrfProtection = csrf({cookie : true})
 
 const FileStore = require('session-file-store')(session);
 const path = require("path");
-const config = require('./config/key')
-
+// const config = require('./config/key')
 
 
 dotenv.config({ path: path.join(__dirname, '.env')});
+console.log(process.env.NODE_ENV, '모드로 시작합니다.')
 const app = express();
 // app.use(
 //   cors({
@@ -27,7 +27,6 @@ const app = express();
 app.use(cors());
 const passportConfig = require('./passport');
 passportConfig();
-
 
 
 if (process.env.NODE_ENV === 'production'){
@@ -44,17 +43,14 @@ console.log(__dirname)
 app.use('/thumbnail',  express.static(path.join(__dirname, 'uploads/thumbnail')));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-// app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(cookieParser(config.COOKIE_SECRET));
-
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // 프록시 서버를 쓴다면 아래 내용을 적어주는 게 좋다고 함
 
 const sessionOption = {
   resave : false,
   saveUninitialized : false,
-  // secret : process.env.COOKIE_SECRET,
-  secret : config.COOKIE_SECRET,
+  secret : process.env.COOKIE_SECRET,  
   cookie : {
     httpOnly : true,
     secure : false,
@@ -62,6 +58,7 @@ const sessionOption = {
   //   store : new FileStore(fileStoreOptions),
   store : new FileStore({logFn : function(){}}),
 }
+
 if (process.env.NODE_ENV === 'production'){
   sessionOption.proxy = true
   // https를 적용하면 secure를 true로 바꿔줘야함
@@ -98,8 +95,16 @@ app.use('/api/user', userRouter);
 app.use('/api/mentoring', mentoringRouter);
 app.use('/api/bookstore', bookstoreRouter);
 
-// const connect = mongoose.connect(process.env.mongoURI,{
-const connect = mongoose.connect(config.mongoURI,{
+let mongoURI
+if (process.env.NODE_ENV === 'production'){
+  mongoURI = process.env.prod_mongoURI  
+} else {
+  mongoURI = process.env.dev_mongoURI  
+}
+
+console.log(process.env.NODE_ENV) 
+console.log(mongoURI)
+const connect = mongoose.connect(mongoURI,{
     useNewUrlParser: true, 
     useUnifiedTopology: true,
     useCreateIndex: true, 
@@ -108,6 +113,8 @@ const connect = mongoose.connect(config.mongoURI,{
   .then(() => console.log('MongoDB Connected...'))
   .catch(err => console.log(err));
 
-const PORT = config.PORT;
+console.log('포트는', process.env.PORT)
+const PORT = process.env.PORT || 5000;
+  
 
-app.listen(PORT,() => console.log(`Server started on port ${PORT}`))
+  app.listen(PORT,() => console.log(`Server started on port ${PORT}`))

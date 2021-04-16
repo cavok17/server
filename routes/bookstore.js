@@ -4,7 +4,6 @@ const path = require('path')
 const multer = require('multer')
 const AWS = require('aws-sdk')
 const multerS3 = require('multer-s3')
-const config = require('../config/key')
 
 
 // 컨트롤러 경로
@@ -13,10 +12,8 @@ const { isLoggedIn, isNotLoggedIn} = require('./middlewares');
 const router = express.Router();
 
 AWS.config.update({
-    // accessKeyId : process.env.S3_ACCESS_KEY_ID,
-    accessKeyId : config.S3_ACCESS_KEY_ID,
-    // secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-    secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+    accessKeyId : process.env.S3_ACCESS_KEY_ID,    
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,    
     region: 'ap-northeast-2'
 })
 const upload = multer({
@@ -54,6 +51,15 @@ router.post('/create-sellbook', isLoggedIn, Bookstore_controller.create_sellbook
 
 // 책 판매를 요청합니다.
 router.post('/update-sellbook-info', isLoggedIn, Bookstore_controller.update_sellbook_info);
+
+// 책 정보를 받아옵니다.
+router.post('/get-book-info', isLoggedIn, Bookstore_controller.get_book_info);
+
+// 북코멘트를 등록합니다.
+router.post('/register-book-comment', isLoggedIn, Bookstore_controller.register_book_comment);
+
+// 북코멘트를 수정합니다.
+router.post('/update-book-comment', isLoggedIn, Bookstore_controller.update_book_comment);
 
 // 책 판매를 요청합니다.
 router.post('/req-book-sell', isLoggedIn, Bookstore_controller.req_book_sell);

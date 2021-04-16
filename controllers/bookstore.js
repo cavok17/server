@@ -12,14 +12,12 @@ const Cardtype = require('../models/cardtype');
 const Candibook = require('../models/candibook');
 const Sellbook = require('../models/sellbook');
 const Contents_tong = require('../models/contents_tong');
-const category = require("../models/category");
-const sellbook = require("../models/sellbook");
-
+const Book_comment = require("../models/book_comment");
 
 
 exports.upload_thumbnail = async (req, res) => {
-    console.log("thumbnail을 등록합니다.");    
-    console.log('이전파일명', req.body.prev_thumbnail);    
+    console.log("thumbnail을 등록합니다.");
+    console.log('이전파일명', req.body.prev_thumbnail);
 
     // const url_original = decodeURIComponent(req.file.location.replace(/\+/g, " "))    
     const url_original = req.file.location.replace(/\+/g, " ")
@@ -29,8 +27,8 @@ exports.upload_thumbnail = async (req, res) => {
 
     console.log(url_original)
     console.log(url_large)
-    
-    res.json({url_original, url_large, url_medium, url_small })
+
+    res.json({ url_original, url_large, url_medium, url_small })
 }
 
 exports.create_sellbook = async (req, res) => {
@@ -56,6 +54,65 @@ exports.update_sellbook_info = async (req, res) => {
         { book_info: req.body.book_info })
 
     res.json({ isloggedIn: true, msg: "잘됐음" });
+}
+
+// 책 정보를 받아옵니다.
+exports.get_book_info = async (req, res) => {
+    console.log("책 정보를 받아옵니다.");
+    console.log(req.body);
+
+    Promise.all([
+        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),
+        Book_comment.aggregate([
+            { $match: { _id: req.body.sellbook_id, root_id: null } },
+            {
+                $lookup: {
+                    from: 'book_comment',
+                    localField: '_id',
+                    foreignField: 'root_id',
+                    as: 'children'
+                }
+            }
+        ]),
+        Book_comment.aggregate([
+            { $match: { _id: req.body.sellbook_id, root_id: null } },
+            {
+                $group : {_id : "$rating", count : {$sum:1}}
+            }
+        ])
+    ])
+    .then(([sellbook, book_comment, rating]) => {
+        res.json({isloggedIn: true, sellbook, book_comment, rating});
+    })
+    .catch((err) => {
+        console.log('err: ', err);
+        return res.json(err);
+    });
+}
+
+// 북코멘트를 등록합니다.
+exports.register_book_comment = async (req, res) => {
+    console.log("북코멘트를 등록합니다.");
+    console.log(req.body);
+
+    let book_comment = new Book_comment()
+    book_comment = req.body.Book_comment
+    await book_comment.save()
+
+    res.json({isloggedIn: true,msg : '잘 왔음'})
+}
+
+// 북코멘트를 수정합니다.
+exports.update_book_comment = async (req, res) => {
+    console.log("북코멘트를 수정합니다.");
+    console.log(req.body);
+
+    await book_comment.replaceOne(
+        {_id : req.body.book_comment._id},
+        {...req.body.book_comment}
+    )
+
+    res.json({isloggedIn: true,msg : '잘 왔음'})
 }
 
 
@@ -274,7 +331,11 @@ exports.add_sellbook_to_mybook = async (req, res) => {
 }
 
 
+//북 서평을 추가합니다.
+exports.add_review = async (req, res) => {
 
+
+}
 
 
 
