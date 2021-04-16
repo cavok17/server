@@ -96,8 +96,9 @@ exports.register_book_comment = async (req, res) => {
     console.log(req.body);
 
     let book_comment = new Book_comment()
-    book_comment = req.body.Book_comment
     book_comment.user_id = req.session.passport.user
+    book_comment.book_id = req.body.sellbook_id
+    book_comment.content = req.body.content
     await book_comment.save()
 
     res.json({isloggedIn: true,msg : '잘 왔음'})
