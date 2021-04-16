@@ -12,7 +12,7 @@ const book_comment_schema = new mongoose.Schema({
     isDeleted: { type: String, default: 'no' }, //yet,no
         
     time_created: { type: Date, default: Date.now },
-    rating: { type: Number, default : 'null'},
+    rating: { type: Number, default : 1},
     content: {type : String},
     // 좋아요 또는 추천~
 });

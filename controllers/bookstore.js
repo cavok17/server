@@ -98,6 +98,11 @@ exports.register_book_comment = async (req, res) => {
     let book_comment = new Book_comment()
     book_comment.user_id = req.session.passport.user
     book_comment.book_id = req.body.sellbook_id
+    book_comment.root_id = req.body.root_id
+    book_comment.parent_id = req.body.parent_id
+    book_comment.level = req.body.level
+    book_comment.isDeleted = req.body.isDeleted
+    book_comment.rating = req.body.rating
     book_comment.content = req.body.content
     await book_comment.save()
 
