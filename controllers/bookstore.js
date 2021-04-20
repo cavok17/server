@@ -64,7 +64,7 @@ exports.get_book_info = async (req, res) => {
     Promise.all([
         Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),
         Book_comment.aggregate([
-            { $match: { _id: req.body.sellbook_id, level: 1 } },
+            { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },
             { $sort: { time_created: 1 } },
             {
                 $lookup: {
@@ -83,7 +83,7 @@ exports.get_book_info = async (req, res) => {
             },
         ]),
         Book_comment.aggregate([
-            { $match: { _id: req.body.sellbook_id, root_id: null } },
+            { $match: { sellbook_id: req.body.sellbook_id, root_id: null } },
             {
                 $group: { _id: "$rating", count: { $sum: 1 } }
             }
