@@ -63,7 +63,7 @@ exports.get_book_info = async (req, res) => {
 
     Promise.all([
         Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),
-        Book_comment.find({ _id: req.body.sellbook_id }),
+        Book_comment.find({ sell_id: req.body.sellbook_id }),
         // Book_comment.aggregate([
         //     { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },
         //     { $sort: { time_created: 1 } },
