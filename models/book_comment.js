@@ -3,10 +3,13 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const book_comment_schema = new mongoose.Schema({
     user_id: { type: String, ref: 'User' },
-    book_id: { type: mongoose.ObjectId, ref: 'Book' },
+    // book_id: { type: mongoose.ObjectId, ref: 'Book' },
+    book_id: { type: String },
 
-    root_id: { type: mongoose.ObjectId, ref: 'Comment' },
-    parent_id: { type: mongoose.ObjectId, ref: 'Comment' },
+    // root_id: { type: mongoose.ObjectId, ref: 'Comment' },
+    root_id: { type: String },
+    // parent_id: { type: mongoose.ObjectId, ref: 'Comment' },
+    parent_id: { type: String },
     level: { type: Number, default: 1 },
 
     isDeleted: { type: String, default: 'no' }, //yet,no
