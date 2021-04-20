@@ -64,25 +64,33 @@ exports.get_book_info = async (req, res) => {
     Promise.all([
         Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),
         Book_comment.aggregate([
-            { $match: { _id: req.body.sellbook_id, root_id: null } },
+            { $match: { _id: req.body.sellbook_id, level: 1 } },
+            { $sort: { time_created: 1 } },
             {
                 $lookup: {
-                    from: 'book_comment',
-                    localField: '_id',
-                    foreignField: 'root_id',
-                    as: 'children'
-                }
-            }
+                    from: 'book_comments',
+                    let: { tmp_id: '$tmp_id', },
+                    pipeline: [
+                        {
+                            $match: { $expr: { $eq: ['$root_id', '$$tmp_id'] } }
+                        },
+                        {
+                            $sort: { 'time_created': 1 }
+                        }
+                    ],
+                    as: 'children',
+                },
+            },
         ]),
         Book_comment.aggregate([
             { $match: { _id: req.body.sellbook_id, root_id: null } },
             {
-                $group : {_id : "$rating", count : {$sum:1}}
+                $group: { _id: "$rating", count: { $sum: 1 } }
             }
         ])
     ])
     .then(([sellbook, book_comment, rating]) => {
-        res.json({isloggedIn: true, sellbook, book_comment, rating});
+        res.json({ isloggedIn: true, sellbook, book_comment, rating });
     })
     .catch((err) => {
         console.log('err: ', err);
@@ -106,7 +114,7 @@ exports.register_book_comment = async (req, res) => {
     book_comment.content = req.body.content
     await book_comment.save()
 
-    res.json({isloggedIn: true,msg : '잘 왔음'})
+    res.json({ isloggedIn: true, msg: '잘 왔음' })
 }
 
 // 북코멘트를 수정합니다.
@@ -115,11 +123,11 @@ exports.update_book_comment = async (req, res) => {
     console.log(req.body);
 
     await book_comment.replaceOne(
-        {_id : req.body.book_comment._id},
-        {...req.body.book_comment}
+        { _id: req.body.book_comment._id },
+        { ...req.body.book_comment }
     )
 
-    res.json({isloggedIn: true,msg : '잘 왔음'})
+    res.json({ isloggedIn: true, msg: '잘 왔음' })
 }
 
 
