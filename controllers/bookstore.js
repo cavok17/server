@@ -61,36 +61,40 @@ exports.get_book_info = async (req, res) => {
     console.log("책 정보를 받아옵니다.");
     console.log(req.body);
 
+    req.body.sellbook_id = mongoose.Types.ObjectId(req.body.sellbook_id)
+
     Promise.all([
-        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),
-        Book_comment.find({ sellbook_id: req.body.sellbook_id }),
-        // Book_comment.aggregate([
-        //     { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },
-        //     { $sort: { time_created: 1 } },
-        //     {
-        //         $lookup: {
-        //             from: 'book_comments',
-        //             let: { tmp_id: '$tmp_id', },
-        //             pipeline: [
-        //                 {
-        //                     $match: { $expr: { $eq: ['$root_id', '$$tmp_id'] } }
-        //                 },
-        //                 {
-        //                     $sort: { 'time_created': 1 }
-        //                 }
-        //             ],
-        //             as: 'children',
-        //         },
-        //     },
-        // ]),
+        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),        
         Book_comment.aggregate([
-            { $match: { sellbook_id: req.body.sellbook_id, root_id: null } },
+            { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },            
+            { $sort: { time_created: 1 } },
+            {
+                $lookup: {
+                    from: 'book_comments',
+                    let: { tmp_id: '$tmp_id', },
+                    pipeline: [
+                        {
+                            $match: { $expr: { $eq: ['$root_id', '$$tmp_id'] } }
+                        },
+                        {
+                            $sort: { 'time_created': 1 }
+                        }
+                    ],
+                    as: 'children',
+                },
+            },
+        ]),
+        Book_comment.aggregate([
+            { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },
             {
                 $group: { _id: "$rating", count: { $sum: 1 } }
             }
         ])
     ])
     .then(([sellbook, book_comment, rating]) => {
+        // console.log('sellbook', sellbook)
+        console.log('book_comment', book_comment)
+        console.log('rating', rating)
         res.json({ isloggedIn: true, sellbook, book_comment, rating });
     })
     .catch((err) => {

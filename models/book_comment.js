@@ -3,8 +3,7 @@ const mongoose = require("mongoose");
 // 스키마 객체를 생성
 const book_comment_schema = new mongoose.Schema({
     user_id: { type: String, ref: 'User' },
-    sellbook_id: { type: mongoose.ObjectId, ref: 'Book' },
-    // sellbook_id: { type: String },
+    sellbook_id: { type: mongoose.ObjectId, ref: 'Book' },    
 
     // root_id: { type: mongoose.ObjectId, ref: 'Comment' },
     root_id: { type: String },
