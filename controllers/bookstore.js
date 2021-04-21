@@ -106,7 +106,9 @@ exports.get_book_info = async (req, res) => {
 // 북코멘트를 등록합니다.
 exports.register_book_comment = async (req, res) => {
     console.log("북코멘트를 등록합니다.");
-    console.log(req.body);
+    console.log('body', req.body);
+
+    req.body.sellbook_id = mongoose.Types.ObjectId(req.body.sellbook_id)
 
     let book_comment = new Book_comment()
     book_comment.user_id = req.session.passport.user
@@ -117,7 +119,8 @@ exports.register_book_comment = async (req, res) => {
     book_comment.isDeleted = req.body.isDeleted
     book_comment.rating = req.body.rating
     book_comment.content = req.body.content
-    await book_comment.save()
+    book_comment = await book_comment.save()
+    console.log(book_comment)
 
     Promise.all([
         Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),        
