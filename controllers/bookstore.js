@@ -72,11 +72,11 @@ exports.get_book_info = async (req, res) => {
             {
                 $lookup: {
                     from: 'book_comments',
-                    let: { _id: '$_id', },
+                    let: { tmp_id: '$_id', },
                     // let: { tmp_id: {$toObjectId : '$tmp_id' }},
                     pipeline: [
                         {
-                            $match: { $expr: { $eq: ['$root_id', '$$_id'] } }
+                            $match: { $expr: { $eq: ['$root_id', '$$tmp_id'] } }
                         },
                         {
                             $sort: { 'time_created': 1 }
