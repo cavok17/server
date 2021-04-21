@@ -87,7 +87,7 @@ exports.get_book_info = async (req, res) => {
         Book_comment.aggregate([
             { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },
             {
-                $group: { rating: "$rating", count: { $sum: 1 } }
+                $group: { _id: "$rating", count: { $sum: 1 } }
             }
         ])
     ])
