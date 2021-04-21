@@ -68,14 +68,15 @@ exports.get_book_info = async (req, res) => {
         Book_comment.aggregate([
             { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },            
             { $sort: { time_created: 1 } },
+            // {$addFields : { converted_tmp_id : {input : }}
             {
                 $lookup: {
                     from: 'book_comments',
-                    // let: { tmp_id: '$tmp_id', },
-                    let: { tmp_id: {$toObjectId : '$tmp_id' }},
+                    let: { _id: '$_id', },
+                    // let: { tmp_id: {$toObjectId : '$tmp_id' }},
                     pipeline: [
                         {
-                            $match: { $expr: { $eq: ['$root_id', '$$tmp_id'] } }
+                            $match: { $expr: { $eq: ['$root_id', '$$_id'] } }
                         },
                         {
                             $sort: { 'time_created': 1 }
