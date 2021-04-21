@@ -67,13 +67,11 @@ exports.get_book_info = async (req, res) => {
         Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),        
         Book_comment.aggregate([
             { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },            
-            { $sort: { time_created: 1 } },
-            // {$addFields : { converted_tmp_id : {input : }}
+            { $sort: { time_created: 1 } },            
             {
                 $lookup: {
                     from: 'book_comments',
-                    let: { tmp_id: '$_id', },
-                    // let: { tmp_id: {$toObjectId : '$tmp_id' }},
+                    let: { tmp_id: '$_id', },                    
                     pipeline: [
                         {
                             $match: { $expr: { $eq: ['$root_id', '$$tmp_id'] } }
@@ -89,7 +87,7 @@ exports.get_book_info = async (req, res) => {
         Book_comment.aggregate([
             { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },
             {
-                $group: { _id: "$rating", count: { $sum: 1 } }
+                $group: { rating: "$rating", count: { $sum: 1 } }
             }
         ])
     ])
@@ -121,7 +119,48 @@ exports.register_book_comment = async (req, res) => {
     book_comment.content = req.body.content
     await book_comment.save()
 
-    res.json({ isloggedIn: true, msg: '잘 왔음' })
+    Promise.all([
+        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),        
+        Book_comment.aggregate([
+            { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },            
+            { $sort: { time_created: 1 } },            
+            {
+                $lookup: {
+                    from: 'book_comments',
+                    let: { tmp_id: '$_id', },                    
+                    pipeline: [
+                        {
+                            $match: { $expr: { $eq: ['$root_id', '$$tmp_id'] } }
+                        },
+                        {
+                            $sort: { 'time_created': 1 }
+                        }
+                    ],
+                    as: 'children',
+                },
+            },
+        ]),
+        Book_comment.aggregate([
+            { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },
+            {
+                $group: { rating: "$rating", count: { $sum: 1 } }
+            }
+        ])
+    ])
+    .then(([sellbook, book_comment, rating]) => {
+        // console.log('sellbook', sellbook)
+        console.log('book_comment', book_comment)
+        console.log('rating', rating)
+        res.json({ isloggedIn: true, sellbook, book_comment, rating });
+    })
+    .catch((err) => {
+        console.log('err: ', err);
+        return res.json(err);
+    });
+
+
+
+    // res.json({ isloggedIn: true, msg: '잘 왔음' })
 }
 
 // 북코멘트를 수정합니다.
