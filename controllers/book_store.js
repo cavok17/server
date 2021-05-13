@@ -64,7 +64,8 @@ exports.get_book_info = async (req, res) => {
     req.body.sellbook_id = mongoose.Types.ObjectId(req.body.sellbook_id)
 
     Promise.all([
-        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),        
+        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),
+        User.findOne({user_id : req.session.passport.user}).select('cart'),
         Book_comment.aggregate([
             { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },            
             { $sort: { time_created: 1 } },            
@@ -91,11 +92,11 @@ exports.get_book_info = async (req, res) => {
             }
         ])
     ])
-    .then(([sellbook, book_comment, rating]) => {
+    .then(([sellbook, user, book_comment, rating]) => {
         // console.log('sellbook', sellbook)
         console.log('book_comment', book_comment)
         console.log('rating', rating)
-        res.json({ isloggedIn: true, sellbook, book_comment, rating });
+        res.json({ isloggedIn: true, sellbook, user, book_comment, rating });
     })
     .catch((err) => {
         console.log('err: ', err);

@@ -54,6 +54,12 @@ router.post('/create-sellbook', isLoggedIn, Bookstore_controller.create_sellbook
 // 책 판매를 요청합니다.
 router.post('/update-sellbook-info', isLoggedIn, Bookstore_controller.update_sellbook_info);
 
+
+
+
+// 책 판매를 허가합니다.
+router.get('/get-sellbooklist', Bookstore_controller.get_sellbooklist);
+
 // 책 정보를 받아옵니다.
 router.post('/get-book-info', isLoggedIn, Bookstore_controller.get_book_info);
 
@@ -76,8 +82,8 @@ router.post('/delete-book-comment', isLoggedIn, Bookcomment_controller.delete_bo
 // 북카트 정보를 가져옵니다.
 router.post('/get-book-cart', isLoggedIn, Bookcart_controller.get_book_cart);
 
-// 북카트를 생성합니다.
-router.post('/create-book-cart', isLoggedIn, Bookcart_controller.create_book_cart);
+// // 북카트를 생성합니다.
+// router.post('/create-book-cart', isLoggedIn, Bookcart_controller.create_book_cart);
 
 // 북카트를 수정합니다.
 router.post('/update-book-cart', isLoggedIn, Bookcart_controller.update_book_cart);
@@ -100,8 +106,7 @@ router.get('/show-candibooklist', isLoggedIn, Bookstore_controller.show_candiboo
 // 책 판매를 허가합니다.
 router.post('/permit-book-sell', Bookstore_controller.permit_book_sell);
 
-// 책 판매를 허가합니다.
-router.get('/get-sellbooklist', Bookstore_controller.get_sellbooklist);
+
 
 // 책 판매를 허가합니다.
 router.post('/add-sellbook-to-mybook', Bookstore_controller.add_sellbook_to_mybook);
