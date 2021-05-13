@@ -7,7 +7,9 @@ const multerS3 = require('multer-s3')
 
 
 // 컨트롤러 경로
-const Bookstore_controller = require('../controllers/bookstore');
+const Bookstore_controller = require('../controllers/book_store');
+const Bookcomment_controller = require('../controllers/book_comment');
+const Bookcart_controller = require('../controllers/book_cart');
 const { isLoggedIn, isNotLoggedIn} = require('./middlewares');
 const router = express.Router();
 
@@ -55,11 +57,37 @@ router.post('/update-sellbook-info', isLoggedIn, Bookstore_controller.update_sel
 // 책 정보를 받아옵니다.
 router.post('/get-book-info', isLoggedIn, Bookstore_controller.get_book_info);
 
-// 북코멘트를 등록합니다.
-router.post('/register-book-comment', isLoggedIn, Bookstore_controller.register_book_comment);
+
+
+//-------------------------------------------------------------------------------
+// // 북코멘트를 가져옵니다.
+// router.post('/get-book-comment', isLoggedIn, Bookstore_controller.get_book_comment);
+
+// 북코멘트를 생성합니다.
+router.post('/create-book-comment', isLoggedIn, Bookcomment_controller.create_book_comment);
 
 // 북코멘트를 수정합니다.
-router.post('/update-book-comment', isLoggedIn, Bookstore_controller.update_book_comment);
+router.post('/update-book-comment', isLoggedIn, Bookcomment_controller.update_book_comment);
+
+// 북코멘트를 삭제합니다.
+router.post('/delete-book-comment', isLoggedIn, Bookcomment_controller.delete_book_comment);
+
+//-------------------------------------------------------------------------------
+// 북카트 정보를 가져옵니다.
+router.post('/get-book-cart', isLoggedIn, Bookcart_controller.get_book_cart);
+
+// 북카트를 생성합니다.
+router.post('/create-book-cart', isLoggedIn, Bookcart_controller.create_book_cart);
+
+// 북카트를 수정합니다.
+router.post('/update-book-cart', isLoggedIn, Bookcart_controller.update_book_cart);
+
+// // 북카트를 삭제합니다.
+// router.post('/delete-book-cart', isLoggedIn, Bookcart_controller.delete_book_cart);
+
+//-------------------------------------------------------------------------------
+
+
 
 // 책 판매를 요청합니다.
 router.post('/req-book-sell', isLoggedIn, Bookstore_controller.req_book_sell);

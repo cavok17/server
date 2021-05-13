@@ -28,6 +28,8 @@ const userschema = new mongoose.Schema({
         likebook : {type : Boolean, default : true},
         hide_or_show : {type : Boolean, default : true}
     },
+    cart : [{type:mongoose.ObjectId, ref:'Sellbook'}],
+    // cart : {type:String},
     study_config : {
         study_mode : {type : String, default : 'read_mode'},
         read_mode : {            
