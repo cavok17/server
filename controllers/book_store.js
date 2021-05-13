@@ -64,8 +64,7 @@ exports.get_book_info = async (req, res) => {
     req.body.sellbook_id = mongoose.Types.ObjectId(req.body.sellbook_id)
 
     Promise.all([
-        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),
-        User.findOne({user_id : req.session.passport.user}).select('cart'),
+        Sellbook.findOne({ _id: req.body.sellbook_id }).select('book_info'),        
         Book_comment.aggregate([
             { $match: { sellbook_id: req.body.sellbook_id, level: 1 } },            
             { $sort: { time_created: 1 } },            
@@ -92,11 +91,11 @@ exports.get_book_info = async (req, res) => {
             }
         ])
     ])
-    .then(([sellbook, user, book_comment, rating]) => {
+    .then(([sellbook, book_comment, rating]) => {
         // console.log('sellbook', sellbook)
         console.log('book_comment', book_comment)
         console.log('rating', rating)
-        res.json({ isloggedIn: true, sellbook, user, book_comment, rating });
+        res.json({ isloggedIn: true, sellbook, book_comment, rating });
     })
     .catch((err) => {
         console.log('err: ', err);
@@ -111,10 +110,17 @@ exports.get_book_info = async (req, res) => {
 exports.get_sellbooklist = async (req, res) => {
     console.log('북스토어의 책 리스트를 보여줍니다.')
 
-    let sellbooklist = await Sellbook.find({})
-        .select('book_info')
-
-    res.json({ isloggedIn: true, sellbooklist, });
+    Promise.all([
+        Sellbook.find({}).select('book_info'),
+        User.findOne({user_id : req.session.passport.user}).select('cart'),
+    ])
+    .then(([sellbooklist, user]) => {
+        res.json({ isloggedIn: true, sellbooklist, user });
+    })
+    .catch((err) => {
+        console.log('err: ', err);
+        return res.json(err);
+    });
 }
 
 // 책 판매를 요청합니다..
