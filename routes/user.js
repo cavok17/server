@@ -47,7 +47,7 @@ router.post('/register', isNotLoggedIn, async (req, res, next) => {
 
 router.post('/login', isNotLoggedIn, (req, res, next) => {
   passport.authenticate('local', (authError, user, info) => {
-    console.log(req.body)
+    // console.log(req.body)
     console.log('4_req.login', user);
     if (authError) {
       console.error('authError', authError);

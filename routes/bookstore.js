@@ -106,10 +106,4 @@ router.get('/show-candibooklist', isLoggedIn, Bookstore_controller.show_candiboo
 // 책 판매를 허가합니다.
 router.post('/permit-book-sell', Bookstore_controller.permit_book_sell);
 
-
-
-// 책 판매를 허가합니다.
-router.post('/add-sellbook-to-mybook', Bookstore_controller.add_sellbook_to_mybook);
-
-
 module.exports = router;
