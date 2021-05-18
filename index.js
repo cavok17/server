@@ -115,6 +115,11 @@ const connect = mongoose.connect(mongoURI,{
 
 console.log('포트는', process.env.PORT)
 const PORT = process.env.PORT || 5000;
+
+app.use((err, req, res, next)=>{
+  console.error(err)
+  res.status(200).send('에러났습니다. 윤상일을 불러주세요~')
+})
   
 
   app.listen(PORT,() => console.log(`Server started on port ${PORT}`))

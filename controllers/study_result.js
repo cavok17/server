@@ -101,6 +101,7 @@ exports.create_studyresult= async (req, res) => {
     }
 
     // 세션에서 전체 카드리스트 스터디드를 받아와서 미반영분만 발라낸다.
+    // 이어하기를 하면 스터디드에 기반영된 놈이 섞여있게 됨.
     let session = await Session
         .findOne({_id : req.body.session_id})
         .select('cardlist_studied')
@@ -108,6 +109,7 @@ exports.create_studyresult= async (req, res) => {
     let cardlist_studied = session.cardlist_studied.filter((cardlist) => cardlist.result_include_yeobu === 'no')
 
     // 임시로 저장을 좀 허자
+    // 저장을 지금헐지 나중에 할 지 생각해봅시다.
     await session.save()
 
 
@@ -140,22 +142,16 @@ exports.create_studyresult= async (req, res) => {
     // 책 및 날짜 단위로 데이터를 추출하여 저장함
     for (book_id of book_ids){        
         for (select_date of select_dates){   
+            
             for (i=0; i<cardlist_studied.length; i++){
                 // book_id 및 날짜가 일치하는 데이터만 집계한다.
                 if (cardlist_studied[i].book_id == book_id && cardlist_studied[i].detail_status.recent_select_date == select_date ){                                
-                    // 클릭 횟수를 집계한다.
-                    single_result.num_click.total +=1
-                    single_result.stay_hour.total += cardlist_studied[i].detail_status.recent_stay_hour                    
-                    single_result.num_click[cardlist_studied[i].detail_status.recent_selection] +=1
-                    single_result.stay_hour[cardlist_studied[i].detail_status.recent_selection] += cardlist_studied[i].detail_status.recent_stay_hour
-                    // if(['short', 'long', 'know', 'pass', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
-                    // }
-                    
-                    // status 변화를 집계한다. 포머 상태와 현재 상태가 다른 경우만
-                    if (cardlist_studied[i].former_status != cardlist_studied[i].status){
-                        single_result.num_cards.status_change[cardlist_studied[i].former_status].minus -= 1
-                        single_result.num_cards.status_change[cardlist_studied[i].status].plus += 1
+                    // 시작 시각과 종료 시각을 기록한다.
+                    if (single_result.time.start == 0) {
+                        single_result.time.start = cardlist_studied[i].detail_status.recent_select_time                        
                     }
+                    single_result.time.finish = cardlist_studied[i].detail_status.recent_select_time
+
                     // 학습 시작된 카드를 집계한다. 선택-투입-시작-완료(탈출, 패스, 완료전환, 보류전환)
                     if (cardlist_studied[i].detail_status.session_study_times === 1){                        
                         single_result.num_cards.started[cardlist_studied[i].original_status]+= 1
@@ -172,6 +168,36 @@ exports.create_studyresult= async (req, res) => {
                             single_result.num_cards.finished.ing -= 1
                         }                    
                     }
+                    
+                    // 클릭 횟수 및 체류 시간을 집계한다.
+                    single_result.num_click.total +=1
+                    single_result.stay_hour.total += cardlist_studied[i].detail_status.recent_stay_hour                    
+                    single_result.num_click[cardlist_studied[i].detail_status.recent_selection] +=1
+                    single_result.stay_hour[cardlist_studied[i].detail_status.recent_selection] += cardlist_studied[i].detail_status.recent_stay_hour
+                    // if(['short', 'long', 'know', 'pass', 'hold', 'completed'].includes(cardlist_studied[i].detail_status.recent_selection)){
+                    // }
+
+                    // 레벨 변동을 집계한다.
+                    if (cardlist_studied[i].detail_status.recent_selection == 'know'){
+                        // 레벨 상승
+                        if (cardlist_studied[i].detail_status.level - cardlist_studied[i].detail_status.original_level > 0) {
+                            single_result.level_change.plus.count += 1
+                            single_result.level_change.plus.amount += cardlist_studied[i].detail_status.level - cardlist_studied[i].detail_status.original_level
+                        // 레벨 하락
+                        } else {
+                            single_result.level_change.minus.count += 1
+                            single_result.level_change.minus.amount += cardlist_studied[i].detail_status.level - cardlist_studied[i].detail_status.original_level
+                        }
+                    }
+
+
+
+                    // status 변화를 집계한다. 포머 상태와 현재 상태가 다른 경우만
+                    if (cardlist_studied[i].former_status != cardlist_studied[i].status){
+                        single_result.num_cards.status_change[cardlist_studied[i].former_status].minus -= 1
+                        single_result.num_cards.status_change[cardlist_studied[i].status].plus += 1
+                    }
+                    
 
                     // 레벨 변화도 집계하고
                     if (cardlist_studied[i].detail_status.recent_selection === 'know'||cardlist_studied[i].detail_status.recent_selection === 'completed'){                    

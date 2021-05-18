@@ -28,6 +28,7 @@ const cardlist_object = {
         need_study_time: {type : Date, default : null},
         need_study_time_tmp: {type : Date, default : null},
 
+        session_click_times : {type : Number, default : 0},
         session_study_times : {type : Number, default : 0},
         current_lev_study_times : {type : Number, default : null},
         current_lev_accu_study_time : {type : Number, default : null},    
@@ -39,7 +40,7 @@ const cardlist_object = {
         studytimes_for_regression : {type : Number, default : null},
         
         level : {type : Number, default : null},
-        former_level : {type : Number, default : 0},
+        original_level : {type : Number, default : 0},
     },    
 }
 

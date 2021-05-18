@@ -10,6 +10,7 @@ const multerS3 = require('multer-s3')
 const Bookstore_controller = require('../controllers/book_store');
 const Bookcomment_controller = require('../controllers/book_comment');
 const Bookcart_controller = require('../controllers/book_cart');
+const Payment_controller = require('../controllers/payment');
 const { isLoggedIn, isNotLoggedIn} = require('./middlewares');
 const router = express.Router();
 
@@ -94,16 +95,14 @@ router.post('/update-book-cart', isLoggedIn, Bookcart_controller.update_book_car
 //-------------------------------------------------------------------------------
 
 
+// 결제 정보를 생성합니다.
+router.post('/create-payment',isLoggedIn, Payment_controller.create_payment);
 
-// 책 판매를 요청합니다.
-router.post('/req-book-sell', isLoggedIn, Bookstore_controller.req_book_sell);
+// 결제 정보를 가져옵니다.
+router.post('/get-payment',isLoggedIn, Payment_controller.get_payment);
 
+// 책 구매 정보를 가져옵니다.
+router.post('/get-purchase-book',isLoggedIn, Payment_controller.get_purchase_book);
 
-
-// 책 판매를 요청합니다.
-router.get('/show-candibooklist', isLoggedIn, Bookstore_controller.show_candibooklist);
-
-// 책 판매를 허가합니다.
-router.post('/permit-book-sell', Bookstore_controller.permit_book_sell);
 
 module.exports = router;

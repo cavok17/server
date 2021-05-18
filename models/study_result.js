@@ -5,6 +5,20 @@ const study_result_schema = new mongoose.Schema({
     session_id : {type:mongoose.ObjectId, ref:'Session'},
     book_id : {type:mongoose.ObjectId, ref:'Book'},
     study_date : {type : String, default : 0},
+    time : {
+        start :{type : Date, default : 0},
+        finish : {type : Date, default : 0},
+    },
+    level_change : {
+        plus : {
+            count : {type : Number, default : 0},
+            amount : {type : Number, default : 0},
+        },
+        minus : {
+            count : {type : Number, default : 0},
+            amount : {type : Number, default : 0},
+        },
+    },
     num_cards : {
         status_change :  {
             // total : {
@@ -79,7 +93,7 @@ const study_result_schema = new mongoose.Schema({
         move : {type : Number, default : 0},
         finish : {type : Number, default : 0},
     },     
-    level_change : {type : Number, default : 0},
+    
 })
 
 module.exports = mongoose.model("Study_result", study_result_schema)
